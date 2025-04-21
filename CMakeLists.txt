@@ -3,7 +3,8 @@ project(AsteroidClion C)
 
 set(CMAKE_C_STANDARD 11)
 # Raylib paths
-set(RAYLIB_DIR "/raylib/src")
+#set(RAYLIB_DIR "/raylib/src") #linux
+set(RAYLIB_DIR "C:/raylib/raylib/src") #windows
 set(RAYLIB_LIB "${RAYLIB_DIR}/libraylib.a")
 include_directories("${RAYLIB_DIR}")
 
@@ -26,4 +27,4 @@ target_include_directories(AsteroidClion PRIVATE
 )
 #windows target_link_libraries(AsteroidClion PRIVATE raylib winmm gdi32 opengl32)
 #linux   target_link_libraries(AsteroidClion PRIVATE raylib m)
-target_link_libraries(AsteroidClion PRIVATE raylib m)
+target_link_libraries(AsteroidClion PRIVATE raylib winmm gdi32 opengl32)
