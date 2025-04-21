@@ -11,7 +11,6 @@
 
 #define TWHITE (Color){255,255,255,150}
 
-
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
 void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet);
@@ -26,6 +25,12 @@ void deleteBullet(Bullet *bullet, int index);
 
 void wrapAroundBullet(Bullet *bullets);
 
+void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid);
+
+void initializeAsteroidsArray(BigAsteroidArray **bigAstArr, MidAsteroidArray **midAstArr, SmlAsteroidArray **smlAstArr);
+
+
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -35,7 +40,12 @@ int main(void) {
     //--------------------------------------------------------------------------------------
     Player player;
     Bullet bullets[MAX_BULLETS];
-    BigAsteroid *bigAsteroid = calloc( 5, sizeof(BigAsteroid));
+
+    BigAsteroidArray *bigAstArr;
+    MidAsteroidArray *midAstArr;
+    SmlAsteroidArray *smlAstArr;;
+    initializeAsteroidsArray(&bigAstArr, &midAstArr, &smlAstArr);
+
     const float rotationSpeed = 230.0;
     bool isTitleMenu = true;
     bool hasDebugMode = false;
@@ -82,6 +92,8 @@ int main(void) {
 
         if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
 
+        //updateAsteroid(&bigAsteroid, &midAsteroid, &smlAsteroid);
+
         moveBullets(bullets);
         wrapAroundBullet(bullets);
         wraparoundPlayer(&player);
@@ -123,7 +135,10 @@ int main(void) {
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
-    free(bigAsteroid);
+    free(bigAstArr);
+    free(midAstArr);
+    free(smlAstArr);
+
 
     return 0;
 
@@ -222,5 +237,21 @@ void wrapAroundBullet(Bullet *bullets) {
         if (bullets[i].position.y > GetScreenHeight() + bullets[i].size.y) bullets[i].position.y = -bullets[i].size.y;
         if (bullets[i].position.x < -bullets[i].size.x) bullets[i].position.x = GetScreenWidth();
         if (bullets[i].position.y < -bullets[i].size.y) bullets[i].position.y = GetScreenHeight();
+    }
+}
+
+void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid) {
+    //condition de hit box genre s'il se situe entre les points des asteroides
+    //if ()
+}
+
+void initializeAsteroidsArray(BigAsteroidArray **bigAstArr, MidAsteroidArray **midAstArr, SmlAsteroidArray **smlAstArr) {
+    const short startBigAsteroids = 5;
+    *bigAstArr = calloc(startBigAsteroids, sizeof(BigAsteroidArray));
+    *midAstArr = calloc(0, sizeof(MidAsteroidArray));
+    *smlAstArr = calloc(0, sizeof(SmlAsteroidArray));
+
+    for (int i = 0; i < startBigAsteroids; i++) {
+        (*bigAstArr)[i].index = i;
     }
 }

@@ -34,8 +34,32 @@ typedef struct {
     float rotation;
 } BigAsteroid;
 
+typedef struct {
+    BigAsteroid *asteroid;
+    short index;
+}BigAsteroidArray;
+
+typedef struct {
+    MidAsteroid *asteroid;
+    short index;
+}MidAsteroidArray;
+
+typedef struct {
+    SmlAsteroid *asteroid;
+    short index;
+}SmlAsteroidArray;
+
+
 void randomPosition();
-void generateWave(BigAsteroid *asteroid, int waveNum);
-void createAsteroid(BigAsteroid asteroids);
+void generateWave(BigAsteroid **asteroid, int waveNum);
+void createBigAsteroid(BigAsteroid **asteroids);
+
+void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);
+void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);
+void smlAsteroidShot(SmlAsteroidArray **asteroid, short index);
+
+void createBigAsteroid(BigAsteroidArray **asteroids);
+void createMidAsteroid(MidAsteroidArray **asteroids);
+void createSmlAsteroid(SmlAsteroidArray **asteroids);
 
 #endif //ASTEROIDCLION_ASTEROIDS_H

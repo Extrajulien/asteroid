@@ -4,7 +4,7 @@
 
 #include "asteroids.h"
 
-void generateWave(BigAsteroid *asteroids, int waveNum) {
+void generateWave(BigAsteroid **asteroids, int waveNum) {
     int nbAsteroid = waveNum * 5 + 5;
 
     if (waveNum % 10 == 0 && waveNum != 0) {
@@ -12,7 +12,7 @@ void generateWave(BigAsteroid *asteroids, int waveNum) {
         return;
     }
     for (int i = 0; i < nbAsteroid; ++i) {
-        createAsteroid(*asteroids);
+        createBigAsteroid(asteroids);
     }
 
 }
@@ -22,6 +22,27 @@ void randomPosition() {
     GetScreenHeight();
 }
 
-void createAsteroid(BigAsteroid asteroids) {
+void createBigAsteroid(BigAsteroidArray **asteroids) {
+
+}
+
+void createMidAsteroid(MidAsteroidArray **asteroids) {
+
+}
+
+void createSmlAsteroid(SmlAsteroidArray **asteroids) {
+
+}
+
+void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index) {
+
+
+}
+
+void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index) {
+
+}
+
+void smlAsteroidShot(SmlAsteroidArray **asteroid, short index) {
 
 }
