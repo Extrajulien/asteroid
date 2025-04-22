@@ -5,6 +5,7 @@
 #ifndef ASTEROIDCLION_ASTEROIDS_H
 #define ASTEROIDCLION_ASTEROIDS_H
 #define ASTEROID_SPREAD 20.0
+#define WAVE_ASTEROID_AMNT 5
 
 #include "raylib.h"
 
@@ -51,8 +52,7 @@ typedef struct {
 
 
 void randomPosition();
-void generateWave(BigAsteroid **asteroid, int waveNum);
-void createBigAsteroid(BigAsteroid **asteroids);
+void generateWave(BigAsteroidArray **asteroid, int waveNum);
 
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);
 void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);

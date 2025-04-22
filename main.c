@@ -50,9 +50,12 @@ int main(void) {
     bool isTitleMenu = true;
     bool hasDebugMode = false;
     float howLongPressed = 0;//in seconds
-    //InitWindow(GetScreenWidth(), GetScreenHeight(), "Asteroid Julien Lamothe");//windows
+    //InitWindow(GetMonitorWidth(), GetMonitorHeight(), "Asteroid Julien Lamothe");//windows
     InitWindow(1600, 900, "Asteroid Julien Lamothe");//linux
     //ToggleBorderlessWindowed();
+
+    generateWave(&bigAstArr, 0);
+
     resetPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -126,7 +129,6 @@ int main(void) {
             titleMenu();
             ClearBackground(BLACK);
         }
-
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
