@@ -14,11 +14,7 @@ void generateWave(BigAsteroidArray **asteroids, int waveNum) {
         //big wave (+25)
         return;
     }
-
-    for (int i = 0; i < nbAsteroid; ++i) {
-        createBigAsteroid(asteroids);
-    }
-
+    createBigAsteroid(asteroids, nbAsteroid);
 }
 
 void randomPosition(BigAsteroid *asteroids) {
@@ -29,10 +25,30 @@ void randomPosition(BigAsteroid *asteroids) {
     asteroids -> position.y = pos.y;
 }
 
-void createBigAsteroid(BigAsteroidArray **asteroids) {
+void createBigAsteroid(BigAsteroidArray **asteroids, int nbAsteroid) {
     const float radius = 50;
     const float spread = 10;
-    *asteroids = realloc(*asteroids, WAVE_ASTEROID_AMNT * sizeof(BigAsteroidArray));
+    *asteroids = malloc(nbAsteroid * sizeof(BigAsteroidArray));
+    for (int i = 0; i < nbAsteroid; i++) {
+        float rotation = (rand() % 300) + 10;
+
+        asteroids[i] -> asteroid -> radius = radius;//init radius
+        randomPosition(asteroids[i] -> asteroid);//init pos
+        randomSpeed(asteroids[i] -> asteroid);//init speed
+        //init points
+        //init angle
+        asteroids[i] -> asteroid -> rotation = rotation;//init rotation
+    }
+    printf("malloc");
+
+}
+
+void randomSpeed(BigAsteroid *asteroids) {
+    Vector2 speed = {0,0};
+    speed.x = (rand() % MAX_ASTEROID_SPEED);
+    speed.y = (rand() % MAX_ASTEROID_SPEED);
+    asteroids -> speed.x = speed.x;
+    asteroids -> speed.y = speed.y;
 }
 
 void createMidAsteroid(MidAsteroidArray **asteroids) {
