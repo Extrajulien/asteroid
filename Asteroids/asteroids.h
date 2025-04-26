@@ -14,39 +14,40 @@
 
 #include "raylib.h"
 
-typedef struct {
-    Vector2 position;
-    Vector2 speed;
-    Vector2 points[SML_VERTICES];   //verticies
-    float radius;
-    float angle;
-    float rotation;
-    float spead;
-    float weight;                   //area of polygon
-    int score;//100pts
-} SmlAsteroid;
-typedef struct {
-    Vector2 position;
-    Vector2 speed;
-    Vector2 points[MID_VERTICES];   //verticies
-    float radius;
-    float angle;
-    float rotation;
-    float spead;
-    float weight;                   //area of polygon
-    int score;//50pts
-} MidAsteroid;
+typedef enum {
+    SMALL,
+    MEDIUM,
+    BIG
+} AsteroidType;
 
 typedef struct {
+    AsteroidType type;
     Vector2 position;
     Vector2 speed;
-    Vector2 points[BIG_VERTICES];   //verticies
     float radius;
     float angle;
     float rotation;
     float spead;
     float weight;                   //area of polygon
-    int score;//20pts
+    int score;
+} AsteroidBase;
+
+//100pts
+typedef struct {
+    AsteroidBase base;
+    Vector2 points[SML_VERTICES];   //verticies
+} SmlAsteroid;
+
+//50pts
+typedef struct {
+    AsteroidBase base;
+    Vector2 points[MID_VERTICES];   //verticies
+} MidAsteroid;
+
+//20pts
+typedef struct {
+    AsteroidBase base;
+    Vector2 points[BIG_VERTICES];   //verticies
 } BigAsteroid;
 
 typedef struct {
