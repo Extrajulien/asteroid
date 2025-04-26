@@ -27,7 +27,7 @@ typedef struct {
     Vector2 speed;
     float radius;
     float angle;
-    float rotation;
+    float rotation;                 //in radians
     float spread;
     float weight;                   //area of polygon
     int score;
@@ -36,19 +36,22 @@ typedef struct {
 //100pts
 typedef struct {
     AsteroidBase base;
-    Vector2 points[SML_VERTICES];   //verticies
+    Vector2 generatedPoints[SML_VERTICES];   //vertices unRotated
+    Vector2 points[SML_VERTICES];
 } SmlAsteroid;
 
 //50pts
 typedef struct {
     AsteroidBase base;
-    Vector2 points[MID_VERTICES];   //verticies
+    Vector2 generatedPoints[MID_VERTICES];   //vertices unRotated
+    Vector2 points[MID_VERTICES];
 } MidAsteroid;
 
 //20pts
 typedef struct {
     AsteroidBase base;
-    Vector2 points[BIG_VERTICES];   //verticies
+    Vector2 generatedPoints[BIG_VERTICES];   //vertices unRotated
+    Vector2 points[BIG_VERTICES];
 } BigAsteroid;
 
 typedef struct {
@@ -58,6 +61,8 @@ typedef struct {
 
 void moveAsteroids(AsteroidArray *asteroidArr);
 void wrapAroundAsteroid(AsteroidArray *asteroidArr);
+void rotateAsteroid(AsteroidArray *asteroidArr);
+void rotateAsteroidVertices(void *asteroid);
 
 void randomPosition(AsteroidBase *asteroids);
 void generateWave(AsteroidArray *asteroid, int waveNum);

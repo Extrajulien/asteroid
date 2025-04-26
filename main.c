@@ -102,6 +102,9 @@ int main(void) {
         wrapAroundAsteroid(&bigAstArr);
         wrapAroundAsteroid(&midAstArr);
         wrapAroundAsteroid(&smlAstArr);
+        rotateAsteroid(&bigAstArr);
+        rotateAsteroid(&midAstArr);
+        rotateAsteroid(&smlAstArr);
         setPlayerBorders(&player);
         // Draw
         //----------------------------------------------------------------------------------
