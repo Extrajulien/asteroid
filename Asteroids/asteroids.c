@@ -14,6 +14,30 @@
 // - implementer les AsteroidArray correctement
 // -
 
+void moveAsteroids(AsteroidArray *asteroidArr) {
+    if (asteroidArr->size == 0) {return;}
+    for (int i = 0; i < asteroidArr->size; i++) {
+        ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.x +=
+            ((SmlAsteroid*)asteroidArr->asteroid[i])->base.speed.x;
+        ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.y +=
+            ((SmlAsteroid*)asteroidArr->asteroid[i])->base.speed.y;
+    }
+}
+
+void wrapAroundAsteroid(AsteroidArray *asteroidArr) {
+    if (asteroidArr->size == 0) {return;}
+    for (int i = 0; i < asteroidArr->size; i++) {
+        float radius = ((SmlAsteroid*)asteroidArr->asteroid[i])->base.radius;
+        Vector2 pos = {((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.x,
+        ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.y};
+
+        if (pos.x > GetScreenWidth() + radius) ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.x = -radius;
+        if (pos.y > GetScreenHeight() + radius) ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.y = -radius;
+        if (pos.x < -radius) ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.x = GetScreenWidth() + radius;
+        if (pos.y < -radius) ((SmlAsteroid*)asteroidArr->asteroid[i])->base.position.y = GetScreenHeight() + radius;
+    }
+}
+
 //asteroid Array
 //-------------------------------------------------------------------------------------
 
@@ -96,11 +120,12 @@ void generateVertices(void *asteroid) {
 }
 
 void randomSpeed(AsteroidBase *asteroids) {
-    Vector2 speed = {0,0};
-    speed.x = (rand() % MAX_ASTEROID_SPEED);
-    speed.y = (rand() % MAX_ASTEROID_SPEED);
+    Vector2 speed;
+    speed.x = ((rand() % (MAX_ASTEROID_SPEED*200))-100)/100.0f;
+    speed.y = ((rand() % (MAX_ASTEROID_SPEED*200))-100)/100.0f;
     asteroids -> speed.x = speed.x;
     asteroids -> speed.y = speed.y;
+    printf("speed (%.2f, %.2f)\n",speed.x ,speed.y);
 }
 
 void randomPosition(AsteroidBase *asteroids) {
@@ -119,7 +144,6 @@ void renderAsteroids(AsteroidArray *arr) {
     int verticesNb = 0;
     switch (((SmlAsteroid*)arr->asteroid[0])->base.type) {
         case SMALL:
-            printf("render --small\n");
         verticesNb = SML_VERTICES;
         for (int i = 0; i < arr->size; i++) {//for each asteroid
             Vector2 pos = ((SmlAsteroid*)arr->asteroid[i]) ->base.position;
@@ -143,7 +167,6 @@ void renderAsteroids(AsteroidArray *arr) {
         }
         return;
         case MEDIUM:
-            printf("render --medium\n");
         verticesNb = MID_VERTICES;
         for (int i = 0; i < arr->size; i++) {//for each asteroid
             Vector2 pos = ((MidAsteroid*)arr->asteroid[i]) ->base.position;
@@ -167,7 +190,6 @@ void renderAsteroids(AsteroidArray *arr) {
         }
         return;
         case BIG:
-            printf("render --big\n");
         verticesNb = BIG_VERTICES;
         for (int i = 0; i < arr->size; i++) {//for each asteroid
             Vector2 pos = ((BigAsteroid*)arr->asteroid[i]) ->base.position;

@@ -94,8 +94,14 @@ int main(void) {
         //updateAsteroid(&bigAsteroid, &midAsteroid, &smlAsteroid);
 
         moveBullets(bullets);
+        moveAsteroids(&bigAstArr);
+        moveAsteroids(&midAstArr);
+        moveAsteroids(&smlAstArr);
         wrapAroundBullet(bullets);
-        wraparoundPlayer(&player);
+        wrapAroundPlayer(&player);
+        wrapAroundAsteroid(&bigAstArr);
+        wrapAroundAsteroid(&midAstArr);
+        wrapAroundAsteroid(&smlAstArr);
         setPlayerBorders(&player);
         // Draw
         //----------------------------------------------------------------------------------

@@ -25,7 +25,7 @@ void resile(Player *player) {
     if (player->angleBackRight < ((5.0 * PI) / 6.0)) player->angleBackRight = ((5.0 * PI) / 6.0);
 }
 
-void wraparoundPlayer(Player *player) {
+void wrapAroundPlayer(Player *player) {
     if (player->position.x > GetScreenWidth() + player->radius) player->position.x = -player->radius;
     if (player->position.y > GetScreenHeight() + player->radius) player->position.y = -player->radius;
     if (player->position.x < -player->radius) player->position.x = GetScreenWidth() + player->radius;

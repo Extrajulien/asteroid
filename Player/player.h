@@ -38,7 +38,7 @@ void thrust(Player *player, float thrustTime);
 void glide(Player *player);
 void stretchPlayer(Player *player, float thrustTime);
 void resile(Player *player);
-void wraparoundPlayer(Player *player);
+void wrapAroundPlayer(Player *player);
 void shoot(Player *player, Bullet *bullet, float speed);
 void drawPlayer(Player *player);
 void thrustGraphic(Player *player);

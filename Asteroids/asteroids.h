@@ -6,7 +6,7 @@
 #define ASTEROIDCLION_ASTEROIDS_H
 #define ASTEROID_SPREAD 20.0
 #define WAVE_ASTEROID_AMNT 5
-#define MAX_ASTEROID_SPEED 10
+#define MAX_ASTEROID_SPEED 1
 #define ASTEROID_COLOR (Color){255,255,255,200}
 
 #define SML_VERTICES 12
@@ -56,6 +56,8 @@ typedef struct {
     short size;
 }AsteroidArray;
 
+void moveAsteroids(AsteroidArray *asteroidArr);
+void wrapAroundAsteroid(AsteroidArray *asteroidArr);
 
 void randomPosition(AsteroidBase *asteroids);
 void generateWave(AsteroidArray *asteroid, int waveNum);
