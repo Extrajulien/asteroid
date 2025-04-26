@@ -8,60 +8,65 @@
 #define WAVE_ASTEROID_AMNT 5
 #define MAX_ASTEROID_SPEED 10
 
+#define SML_VERTICES 5
+#define MID_VERTICES 9
+#define BIG_VERTICES 13
+
 #include "raylib.h"
 
 typedef struct {
     Vector2 position;
     Vector2 speed;
-    Vector2 points[5];
+    Vector2 points[SML_VERTICES];   //verticies
     float radius;
     float angle;
     float rotation;
+    float spead;
+    float weight;                   //area of polygon
+    int score;//100pts
 } SmlAsteroid;
 typedef struct {
     Vector2 position;
     Vector2 speed;
-    Vector2 points[9];
+    Vector2 points[MID_VERTICES];   //verticies
     float radius;
     float angle;
     float rotation;
+    float spead;
+    float weight;                   //area of polygon
+    int score;//50pts
 } MidAsteroid;
 
 typedef struct {
     Vector2 position;
     Vector2 speed;
-    Vector2 points[13];
+    Vector2 points[BIG_VERTICES];   //verticies
     float radius;
     float angle;
     float rotation;
+    float spead;
+    float weight;                   //area of polygon
+    int score;//20pts
 } BigAsteroid;
 
 typedef struct {
-    BigAsteroid *asteroid;
-    short index;
-}BigAsteroidArray;
-
-typedef struct {
-    MidAsteroid *asteroid;
-    short index;
-}MidAsteroidArray;
-
-typedef struct {
-    SmlAsteroid *asteroid;
-    short index;
-}SmlAsteroidArray;
+    void **asteroid;
+    short size;
+}AsteroidArray;
 
 
 void randomPosition();
-void generateWave(BigAsteroidArray **asteroid, int waveNum);
+void generateWave(AsteroidArray asteroid, int waveNum);
 
 void randomSpeed(BigAsteroid *asteroids);
+
+void generateVertices(void *asteroid, int virticesNb);//TODO------------------------------------------------------
 
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);
 void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);
 void smlAsteroidShot(SmlAsteroidArray **asteroid, short index);
 
-void createBigAsteroid(BigAsteroidArray **asteroids, int nbAsteroid);
+void createBigAsteroid(AsteroidArray asteroidArr, int nbAsteroid);
 void createBigAsteroid(MidAsteroidArray **asteroids);
 void createMidAsteroid(MidAsteroidArray **asteroids);
 void createSmlAsteroid(SmlAsteroidArray **asteroids);

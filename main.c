@@ -27,8 +27,6 @@ void wrapAroundBullet(Bullet *bullets);
 
 void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid);
 
-void initializeAsteroidsArray(BigAsteroidArray **bigAstArr, MidAsteroidArray **midAstArr, SmlAsteroidArray **smlAstArr);
-
 
 
 //------------------------------------------------------------------------------------
@@ -41,10 +39,9 @@ int main(void) {
     Player player;
     Bullet bullets[MAX_BULLETS];
 
-    BigAsteroidArray *bigAstArr;
-    MidAsteroidArray *midAstArr;
-    SmlAsteroidArray *smlAstArr;;
-    initializeAsteroidsArray(&bigAstArr, &midAstArr, &smlAstArr);
+    AsteroidArray bigAstArr = {NULL, 0};
+    AsteroidArray midAstArr = {NULL, 0};
+    AsteroidArray smlAstArr = {NULL, 0};
 
     const float rotationSpeed = 230.0;
     bool isTitleMenu = true;
@@ -54,7 +51,7 @@ int main(void) {
     InitWindow(1600, 900, "Asteroid Julien Lamothe");//linux
     //ToggleBorderlessWindowed();
 
-    generateWave(&bigAstArr, 0);
+    generateWave(bigAstArr, 0);
 
     resetPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC);               // Set our game to run at 60 frames-per-second
@@ -137,11 +134,9 @@ int main(void) {
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
-    free(bigAstArr);
-    free(midAstArr);
-    free(smlAstArr);
-
-
+    free(bigAstArr.asteroid);
+    free(midAstArr.asteroid);
+    free(smlAstArr.asteroid);
     return 0;
 
 }
@@ -245,15 +240,4 @@ void wrapAroundBullet(Bullet *bullets) {
 void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid) {
     //condition de hit box genre s'il se situe entre les points des asteroides
     //if ()
-}
-
-void initializeAsteroidsArray(BigAsteroidArray **bigAstArr, MidAsteroidArray **midAstArr, SmlAsteroidArray **smlAstArr) {
-    const short startBigAsteroids = 5;
-    *bigAstArr = calloc(startBigAsteroids, sizeof(BigAsteroidArray));
-    *midAstArr = calloc(0, sizeof(MidAsteroidArray));
-    *smlAstArr = calloc(0, sizeof(SmlAsteroidArray));
-
-    for (int i = 0; i < startBigAsteroids; i++) {
-        (*bigAstArr)[i].index = i;
-    }
 }
