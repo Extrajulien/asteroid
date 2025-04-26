@@ -44,7 +44,7 @@ void createBigAsteroid(AsteroidArray asteroids, int nbAsteroid) {
         ((BigAsteroid*)asteroids.asteroid[i]) -> score = 20;            //init score
         ((BigAsteroid*)asteroids.asteroid[i]) -> rotation = rotation;   //init rotation
 
-        //init points
+        generateVertices(asteroids.asteroid[i]);//init points
     }
     printf("malloc");
 
@@ -52,6 +52,25 @@ void createBigAsteroid(AsteroidArray asteroids, int nbAsteroid) {
 
 //asteroid
 //-------------------------------------------------------------------------------------
+
+void generateVertices(void *asteroid) {
+    int ptsNb = sizeof(((MidAsteroid*)asteroid) -> points)/sizeof(Vector2);
+    switch (ptsNb) {
+        case SML_VERTICES:
+
+            return;
+        case MID_VERTICES:
+
+            return;
+        case BIG_VERTICES:
+            return;
+
+        default:
+            printf("pts Nb: %d", ptsNb);
+            exit(1);
+
+    }
+}
 
 void randomSpeed(BigAsteroid *asteroids) {
     Vector2 speed = {0,0};

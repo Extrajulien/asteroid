@@ -55,12 +55,12 @@ typedef struct {
 }AsteroidArray;
 
 
-void randomPosition();
+void randomPosition(BigAsteroid *asteroids);
 void generateWave(AsteroidArray asteroid, int waveNum);
 
 void randomSpeed(BigAsteroid *asteroids);
 
-void generateVertices(void *asteroid, int virticesNb);//TODO------------------------------------------------------
+void generateVertices(void *asteroid);//TODO------------------------------------------------------
 
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);
 void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);
