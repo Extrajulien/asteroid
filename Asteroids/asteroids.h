@@ -7,10 +7,11 @@
 #define ASTEROID_SPREAD 20.0
 #define WAVE_ASTEROID_AMNT 5
 #define MAX_ASTEROID_SPEED 10
+#define ASTEROID_COLOR (Color){255,255,255,200}
 
-#define SML_VERTICES 5
-#define MID_VERTICES 9
-#define BIG_VERTICES 13
+#define SML_VERTICES 12
+#define MID_VERTICES 18
+#define BIG_VERTICES 25
 
 #include "raylib.h"
 
@@ -27,7 +28,7 @@ typedef struct {
     float radius;
     float angle;
     float rotation;
-    float spead;
+    float spread;
     float weight;                   //area of polygon
     int score;
 } AsteroidBase;
@@ -56,20 +57,24 @@ typedef struct {
 }AsteroidArray;
 
 
-void randomPosition(BigAsteroid *asteroids);
-void generateWave(AsteroidArray asteroid, int waveNum);
+void randomPosition(AsteroidBase *asteroids);
+void generateWave(AsteroidArray *asteroid, int waveNum);
 
-void randomSpeed(BigAsteroid *asteroids);
+void randomSpeed(AsteroidBase *asteroids);
 
-void generateVertices(void *asteroid);//TODO------------------------------------------------------
+void generateVertices(void *asteroid);
 
+void renderAsteroids(AsteroidArray *arr);
+
+void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
+/*
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);
 void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);
 void smlAsteroidShot(SmlAsteroidArray **asteroid, short index);
 
-void createBigAsteroid(AsteroidArray asteroidArr, int nbAsteroid);
 void createBigAsteroid(MidAsteroidArray **asteroids);
 void createMidAsteroid(MidAsteroidArray **asteroids);
 void createSmlAsteroid(SmlAsteroidArray **asteroids);
+*/
 
 #endif //ASTEROIDCLION_ASTEROIDS_H

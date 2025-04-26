@@ -51,8 +51,7 @@ int main(void) {
     InitWindow(1600, 900, "Asteroid Julien Lamothe");//linux
     //ToggleBorderlessWindowed();
 
-    generateWave(bigAstArr, 0);
-
+    generateWave(&bigAstArr, 0);
     resetPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -113,6 +112,12 @@ int main(void) {
 
             renderBullets(bullets);
             drawPlayer(&player);
+            renderAsteroids(&bigAstArr);
+            renderAsteroids(&midAstArr);
+            renderAsteroids(&smlAstArr);
+
+
+
 
             if (hasDebugMode) {
                 drawGrid(GetScreenWidth() - 200, 200, 300, &player, true);
@@ -120,6 +125,7 @@ int main(void) {
                 DrawText(rotation, 30, 30, 20, LIGHTGRAY);
                 DrawText(timePressed, 30, 50, 20, LIGHTGRAY);
                 DrawText(speedAmnt, 30, 80, 20, LIGHTGRAY);
+                DrawFPS(30, 100);
                 drawEntitiesPos((Vector2) {GetScreenWidth() - 800, 100}, &player, bullets);
             }
         } else {

@@ -4,6 +4,7 @@
 
 #include "asteroids.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,7 +17,7 @@
 //asteroid Array
 //-------------------------------------------------------------------------------------
 
-void generateWave(AsteroidArray asteroidArr, int waveNum) {
+void generateWave(AsteroidArray *asteroidArr, int waveNum) {
     int nbAsteroid = waveNum * WAVE_ASTEROID_AMNT + 5;
 
     if (waveNum % 10 == 0 && waveNum != 0) {
@@ -26,27 +27,32 @@ void generateWave(AsteroidArray asteroidArr, int waveNum) {
     createBigAsteroid(asteroidArr, nbAsteroid);
 }
 
-void createBigAsteroid(AsteroidArray asteroids, int nbAsteroid) {
-    const float radius = 50;
-    const float spread = 10;
+void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
+    const float radius = 100;
+    const float spread = 20;
     const int minRotationSpeed = -300;
     const int maxRotationSpeed = 301;
-    *asteroids.asteroid = malloc(nbAsteroid * sizeof(BigAsteroid));//init asteroid arr
+    asteroids -> size += nbAsteroid;
+    asteroids -> asteroid = malloc(nbAsteroid * sizeof(void *));//init asteroid arr
 
+    for (int i = 0; i < nbAsteroid; i++) {
+        asteroids -> asteroid[i] = malloc(sizeof(BigAsteroid));  // Allocate memory for each asteroid
+    }
     for (int i = 0; i < nbAsteroid; i++) {
         const float rotation = (rand() % (maxRotationSpeed - minRotationSpeed)) + minRotationSpeed;// -300 to 300
 
-        ((BigAsteroid*)asteroids.asteroid[i]) -> radius = radius;       //init radius
-        ((BigAsteroid*)asteroids.asteroid[i]) -> spead = spread;        //init spread
-        randomPosition((BigAsteroid*)asteroids.asteroid[i]);            //init pos
-        randomSpeed((BigAsteroid*)asteroids.asteroid[i]);               //init speed
-        ((BigAsteroid*)asteroids.asteroid[i]) -> angle = 0;             //init angle
-        ((BigAsteroid*)asteroids.asteroid[i]) -> score = 20;            //init score
-        ((BigAsteroid*)asteroids.asteroid[i]) -> rotation = rotation;   //init rotation
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.radius = radius;      //init radius
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.spread = spread;       //init spread
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.type = BIG;           //init type
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.angle = 0;            //init angle
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.score = 20;           //init score
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.rotation = rotation;  //init rotation
+        randomPosition(&((BigAsteroid*)asteroids -> asteroid[i]) -> base);     //init pos
+        randomSpeed(&((BigAsteroid*)asteroids    -> asteroid[i]) -> base);     //init speed
 
-        generateVertices(asteroids.asteroid[i]);//init points
+        generateVertices(asteroids -> asteroid[i]);//init points
     }
-    printf("malloc");
+    printf("--Big asteroids generated!\n");
 
 }
 
@@ -54,25 +60,42 @@ void createBigAsteroid(AsteroidArray asteroids, int nbAsteroid) {
 //-------------------------------------------------------------------------------------
 
 void generateVertices(void *asteroid) {
-    int ptsNb = sizeof(((MidAsteroid*)asteroid) -> points)/sizeof(Vector2);
-    switch (ptsNb) {
-        case SML_VERTICES:
-
-            return;
-        case MID_VERTICES:
-
-            return;
-        case BIG_VERTICES:
-            return;
-
+    const float radius = ((SmlAsteroid*)asteroid)->base.radius;
+    const float spread = ((SmlAsteroid*)asteroid)->base.spread;
+    Vector2 *ppoints;
+    float radSpacing = 0;
+    int verticesNb = 0;
+    switch (((SmlAsteroid*)asteroid)->base.type) {
+        case SMALL:
+            printf("Sml --Vertex\n");
+            verticesNb = SML_VERTICES;
+            ppoints = ((SmlAsteroid*)asteroid)->points;
+            break;
+        case MEDIUM:
+            printf("Mid --Vertex\n");
+            verticesNb = MID_VERTICES;
+            ppoints = ((MidAsteroid*)asteroid)->points;
+            break;
+        case BIG:
+            printf("Big --Vertex\n");
+            verticesNb = BIG_VERTICES;
+            ppoints = ((BigAsteroid*)asteroid)->points;
+            break;
         default:
-            printf("pts Nb: %d", ptsNb);
+            printf("Unknown Asteroid type!\n");
             exit(1);
-
+    }
+    radSpacing = (2 * PI)/verticesNb;
+    for (int i = 0; i < verticesNb; i++) {
+        const float rndSpread = (rand() % ((int)(spread*100) +1))/100.0f;
+        const float distanceFromCenter = rndSpread + radius;
+        ppoints[i].x = cosf(radSpacing * i) * distanceFromCenter;
+        ppoints[i].y = sinf(radSpacing * i) * distanceFromCenter;
+        printf("p%d, (%.2f, %.2f)\n",i ,ppoints[i].x, ppoints[i].y);
     }
 }
 
-void randomSpeed(BigAsteroid *asteroids) {
+void randomSpeed(AsteroidBase *asteroids) {
     Vector2 speed = {0,0};
     speed.x = (rand() % MAX_ASTEROID_SPEED);
     speed.y = (rand() % MAX_ASTEROID_SPEED);
@@ -80,14 +103,101 @@ void randomSpeed(BigAsteroid *asteroids) {
     asteroids -> speed.y = speed.y;
 }
 
-void randomPosition(BigAsteroid *asteroids) {
-    Vector2 pos = {0,0};
-    pos.x = (rand() % GetScreenWidth());
-    pos.y = (rand() % GetScreenHeight());
-    asteroids -> position.x = pos.x;
-    asteroids -> position.y = pos.y;
+void randomPosition(AsteroidBase *asteroids) {
+    asteroids->position.x = rand() % GetScreenWidth();
+    asteroids->position.y = rand() % GetScreenHeight();
 }
 
+
+//draw Asteroids
+//-------------------------------------------------------------------------------------
+void renderAsteroids(AsteroidArray *arr) {
+    if (arr->size == 0) {return;}
+    Vector2 startPos;
+    Vector2 endPos;
+    const float lineThickness = 2;
+    int verticesNb = 0;
+    switch (((SmlAsteroid*)arr->asteroid[0])->base.type) {
+        case SMALL:
+            printf("render --small\n");
+        verticesNb = SML_VERTICES;
+        for (int i = 0; i < arr->size; i++) {//for each asteroid
+            Vector2 pos = ((SmlAsteroid*)arr->asteroid[i]) ->base.position;
+            for (int j = 0; j < verticesNb-1; ++j) {
+                startPos = ((SmlAsteroid*)arr->asteroid[i])->points[j];
+                endPos = ((SmlAsteroid*)arr->asteroid[i])->points[j+1];
+                startPos.x += pos.x;
+                startPos.y += pos.y;
+                endPos.x += pos.x;
+                endPos.y += pos.y;
+                DrawLineEx(startPos, endPos , lineThickness, ASTEROID_COLOR);
+
+            }
+            startPos = ((SmlAsteroid*)arr->asteroid[i])->points[verticesNb-1];
+            endPos = ((SmlAsteroid*)arr->asteroid[i])->points[0];
+            startPos.x += pos.x;
+            startPos.y += pos.y;
+            endPos.x += pos.x;
+            endPos.y += pos.y;
+            DrawLineEx(startPos, endPos , lineThickness, ASTEROID_COLOR);
+        }
+        return;
+        case MEDIUM:
+            printf("render --medium\n");
+        verticesNb = MID_VERTICES;
+        for (int i = 0; i < arr->size; i++) {//for each asteroid
+            Vector2 pos = ((MidAsteroid*)arr->asteroid[i]) ->base.position;
+            for (int j = 0; j < verticesNb-1; ++j) {
+                startPos = ((MidAsteroid*)arr->asteroid[i])->points[j];
+                endPos = ((MidAsteroid*)arr->asteroid[i])->points[j+1];
+                startPos.x += pos.x;
+                startPos.y += pos.y;
+                endPos.x += pos.x;
+                endPos.y += pos.y;
+                DrawLineEx(startPos, endPos , lineThickness, ASTEROID_COLOR);
+
+            }
+            startPos = ((MidAsteroid*)arr->asteroid[i])->points[verticesNb-1];
+            endPos = ((MidAsteroid*)arr->asteroid[i])->points[0];
+            startPos.x += pos.x;
+            startPos.y += pos.y;
+            endPos.x += pos.x;
+            endPos.y += pos.y;
+            DrawLineEx(startPos, endPos , lineThickness, ASTEROID_COLOR);
+        }
+        return;
+        case BIG:
+            printf("render --big\n");
+        verticesNb = BIG_VERTICES;
+        for (int i = 0; i < arr->size; i++) {//for each asteroid
+            Vector2 pos = ((BigAsteroid*)arr->asteroid[i]) ->base.position;
+            for (int j = 0; j < verticesNb-1; ++j) {
+                startPos = ((BigAsteroid*)arr->asteroid[i])->points[j];
+                endPos = ((BigAsteroid*)arr->asteroid[i])->points[j+1];
+                startPos.x += pos.x;
+                startPos.y += pos.y;
+                endPos.x += pos.x;
+                endPos.y += pos.y;
+                DrawLineEx(startPos, endPos , lineThickness, ASTEROID_COLOR);
+
+            }
+            startPos = ((BigAsteroid*)arr->asteroid[i])->points[verticesNb-1];
+            endPos = ((BigAsteroid*)arr->asteroid[i])->points[0];
+            startPos.x += pos.x;
+            startPos.y += pos.y;
+            endPos.x += pos.x;
+            endPos.y += pos.y;
+            DrawLineEx(startPos, endPos , lineThickness, ASTEROID_COLOR);
+        }
+        return;
+        default:
+            printf("Unknown Asteroid type!\n");
+        exit(1);
+    }
+}
+
+
+/*
 void createMidAsteroid(MidAsteroidArray **asteroids) {
     const float radius = 30;
 }
@@ -113,3 +223,4 @@ void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid
 void smlAsteroidShot(SmlAsteroidArray **asteroid, short index) {
 
 }
+*/
