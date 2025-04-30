@@ -104,86 +104,6 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
 //asteroid
 //-------------------------------------------------------------------------------------
 
-void updateAsteroidsTraits() {
-    AsteroidTraits *pTraits = &bigTraits;
-    char buffer[BUFFER_SIZE];
-    char *filename = "../asteroidsTraits.csv";
-    FILE *asteroidsTraits = fopen(filename, "r");
-    if (asteroidsTraits == NULL) {
-        printf("le fichier '%s' n'existe pas!\n", filename);
-        exit(1);
-    }
-    fgets(buffer, BUFFER_SIZE, asteroidsTraits);
-    while (fgets(buffer, BUFFER_SIZE, asteroidsTraits)) {
-
-        if(buffer[0] == '1') {  // est utilisé
-            int i = 0;
-            char temp[BUFFER_SIZE];
-            int tempPos = 0;
-            int semicolonNb = 0;
-            while (buffer[i] != '\0') {
-                if (buffer[i] == ';') {
-                    semicolonNb++;
-                    if (semicolonNb -1 == 3) {
-                        temp[tempPos] = '\0';
-                        pTraits->radius = atof(temp);
-                        printf("radius: %.2f\n", pTraits->radius);
-                    }
-                    if (semicolonNb -1 == 4) {
-
-                        pTraits->spread = atof(temp);
-                        printf("Spread: %.2f\n", pTraits->spread);
-                    }
-                    if (semicolonNb -1 == 5) {
-                        temp[tempPos] = '\0';
-                        pTraits->minRotationSpeed = atof(temp);
-                        printf("Minimum Rotation Speed: %.2f\n", pTraits->minRotationSpeed);
-                    }
-                    if (semicolonNb -1 == 6) {
-                        temp[tempPos] = '\0';
-                        pTraits->maxRotationSpeed = atof(temp);
-                        printf("Maximum Rotation Speed: %.2f\n", pTraits->maxRotationSpeed);
-                    }
-                    if (semicolonNb -1 == 7) {
-                        temp[tempPos-1] = '\0';
-                        pTraits->score = atof(temp);
-                        printf("Score: %d\n", pTraits->score);
-                    }
-                    tempPos = 0;
-                    //reset string temp
-                    memset(temp,0,strlen(temp));
-                }
-                else {
-                    switch (semicolonNb) {
-                        case 2: //Type asteroide
-                            switch (buffer[i]) {
-                                case 'B':
-                                    pTraits = &bigTraits;
-                                    break;
-                                case 'M':
-                                    pTraits = &midTraits;
-                                    break;
-                                case 'S':
-                                    pTraits = &smlTraits;
-                                    break;
-                                default:
-                                    printf("le type d'astéroide 'S/M/B' est invalide");
-                                exit(1);
-                            }
-                            break;
-
-                    }
-                    temp[tempPos] = buffer[i];
-                    tempPos++;
-                }
-                i++;
-            }
-        }
-
-    }
-
-
-}
 
 void rotateAsteroidVertices(void *asteroid) {
     Vector2 *ppoints;
@@ -388,6 +308,143 @@ void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid
 }
 
 void smlAsteroidShot(SmlAsteroidArray **asteroid, short index) {
+
+}
+*/
+
+void updateAsteroidsTraits() {
+    const int maxSemicolon = 7;
+    const int indexName = 1;
+    const int indexType = 2;
+    const int indexRadius = 3;
+    const int indexSpread = 4;
+    const int indexMinRotationSpeed = 5;
+    const int indexMaxRotationSpeed = 6;
+    const int indexScore = 7;
+    char buffer[BUFFER_SIZE];
+    char *filename = "../asteroidsTraits.csv";
+    FILE *asteroidsTraits = fopen(filename, "r");
+    if (asteroidsTraits == NULL) {
+        printf("le fichier '%s' n'existe pas!\n", filename);
+        exit(1);
+    }
+
+    fgets(buffer, BUFFER_SIZE, asteroidsTraits);//skip titres
+    while (fgets(buffer, BUFFER_SIZE, asteroidsTraits)) {
+        if (buffer[0] != '1') continue;// ne prend en consideration que ceux qui sont actifs
+        int indexEntry = 0;
+        char *entry[maxSemicolon+1];
+        char *token = strtok(buffer, ";");
+
+        while (token && indexEntry < maxSemicolon+1) {
+            entry[indexEntry++] = token;
+            token = strtok(NULL, ";");
+        }
+
+        AsteroidTraits *pTraits = NULL;
+        switch (entry[indexType][0]) {
+            case 'B': pTraits = &bigTraits;break;
+            case 'M': pTraits = &midTraits;break;
+            case 'S': pTraits = &smlTraits;break;
+            default:
+                printf("le type d'astéroide 'S/M/B' est invalide");
+            exit(1);
+        }
+
+        pTraits->radius = atof(entry[indexRadius]);
+        pTraits->spread = atof(entry[indexSpread]);
+        pTraits->minRotationSpeed = atof(entry[indexMinRotationSpeed]);
+        pTraits->maxRotationSpeed = atof(entry[indexMaxRotationSpeed]);
+        pTraits->score = atoi(entry[indexScore]);
+
+        printf("radius:\t\t %.2f\n", pTraits->radius);
+        printf("Spread:\t\t %.2f\n", pTraits->spread);
+        printf("Min Spin Speed:\t %.2f\n", pTraits->minRotationSpeed);
+        printf("Max Spin Speed:\t %.2f\n", pTraits->maxRotationSpeed);
+        printf("Score:\t\t %d\n\n", pTraits->score);
+    }
+    fclose(asteroidsTraits);
+}
+
+/*
+void updateAsteroidsTraits() {
+    AsteroidTraits *pTraits = &bigTraits;
+    char buffer[BUFFER_SIZE];
+    char *filename = "../asteroidsTraits.csv";
+    FILE *asteroidsTraits = fopen(filename, "r");
+    if (asteroidsTraits == NULL) {
+        printf("le fichier '%s' n'existe pas!\n", filename);
+        exit(1);
+    }
+    fgets(buffer, BUFFER_SIZE, asteroidsTraits);
+    while (fgets(buffer, BUFFER_SIZE, asteroidsTraits)) {
+
+        if(buffer[0] == '1') {  // est utilisé
+            int i = 0;
+            char temp[BUFFER_SIZE];
+            int tempPos = 0;
+            int semicolonNb = 0;
+            while (buffer[i] != '\0') {
+                if (buffer[i] == ';') {
+                    semicolonNb++;
+                    if (semicolonNb -1 == 3) {
+                        temp[tempPos] = '\0';
+                        pTraits->radius = atof(temp);
+                        printf("radius: %.2f\n", pTraits->radius);
+                    }
+                    if (semicolonNb -1 == 4) {
+
+                        pTraits->spread = atof(temp);
+                        printf("Spread: %.2f\n", pTraits->spread);
+                    }
+                    if (semicolonNb -1 == 5) {
+                        temp[tempPos] = '\0';
+                        pTraits->minRotationSpeed = atof(temp);
+                        printf("Minimum Rotation Speed: %.2f\n", pTraits->minRotationSpeed);
+                    }
+                    if (semicolonNb -1 == 6) {
+                        temp[tempPos] = '\0';
+                        pTraits->maxRotationSpeed = atof(temp);
+                        printf("Maximum Rotation Speed: %.2f\n", pTraits->maxRotationSpeed);
+                    }
+                    if (semicolonNb -1 == 7) {
+                        temp[tempPos-1] = '\0';
+                        pTraits->score = atof(temp);
+                        printf("Score: %d\n", pTraits->score);
+                    }
+                    tempPos = 0;
+                    //reset string temp
+                    memset(temp,0,strlen(temp));
+                }
+                else {
+                    switch (semicolonNb) {
+                        case 2: //Type asteroide
+                            switch (buffer[i]) {
+                                case 'B':
+                                    pTraits = &bigTraits;
+                                    break;
+                                case 'M':
+                                    pTraits = &midTraits;
+                                    break;
+                                case 'S':
+                                    pTraits = &smlTraits;
+                                    break;
+                                default:
+                                    printf("le type d'astéroide 'S/M/B' est invalide");
+                                exit(1);
+                            }
+                            break;
+
+                    }
+                    temp[tempPos] = buffer[i];
+                    tempPos++;
+                }
+                i++;
+            }
+        }
+
+    }
+
 
 }
 */
