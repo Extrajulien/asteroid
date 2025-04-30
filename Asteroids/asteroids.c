@@ -7,12 +7,16 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
+#define BUFFER_SIZE 256
+static AsteroidTraits bigTraits = {BIG,0,0,0,0,0};
+static AsteroidTraits midTraits = {MEDIUM,0,0,0,0,0};
+static AsteroidTraits smlTraits = {SMALL,0,0,0,0,0};
 
 //TODO -----
-// - transformer les fonctions asteroids en void pointer
-// - implementer les AsteroidArray correctement
+// - Creer les collision peut tirer dessus peut tuer le joueur
 // -
+// - si ben temps libre asteroides peuvent se foncer dedans et repondir
 
 void moveAsteroids(AsteroidArray *asteroidArr) {
     if (asteroidArr->size == 0) {return;}
@@ -59,10 +63,10 @@ void rotateAsteroid(AsteroidArray *asteroidArr) {
 //-------------------------------------------------------------------------------------
 
 void generateWave(AsteroidArray *asteroidArr, int waveNum) {
-    int nbAsteroid = waveNum * WAVE_ASTEROID_AMNT + 5;
+    int nbAsteroid = waveNum * WAVE_ASTEROID_AMNT + WAVE_ASTEROID_AMNT;
 
     if (waveNum % 10 == 0 && waveNum != 0) {
-        //big wave (+25)
+        //TODO ----big wave (+25)
         return;
     }
     createBigAsteroid(asteroidArr, nbAsteroid);
@@ -71,8 +75,8 @@ void generateWave(AsteroidArray *asteroidArr, int waveNum) {
 void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
     const float radius = 100;
     const float spread = 20;
-    const int minRotationSpeed = -3;
-    const int maxRotationSpeed = 4;
+    const int minRotationSpeed = -30;
+    const int maxRotationSpeed = 30-10;
     asteroids -> size += nbAsteroid;
     asteroids -> asteroid = malloc(nbAsteroid * sizeof(void *));//init asteroid arr
 
@@ -80,10 +84,10 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
         asteroids -> asteroid[i] = malloc(sizeof(BigAsteroid));  // Allocate memory for each asteroid
     }
     for (int i = 0; i < nbAsteroid; i++) {
-        const float rotation = ((rand() % (maxRotationSpeed - minRotationSpeed)) + minRotationSpeed)/5.0f;// -300 to 300
+        const float rotation = ((rand() % (maxRotationSpeed - minRotationSpeed)) + minRotationSpeed)/50.0f;// -300 to 300
 
-        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.radius = radius;      //init radius
-        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.spread = spread;       //init spread
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.radius = bigTraits.radius;      //init radius
+        ((BigAsteroid*)asteroids -> asteroid[i]) -> base.spread = spread;      //init spread
         ((BigAsteroid*)asteroids -> asteroid[i]) -> base.type = BIG;           //init type
         ((BigAsteroid*)asteroids -> asteroid[i]) -> base.angle = 0;            //init angle
         ((BigAsteroid*)asteroids -> asteroid[i]) -> base.score = 20;           //init score
@@ -99,6 +103,87 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
 
 //asteroid
 //-------------------------------------------------------------------------------------
+
+void updateAsteroidsTraits() {
+    AsteroidTraits *pTraits = &bigTraits;
+    char buffer[BUFFER_SIZE];
+    char *filename = "../asteroidsTraits.csv";
+    FILE *asteroidsTraits = fopen(filename, "r");
+    if (asteroidsTraits == NULL) {
+        printf("le fichier '%s' n'existe pas!\n", filename);
+        exit(1);
+    }
+    fgets(buffer, BUFFER_SIZE, asteroidsTraits);
+    while (fgets(buffer, BUFFER_SIZE, asteroidsTraits)) {
+
+        if(buffer[0] == '1') {  // est utilisé
+            int i = 0;
+            char temp[BUFFER_SIZE];
+            int tempPos = 0;
+            int semicolonNb = 0;
+            while (buffer[i] != '\0') {
+                if (buffer[i] == ';') {
+                    semicolonNb++;
+                    if (semicolonNb -1 == 3) {
+                        temp[tempPos] = '\0';
+                        pTraits->radius = atof(temp);
+                        printf("radius: %.2f\n", pTraits->radius);
+                    }
+                    if (semicolonNb -1 == 4) {
+
+                        pTraits->spread = atof(temp);
+                        printf("Spread: %.2f\n", pTraits->spread);
+                    }
+                    if (semicolonNb -1 == 5) {
+                        temp[tempPos] = '\0';
+                        pTraits->minRotationSpeed = atof(temp);
+                        printf("Minimum Rotation Speed: %.2f\n", pTraits->minRotationSpeed);
+                    }
+                    if (semicolonNb -1 == 6) {
+                        temp[tempPos] = '\0';
+                        pTraits->maxRotationSpeed = atof(temp);
+                        printf("Maximum Rotation Speed: %.2f\n", pTraits->maxRotationSpeed);
+                    }
+                    if (semicolonNb -1 == 7) {
+                        temp[tempPos-1] = '\0';
+                        pTraits->score = atof(temp);
+                        printf("Score: %d\n", pTraits->score);
+                    }
+                    tempPos = 0;
+                    //reset string temp
+                    memset(temp,0,strlen(temp));
+                }
+                else {
+                    switch (semicolonNb) {
+                        case 2: //Type asteroide
+                            switch (buffer[i]) {
+                                case 'B':
+                                    pTraits = &bigTraits;
+                                    break;
+                                case 'M':
+                                    pTraits = &midTraits;
+                                    break;
+                                case 'S':
+                                    pTraits = &smlTraits;
+                                    break;
+                                default:
+                                    printf("le type d'astéroide 'S/M/B' est invalide");
+                                exit(1);
+                            }
+                            break;
+
+                    }
+                    temp[tempPos] = buffer[i];
+                    tempPos++;
+                }
+                i++;
+            }
+        }
+
+    }
+
+
+}
 
 void rotateAsteroidVertices(void *asteroid) {
     Vector2 *ppoints;
@@ -200,7 +285,7 @@ void renderAsteroids(AsteroidArray *arr) {
     if (arr->size == 0) {return;}
     Vector2 startPos;
     Vector2 endPos;
-    const float lineThickness = 2;
+    const float lineThickness = 3;
     int verticesNb = 0;
     switch (((SmlAsteroid*)arr->asteroid[0])->base.type) {
         case SMALL:

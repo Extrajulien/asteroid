@@ -25,9 +25,11 @@ void deleteBullet(Bullet *bullet, int index);
 
 void wrapAroundBullet(Bullet *bullets);
 
-void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid);
+void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid);//fix this
 
+void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr, AsteroidArray *smlAstArr);
 
+void movementGame(Player *player, Bullet *bullet);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -38,20 +40,23 @@ int main(void) {
     //--------------------------------------------------------------------------------------
     Player player;
     Bullet bullets[MAX_BULLETS];
-
     AsteroidArray bigAstArr = {NULL, 0};
     AsteroidArray midAstArr = {NULL, 0};
     AsteroidArray smlAstArr = {NULL, 0};
 
-    const float rotationSpeed = 230.0;
     bool isTitleMenu = true;
+    bool isGame = false;
     bool hasDebugMode = false;
-    float howLongPressed = 0;//in seconds
+    int waveNumber = 0;
+
+    updateAsteroidsTraits();
+
+
     //InitWindow(GetMonitorWidth(), GetMonitorHeight(), "Asteroid Julien Lamothe");//windows
-    InitWindow(1600, 900, "Asteroid Julien Lamothe");//linux
+    InitWindow(1920, 1080, "Asteroid Julien Lamothe");//linux
     //ToggleBorderlessWindowed();
 
-    generateWave(&bigAstArr, 0);
+    generateWave(&bigAstArr, waveNumber);
     resetPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -63,59 +68,44 @@ int main(void) {
         //----------------------------------------------------------------------------------
         // TODO: Update your variables here
         //----------------------------------------------------------------------------------
-        if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
-            howLongPressed += GetFrameTime();
-            thrust(&player, howLongPressed);
-        } else {
-            howLongPressed = 0;
-        }
-        glide(&player);
-        if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-            player.angle -= (rotationSpeed * GetFrameTime());//rotate
-            if (player.angle <= 0) player.angle = 360;
-        }
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-            player.angle += (rotationSpeed * GetFrameTime());
-            if (player.angle >= 360) player.angle = 0;
-        }
 
-        if (IsKeyPressed(KEY_SPACE)) {
-            if (isTitleMenu) {
+        //title menu
+        if (isTitleMenu) {
+            if (IsKeyPressed(KEY_SPACE)) {
                 isTitleMenu = false;
-            } else {
-                shoot(&player, bullets, 10);
+                isGame = true;
             }
         }
 
-        if (IsKeyDown(KEY_R)) resetPlayer(&player);
+        //game
+        if (isGame) {
+            movementGame(&player, bullets);
+            if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
+            updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
-        if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
+            if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
+                free(bigAstArr.asteroid);
+                bigAstArr.size = 0;
+                waveNumber = 0;
+                generateWave(&bigAstArr, waveNumber);
+                resetPlayer(&player);
+                if (IsKeyPressed(KEY_TAB)) {
+                    isTitleMenu = true;
+                    isGame = false;
+                }
+            }
+        }
 
         //updateAsteroid(&bigAsteroid, &midAsteroid, &smlAsteroid);
 
-        moveBullets(bullets);
-        moveAsteroids(&bigAstArr);
-        moveAsteroids(&midAstArr);
-        moveAsteroids(&smlAstArr);
-        wrapAroundBullet(bullets);
-        wrapAroundPlayer(&player);
-        wrapAroundAsteroid(&bigAstArr);
-        wrapAroundAsteroid(&midAstArr);
-        wrapAroundAsteroid(&smlAstArr);
-        rotateAsteroid(&bigAstArr);
-        rotateAsteroid(&midAstArr);
-        rotateAsteroid(&smlAstArr);
-        setPlayerBorders(&player);
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
         char rotation[100] = "";
         sprintf(rotation, "%.2f", player.angle);
-        char timePressed[100] = "";
-        sprintf(timePressed, "%.2f", howLongPressed);
         char speedAmnt[100] = "";
 
-        if (!isTitleMenu) {
+        if (isGame) {
             sprintf(speedAmnt, "%.2f", sqrtf(SQUARE(player.speed.x) + SQUARE(player.speed.y)));
             ClearBackground(BLACK);
 
@@ -125,19 +115,16 @@ int main(void) {
             renderAsteroids(&midAstArr);
             renderAsteroids(&smlAstArr);
 
-
-
-
             if (hasDebugMode) {
                 drawGrid(GetScreenWidth() - 200, 200, 300, &player, true);
                 drawGrid(GetScreenWidth() / 2, GetScreenHeight() / 2, 4500, &player, false);
                 DrawText(rotation, 30, 30, 20, LIGHTGRAY);
-                DrawText(timePressed, 30, 50, 20, LIGHTGRAY);
-                DrawText(speedAmnt, 30, 80, 20, LIGHTGRAY);
-                DrawFPS(30, 100);
+                DrawText(speedAmnt, 30, 50, 20, LIGHTGRAY);
+                DrawFPS(30, 80);
                 drawEntitiesPos((Vector2) {GetScreenWidth() - 800, 100}, &player, bullets);
             }
-        } else {
+        }
+        if (isTitleMenu){
             titleMenu();
             ClearBackground(BLACK);
         }
@@ -154,6 +141,49 @@ int main(void) {
     free(smlAstArr.asteroid);
     return 0;
 
+}
+
+void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr, AsteroidArray *smlAstArr) {
+    glide(player);
+    moveBullets(bullet);
+    moveAsteroids(bigAstArr);
+    moveAsteroids(midAstArr);
+    moveAsteroids(smlAstArr);
+    wrapAroundBullet(bullet);
+    wrapAroundPlayer(player);
+    wrapAroundAsteroid(bigAstArr);
+    wrapAroundAsteroid(midAstArr);
+    wrapAroundAsteroid(smlAstArr);
+    rotateAsteroid(bigAstArr);
+    rotateAsteroid(midAstArr);
+    rotateAsteroid(smlAstArr);
+    setPlayerBorders(player);
+}
+
+void movementGame(Player *player, Bullet *bullet) {
+    const float rotationSpeed = 230.0;
+    static float howLongPressed = 0;//in seconds
+
+    if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
+        howLongPressed += GetFrameTime();
+        thrust(player, howLongPressed);
+    } else {
+        howLongPressed = 0;
+    }
+    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
+        player->angle -= (rotationSpeed * GetFrameTime());//rotate
+        if (player->angle <= 0) player->angle = 360;
+    }
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
+        player->angle += (rotationSpeed * GetFrameTime());
+        if (player->angle >= 360) player->angle = 0;
+    }
+
+    if (IsKeyPressed(KEY_SPACE)) {
+        shoot(player, bullet, 10);
+    }
+
+    if (IsKeyDown(KEY_R)) resetPlayer(player);
 }
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay) {
@@ -206,10 +236,12 @@ void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet) {
 }
 
 void titleMenu() {
-    char *title = "Roches Spatiales";
+    char *title = "Asteroids";
     int middleX = (GetScreenWidth() / 2);
     int middleY = (GetScreenHeight() / 2);
     DrawText(title, middleX, middleY, 24, WHITE);
+
+
 }
 
 void renderBullets(Bullet *bullet) {

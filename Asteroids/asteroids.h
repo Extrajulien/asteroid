@@ -57,12 +57,23 @@ typedef struct {
 typedef struct {
     void **asteroid;
     short size;
-}AsteroidArray;
+} AsteroidArray;
+
+typedef struct {
+    AsteroidType type;
+    float radius;
+    float spread;
+    float minRotationSpeed;
+    float maxRotationSpeed;
+    int score;
+} AsteroidTraits;
 
 void moveAsteroids(AsteroidArray *asteroidArr);
 void wrapAroundAsteroid(AsteroidArray *asteroidArr);
 void rotateAsteroid(AsteroidArray *asteroidArr);
 void rotateAsteroidVertices(void *asteroid);
+
+void updateAsteroidsTraits();
 
 void randomPosition(AsteroidBase *asteroids);
 void generateWave(AsteroidArray *asteroid, int waveNum);
@@ -79,7 +90,6 @@ void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid
 void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);
 void smlAsteroidShot(SmlAsteroidArray **asteroid, short index);
 
-void createBigAsteroid(MidAsteroidArray **asteroids);
 void createMidAsteroid(MidAsteroidArray **asteroids);
 void createSmlAsteroid(SmlAsteroidArray **asteroids);
 */
