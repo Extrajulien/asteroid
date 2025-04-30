@@ -283,35 +283,6 @@ void renderAsteroids(AsteroidArray *arr) {
     }
 }
 
-
-/*
-void createMidAsteroid(MidAsteroidArray **asteroids) {
-    const float radius = 30;
-}
-
-void createSmlAsteroid(SmlAsteroidArray **asteroids) {
-    const float radius = 15;
-}
-
-void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index) {
-    const int splitNumber = 2;
-    for (int i = 0; i < splitNumber; i++) {
-        createMidAsteroid(newAsteroid);
-    }
-}
-
-void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index) {
-    const int splitNumber = 2;
-    for (int i = 0; i < splitNumber; i++) {
-        createSmlAsteroid(newAsteroid);
-    }
-}
-
-void smlAsteroidShot(SmlAsteroidArray **asteroid, short index) {
-
-}
-*/
-
 void updateAsteroidsTraits() {
     const int maxSemicolon = 7;
     const int indexName = 1;
@@ -357,6 +328,7 @@ void updateAsteroidsTraits() {
         pTraits->maxRotationSpeed = atof(entry[indexMaxRotationSpeed]);
         pTraits->score = atoi(entry[indexScore]);
 
+        printf("Config:\t\t %s-%s\n", entry[indexName], entry[indexType]);
         printf("radius:\t\t %.2f\n", pTraits->radius);
         printf("Spread:\t\t %.2f\n", pTraits->spread);
         printf("Min Spin Speed:\t %.2f\n", pTraits->minRotationSpeed);

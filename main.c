@@ -15,7 +15,7 @@ void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
 void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet);
 
-void titleMenu();
+void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle *managePresets);
 
 void renderBullets(Bullet *bullet);
 
@@ -25,9 +25,11 @@ void deleteBullet(Bullet *bullet, int index);
 
 void wrapAroundBullet(Bullet *bullets);
 
-void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid);//fix this
+void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid,
+                  SmlAsteroid **smlAsteroid); //fix this
 
-void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr, AsteroidArray *smlAstArr);
+void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
+                AsteroidArray *smlAstArr);
 
 void movementGame(Player *player, Bullet *bullet);
 
@@ -35,7 +37,6 @@ void movementGame(Player *player, Bullet *bullet);
 // Program main entry point
 //------------------------------------------------------------------------------------
 int main(void) {
-
     // Initialization
     //--------------------------------------------------------------------------------------
     Player player;
@@ -43,26 +44,30 @@ int main(void) {
     AsteroidArray bigAstArr = {NULL, 0};
     AsteroidArray midAstArr = {NULL, 0};
     AsteroidArray smlAstArr = {NULL, 0};
+    Vector2 mousePos = {0, 0};
+
 
     bool isTitleMenu = true;
+    bool isAsteroidEditScreen = false;
     bool isGame = false;
     bool hasDebugMode = false;
     int waveNumber = 0;
 
     updateAsteroidsTraits();
 
-
-    //InitWindow(GetMonitorWidth(), GetMonitorHeight(), "Asteroid Julien Lamothe");//windows
-    InitWindow(1920, 1080, "Asteroid Julien Lamothe");//linux
+    //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
+    InitWindow(1920, 1080, "Asteroids"); //linux
     //ToggleBorderlessWindowed();
-
+    Rectangle startGameBox = {(GetScreenWidth()-350) / 2, GetScreenHeight() / 2, 350, 100};
+    Rectangle editAsteroidsModeBox = {(GetScreenWidth()-350) / 2, GetScreenHeight() / 2 + 150, 350, 100};
+    Rectangle managePresetsBox = {(GetScreenWidth()-350) / 2, GetScreenHeight() / 2 + 300, 350, 100};
     generateWave(&bigAstArr, waveNumber);
     resetPlayer(&player);
-    SetTargetFPS(FRAME_PER_SEC);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(FRAME_PER_SEC); // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
@@ -71,6 +76,13 @@ int main(void) {
 
         //title menu
         if (isTitleMenu) {
+            mousePos = GetMousePosition();
+            if (CheckCollisionPointRec(mousePos, startGameBox)) {
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                    isTitleMenu = false;
+                    isGame = true;
+                }
+            }
             if (IsKeyPressed(KEY_SPACE)) {
                 isTitleMenu = false;
                 isGame = true;
@@ -121,12 +133,13 @@ int main(void) {
                 DrawText(rotation, 30, 30, 20, LIGHTGRAY);
                 DrawText(speedAmnt, 30, 50, 20, LIGHTGRAY);
                 DrawFPS(30, 80);
-                drawEntitiesPos((Vector2) {GetScreenWidth() - 800, 100}, &player, bullets);
+                drawEntitiesPos((Vector2){GetScreenWidth() - 800, 100}, &player, bullets);
             }
         }
-        if (isTitleMenu){
-            titleMenu();
+        if (isTitleMenu) {
+            titleMenu(&startGameBox, &editAsteroidsModeBox, &managePresetsBox);
             ClearBackground(BLACK);
+            //DrawLine(GetScreenWidth()/2, 0, GetScreenWidth()/2, GetScreenHeight(), RED);
         }
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -134,16 +147,16 @@ int main(void) {
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
+    CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
     free(bigAstArr.asteroid);
     free(midAstArr.asteroid);
     free(smlAstArr.asteroid);
     return 0;
-
 }
 
-void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr, AsteroidArray *smlAstArr) {
+void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
+                AsteroidArray *smlAstArr) {
     glide(player);
     moveBullets(bullet);
     moveAsteroids(bigAstArr);
@@ -162,7 +175,7 @@ void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, Astero
 
 void movementGame(Player *player, Bullet *bullet) {
     const float rotationSpeed = 230.0;
-    static float howLongPressed = 0;//in seconds
+    static float howLongPressed = 0; //in seconds
 
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
         howLongPressed += GetFrameTime();
@@ -171,7 +184,7 @@ void movementGame(Player *player, Bullet *bullet) {
         howLongPressed = 0;
     }
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-        player->angle -= (rotationSpeed * GetFrameTime());//rotate
+        player->angle -= (rotationSpeed * GetFrameTime()); //rotate
         if (player->angle <= 0) player->angle = 360;
     }
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
@@ -235,12 +248,57 @@ void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet) {
     }
 }
 
-void titleMenu() {
+void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle *managePresets) {
+    Vector2 mousePos = GetMousePosition();
+    int boxBorder = 10;
+    Rectangle *pBox;
     char *title = "Asteroids";
-    int middleX = (GetScreenWidth() / 2);
-    int middleY = (GetScreenHeight() / 2);
-    DrawText(title, middleX, middleY, 24, WHITE);
+    int titleSizeX = MeasureText(title, 256);
+    DrawText(title, (GetScreenWidth()-titleSizeX) / 2, (GetScreenHeight() / 4)-100, 256, WHITE);
+    DrawText("By Julien Lamothe", (GetScreenWidth()-titleSizeX)/2 + titleSizeX-MeasureText("By Julien Lamothe", 20),
+        (GetScreenHeight() / 4)+112, 20, GRAY);
 
+    pBox = startGameBox;
+    if (CheckCollisionPointRec(mousePos, *startGameBox)) {
+        DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, GRAY);
+        DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
+                      pBox->height - boxBorder, BLACK);
+        DrawText("Start", pBox->x + (pBox->width-50) / 2, pBox->y + pBox->height / 2 - 10, 20, GRAY);
+    } else {
+        DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, WHITE);
+        DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
+                      pBox->height - boxBorder, BLACK);
+        DrawText("Start", pBox->x + (pBox->width-50) / 2,
+                 pBox->y + pBox->height / 2 - 10, 20, WHITE);
+    }
+
+    pBox = editAsteroidsMode;
+    if (CheckCollisionPointRec(mousePos, *editAsteroidsMode)) {
+        DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, GRAY);
+        DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
+                      pBox->height - boxBorder, BLACK);
+        DrawText("Edit Mode", pBox->x + (pBox->width - 96.0) / 2, pBox->y + pBox->height / 2 - 10, 20, GRAY);
+    } else {
+        DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, WHITE);
+        DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
+                      pBox->height - boxBorder, BLACK);
+        DrawText("Edit Mode", pBox->x + (pBox->width - 96.0) / 2,
+                 pBox->y + pBox->height / 2 - 10, 20, WHITE);
+    }
+
+    pBox = managePresets;
+    if (CheckCollisionPointRec(mousePos, *managePresets)) {
+        DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, GRAY);
+        DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
+                      pBox->height - boxBorder, BLACK);
+        DrawText("Edit Presets", pBox->x + (pBox->width-120) / 2, pBox->y + pBox->height / 2 - 10, 20, GRAY);
+    } else {
+        DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, WHITE);
+        DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
+                      pBox->height - boxBorder, BLACK);
+        DrawText("Edit Presets", pBox->x + (pBox->width-120) / 2,
+                 pBox->y + pBox->height / 2 - 10, 20, WHITE);
+    }
 
 }
 
@@ -269,9 +327,9 @@ void moveBullets(Bullet *bullets) {
 }
 
 void deleteBullet(Bullet *bullet, int index) {
-    bullet[index].size = (Vector2) {0, 0};
-    bullet[index].position = (Vector2) {0, 0};
-    bullet[index].speed = (Vector2) {0, 0};
+    bullet[index].size = (Vector2){0, 0};
+    bullet[index].position = (Vector2){0, 0};
+    bullet[index].speed = (Vector2){0, 0};
     bullet[index].distance = 0;
 }
 
@@ -287,4 +345,7 @@ void wrapAroundBullet(Bullet *bullets) {
 void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid) {
     //condition de hit box genre s'il se situe entre les points des asteroides
     //if ()
+}
+
+void createPresetAsteroidTraits() {
 }
