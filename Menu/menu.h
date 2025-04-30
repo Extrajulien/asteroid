@@ -6,6 +6,9 @@
 #define MENU_H
 #include "raylib.h"
 
-void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle *managePresets);
+void titleMenu();
+
+void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen, bool *editPresets);
+void initMenuBoxes();
 
 #endif //MENU_H

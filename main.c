@@ -48,6 +48,7 @@ int main(void) {
 
     bool isTitleMenu = true;
     bool isAsteroidEditScreen = false;
+    bool isEditPresetsScreen = false;
     bool isGame = false;
     bool hasDebugMode = false;
     int waveNumber = 0;
@@ -56,10 +57,8 @@ int main(void) {
 
     //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
     InitWindow(1920, 1080, "Asteroids"); //linux
+    initMenuBoxes();
     //ToggleBorderlessWindowed();
-    Rectangle startGameBox = {(GetScreenWidth()-350) / 2, GetScreenHeight() / 2, 350, 100};
-    Rectangle editAsteroidsModeBox = {(GetScreenWidth()-350) / 2, GetScreenHeight() / 2 + 150, 350, 100};
-    Rectangle managePresetsBox = {(GetScreenWidth()-350) / 2, GetScreenHeight() / 2 + 300, 350, 100};
     generateWave(&bigAstArr, waveNumber);
     resetPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC); // Set our game to run at 60 frames-per-second
@@ -75,17 +74,7 @@ int main(void) {
 
         //title menu
         if (isTitleMenu) {
-            mousePos = GetMousePosition();
-            if (CheckCollisionPointRec(mousePos, startGameBox)) {
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                    isTitleMenu = false;
-                    isGame = true;
-                }
-            }
-            if (IsKeyPressed(KEY_SPACE)) {
-                isTitleMenu = false;
-                isGame = true;
-            }
+            titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
         }
 
         //game
@@ -136,7 +125,7 @@ int main(void) {
             }
         }
         if (isTitleMenu) {
-            titleMenu(&startGameBox, &editAsteroidsModeBox, &managePresetsBox);
+            titleMenu();
             ClearBackground(BLACK);
             //DrawLine(GetScreenWidth()/2, 0, GetScreenWidth()/2, GetScreenHeight(), RED);
         }

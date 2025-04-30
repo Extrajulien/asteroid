@@ -3,8 +3,13 @@
 //
 
 #include "menu.h"
+#include "raylib.h"
 
-void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle *managePresets) {
+static Rectangle startGameBox;
+static Rectangle editAsteroidsModeBox ;
+static Rectangle managePresetsBox;
+
+void titleMenu() {
     Vector2 mousePos = GetMousePosition();
     int boxBorder = 10;
     Rectangle *pBox;
@@ -14,8 +19,8 @@ void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle 
     DrawText("By Julien Lamothe", (GetScreenWidth()-titleSizeX)/2 + titleSizeX-MeasureText("By Julien Lamothe", 20),
         (GetScreenHeight() / 4)+112, 20, GRAY);
 
-    pBox = startGameBox;
-    if (CheckCollisionPointRec(mousePos, *startGameBox)) {
+    pBox = &startGameBox;
+    if (CheckCollisionPointRec(mousePos, startGameBox)) {
         DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, GRAY);
         DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
                       pBox->height - boxBorder, BLACK);
@@ -28,8 +33,8 @@ void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle 
                  pBox->y + pBox->height / 2 - 10, 20, WHITE);
     }
 
-    pBox = editAsteroidsMode;
-    if (CheckCollisionPointRec(mousePos, *editAsteroidsMode)) {
+    pBox = &editAsteroidsModeBox;
+    if (CheckCollisionPointRec(mousePos, editAsteroidsModeBox)) {
         DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, GRAY);
         DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
                       pBox->height - boxBorder, BLACK);
@@ -42,8 +47,8 @@ void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle 
                  pBox->y + pBox->height / 2 - 10, 20, WHITE);
     }
 
-    pBox = managePresets;
-    if (CheckCollisionPointRec(mousePos, *managePresets)) {
+    pBox = &managePresetsBox;
+    if (CheckCollisionPointRec(mousePos, managePresetsBox)) {
         DrawRectangle(pBox->x, pBox->y, pBox->width, pBox->height, GRAY);
         DrawRectangle(pBox->x + boxBorder / 2, pBox->y + boxBorder / 2, pBox->width - boxBorder,
                       pBox->height - boxBorder, BLACK);
@@ -56,4 +61,38 @@ void titleMenu(Rectangle *startGameBox, Rectangle *editAsteroidsMode, Rectangle 
                  pBox->y + pBox->height / 2 - 10, 20, WHITE);
     }
 
+}
+
+void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen, bool *editPresets) {
+    Vector2 mousePos = GetMousePosition();
+    if (CheckCollisionPointRec(mousePos, startGameBox)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            *isTitleMenu = false;
+            *isGame = true;
+            return;
+        }
+    }
+    if (CheckCollisionPointRec(mousePos, editAsteroidsModeBox)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            *isTitleMenu = false;
+            *isAsteroidEditScreen = true;
+        }
+    }
+    if (CheckCollisionPointRec(mousePos, managePresetsBox)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            *isTitleMenu = false;
+            *editPresets = true;
+        }
+    }
+    if (IsKeyPressed(KEY_SPACE)) {
+        *isTitleMenu = false;
+        *isGame = true;
+    }
+}
+
+
+void initMenuBoxes() {
+    startGameBox = (Rectangle){(GetScreenWidth()-350) / 2, GetScreenHeight() / 2, 350, 100};
+    editAsteroidsModeBox = (Rectangle){(GetScreenWidth()-350) / 2, GetScreenHeight() / 2 + 150, 350, 100};
+    managePresetsBox = (Rectangle){(GetScreenWidth()-350) / 2, GetScreenHeight() / 2 + 300, 350, 100};
 }
