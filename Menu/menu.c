@@ -9,6 +9,8 @@
 
 #include "raylib.h"
 #include "asteroids.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 #define DARKERGRAY (Color){20,20,20,255}
 
 static AsteroidTraits bigTraits = {BIG,100,20,-30,30,20, 25};
