@@ -43,7 +43,6 @@ int main(void) {
     AsteroidArray bigAstArr = {NULL, 0};
     AsteroidArray midAstArr = {NULL, 0};
     AsteroidArray smlAstArr = {NULL, 0};
-    Vector2 mousePos = {0, 0};
 
 
     bool isTitleMenu = true;
@@ -57,7 +56,6 @@ int main(void) {
 
     //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
     InitWindow(1920, 1080, "Asteroids"); //linux
-    initMenuBoxes();
     //ToggleBorderlessWindowed();
     generateWave(&bigAstArr, waveNumber);
     resetPlayer(&player);
@@ -75,6 +73,10 @@ int main(void) {
         //title menu
         if (isTitleMenu) {
             titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
+        }
+
+        if (isAsteroidEditScreen) {
+            updateEditAsteroidMenu(&bigAstArr, &midAstArr, &smlAstArr);
         }
 
         //game
@@ -125,9 +127,17 @@ int main(void) {
             }
         }
         if (isTitleMenu) {
-            titleMenu();
             ClearBackground(BLACK);
+            titleMenu();
+
             //DrawLine(GetScreenWidth()/2, 0, GetScreenWidth()/2, GetScreenHeight(), RED);
+        }
+        if (isAsteroidEditScreen) {
+            ClearBackground(BLACK);
+            editAsteroidMenu();
+            renderAsteroids(&bigAstArr);
+            renderAsteroids(&midAstArr);
+            renderAsteroids(&smlAstArr);
         }
         EndDrawing();
         //----------------------------------------------------------------------------------
@@ -137,9 +147,9 @@ int main(void) {
     //--------------------------------------------------------------------------------------
     CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
-    free(bigAstArr.asteroid);
-    free(midAstArr.asteroid);
-    free(smlAstArr.asteroid);
+    freeAsteroidArray(&bigAstArr, ((BigAsteroid*)bigAstArr.asteroid[0])->base.type);
+    //freeAsteroidArray(&midAstArr, ((MidAsteroid*)midAstArr.asteroid[0])->base.type);
+    //freeAsteroidArray(&smlAstArr, ((SmlAsteroid*)smlAstArr.asteroid[0])->base.type);
     return 0;
 }
 
@@ -155,9 +165,9 @@ void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, Astero
     wrapAroundAsteroid(bigAstArr);
     wrapAroundAsteroid(midAstArr);
     wrapAroundAsteroid(smlAstArr);
-    rotateAsteroid(bigAstArr);
-    rotateAsteroid(midAstArr);
-    rotateAsteroid(smlAstArr);
+    rotateAsteroid(bigAstArr, BIG);
+    rotateAsteroid(midAstArr, MEDIUM);
+    rotateAsteroid(smlAstArr, SMALL);
     setPlayerBorders(player);
 }
 

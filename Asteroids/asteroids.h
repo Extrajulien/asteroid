@@ -7,7 +7,7 @@
 #define ASTEROID_SPREAD 20.0
 #define WAVE_ASTEROID_AMNT 5
 #define MAX_ASTEROID_SPEED 1
-#define ASTEROID_COLOR (Color){255,255,255,200}
+#define ASTEROID_COLOR (Color){220,220,220,255}
 
 #define SML_VERTICES 12
 #define MID_VERTICES 18
@@ -36,22 +36,25 @@ typedef struct {
 //100pts
 typedef struct {
     AsteroidBase base;
-    Vector2 generatedPoints[SML_VERTICES];   //vertices unRotated
-    Vector2 points[SML_VERTICES];
+    Vector2 *generatedPoints;   //vertices unRotated
+    int nbVertices;
+    Vector2 *points;
 } SmlAsteroid;
 
 //50pts
 typedef struct {
     AsteroidBase base;
-    Vector2 generatedPoints[MID_VERTICES];   //vertices unRotated
-    Vector2 points[MID_VERTICES];
+    Vector2 *generatedPoints;   //vertices unRotated
+    int nbVertices;
+    Vector2 *points;
 } MidAsteroid;
 
 //20pts
 typedef struct {
     AsteroidBase base;
-    Vector2 generatedPoints[BIG_VERTICES];   //vertices unRotated
-    Vector2 points[BIG_VERTICES];
+    Vector2 *generatedPoints;   //vertices unRotated
+    int nbVertices;
+    Vector2 *points;
 } BigAsteroid;
 
 typedef struct {
@@ -63,15 +66,16 @@ typedef struct {
     AsteroidType type;
     float radius;
     float spread;
-    float minRotationSpeed;
-    float maxRotationSpeed;
+    int minRotationSpeed;
+    int maxRotationSpeed;
     int score;
+    int nbVertices;
 } AsteroidTraits;
 
 void moveAsteroids(AsteroidArray *asteroidArr);
 void wrapAroundAsteroid(AsteroidArray *asteroidArr);
-void rotateAsteroid(AsteroidArray *asteroidArr);
-void rotateAsteroidVertices(void *asteroid);
+void rotateAsteroid(AsteroidArray *asteroidArr, AsteroidType type);
+void rotateAsteroidVertices(void *asteroid, int verticesNb);
 
 void updateAsteroidsTraits();
 
@@ -80,11 +84,14 @@ void generateWave(AsteroidArray *asteroid, int waveNum);
 
 void randomSpeed(AsteroidBase *asteroids);
 
-void generateVertices(void *asteroid);
+void generateVertices(void *asteroid, int nbVertices);
 
 void renderAsteroids(AsteroidArray *arr);
 
 void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
+
+void freeAsteroidArray(AsteroidArray *arr, AsteroidType type);
+
 /*
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);
 void midAsteroidShot(MidAsteroidArray **asteroid, SmlAsteroidArray **newAsteroid, short index);
