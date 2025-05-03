@@ -16,9 +16,10 @@
 #include "raylib.h"
 
 typedef enum {
-    SMALL,
+    BIG,
     MEDIUM,
-    BIG
+    SMALL
+
 } AsteroidType;
 
 typedef struct {
@@ -66,10 +67,12 @@ typedef struct {
     AsteroidType type;
     float radius;
     float spread;
-    int minRotationSpeed;
-    int maxRotationSpeed;
+    float minRotationSpeed;
+    float maxRotationSpeed;
+    float maxSpeed;
     int score;
     int nbVertices;
+    bool generationStyle;
 } AsteroidTraits;
 
 void moveAsteroids(AsteroidArray *asteroidArr);
@@ -82,9 +85,9 @@ void updateAsteroidsTraits();
 void randomPosition(AsteroidBase *asteroids);
 void generateWave(AsteroidArray *asteroid, int waveNum);
 
-void randomSpeed(AsteroidBase *asteroids);
+void randomSpeed(AsteroidBase *asteroid, AsteroidType type);
 
-void generateVertices(void *asteroid, int nbVertices);
+void generateVertices(void *asteroid, int nbVertices, bool generationStyle);
 
 void renderAsteroids(AsteroidArray *arr);
 

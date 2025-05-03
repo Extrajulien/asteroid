@@ -35,6 +35,8 @@ message(STATUS "raygui source directory: ${raygui_SOURCE_DIR}")
 # === Define raygui as a library (since it has no CMakeLists.txt target) ===
 add_library(raygui INTERFACE)
 target_include_directories(raygui INTERFACE ${raygui_SOURCE_DIR}/src)
+add_library(style_jungle INTERFACE)
+target_include_directories(style_jungle INTERFACE ${raygui_SOURCE_DIR}/styles/jungle)
 
 # === Main Executable ===
 add_executable(AsteroidClion
@@ -53,7 +55,7 @@ target_include_directories(AsteroidClion PRIVATE
 )
 
 # === Link Dependencies ===
-target_link_libraries(AsteroidClion PRIVATE raylib raygui)
+target_link_libraries(AsteroidClion PRIVATE raylib raygui style_jungle)
 
 # === Platform-specific system libraries ===
 if (WIN32)

@@ -1,4 +1,4 @@
-isUsed;Nom;AsteroidType;Radius;Spread;MinRotationSpeed;MaxRotationSpeed;score;nbVertices
-1;DEFAULT;B;100.0;20;-30;30;20;25
-1;DEFAULT;M;65.0;25;-40;40;50;18
-1;DEFAULT;S;35.0;15;-50;50;100;12
+isUsed;Nom;AsteroidType;Radius;Spread;MinRotationSpeed;MaxRotationSpeed;score;nbVertices;generationStyle;MaxSpeed
+1;DEFAULT;B;100.0;20;-30;30;20;25;1;300
+1;DEFAULT;M;65.0;25;-40;400;50;18;1;10
+1;DEFAULT;S;35.0;15;-50;5000;100;12;1;15

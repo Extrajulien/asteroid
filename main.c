@@ -3,6 +3,8 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
+
 #include "asteroids.h"
 #include "menu.h"
 
@@ -11,6 +13,7 @@
 #define FRAME_PER_SEC 120
 
 #define TWHITE (Color){255,255,255,150}
+
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
@@ -43,6 +46,7 @@ int main(void) {
     AsteroidArray bigAstArr = {NULL, 0};
     AsteroidArray midAstArr = {NULL, 0};
     AsteroidArray smlAstArr = {NULL, 0};
+    srand((unsigned int)time(NULL));
 
 
     bool isTitleMenu = true;
@@ -60,6 +64,7 @@ int main(void) {
     generateWave(&bigAstArr, waveNumber);
     resetPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC); // Set our game to run at 60 frames-per-second
+    loadThemes();
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -134,10 +139,16 @@ int main(void) {
         }
         if (isAsteroidEditScreen) {
             ClearBackground(BLACK);
-            editAsteroidMenu();
+            editAsteroidMenu(&isTitleMenu, &isAsteroidEditScreen);
             renderAsteroids(&bigAstArr);
             renderAsteroids(&midAstArr);
             renderAsteroids(&smlAstArr);
+            if (isTitleMenu) {
+                freeAsteroidArray(&bigAstArr, BIG);
+                freeAsteroidArray(&midAstArr, MEDIUM);
+                freeAsteroidArray(&smlAstArr, SMALL);
+                generateWave(&bigAstArr, 0);
+            }
         }
         EndDrawing();
         //----------------------------------------------------------------------------------

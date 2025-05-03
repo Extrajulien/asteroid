@@ -22,9 +22,9 @@ void moveAsteroids(AsteroidArray *asteroidArr) {
     if (asteroidArr->size == 0) { return; }
     for (int i = 0; i < asteroidArr->size; i++) {
         ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.x +=
-                ((SmlAsteroid *) asteroidArr->asteroid[i])->base.speed.x * GetFrameTime() * 120;
+                ((SmlAsteroid *) asteroidArr->asteroid[i])->base.speed.x * GetFrameTime() * 10;
         ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.y +=
-                ((SmlAsteroid *) asteroidArr->asteroid[i])->base.speed.y * GetFrameTime() * 120;
+                ((SmlAsteroid *) asteroidArr->asteroid[i])->base.speed.y * GetFrameTime() * 10;
     }
 }
 
@@ -100,8 +100,8 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
         asteroids->asteroid[i] = malloc(sizeof(BigAsteroid)); // Allocate memory for each asteroid
     }
     for (int i = 0; i < nbAsteroid; i++) {
-        const float rotation = ((rand() % ((bigTraits.maxRotationSpeed - 10) - bigTraits.minRotationSpeed))
-                                + minRotationSpeed) / 50.0f; // -300 to 300
+        const float rotation = ((rand() % (int)((bigTraits.maxRotationSpeed) - bigTraits.minRotationSpeed))
+            + bigTraits.minRotationSpeed)/100.0f;
 
         ((BigAsteroid *) asteroids->asteroid[i])->base.radius = bigTraits.radius; //init radius
         ((BigAsteroid *) asteroids->asteroid[i])->base.spread = bigTraits.spread; //init spread
@@ -110,9 +110,9 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
         ((BigAsteroid *) asteroids->asteroid[i])->base.score = bigTraits.score; //init score
         ((BigAsteroid *) asteroids->asteroid[i])->base.rotation = rotation; //init rotation
         randomPosition(&((BigAsteroid *) asteroids->asteroid[i])->base); //init pos
-        randomSpeed(&((BigAsteroid *) asteroids->asteroid[i])->base); //init speed
+        randomSpeed(&((BigAsteroid *) asteroids->asteroid[i])->base, BIG); //init speed
 
-        generateVertices(asteroids->asteroid[i], bigTraits.nbVertices); //init points
+        generateVertices(asteroids->asteroid[i], bigTraits.nbVertices, bigTraits.generationStyle); //init points
     }
     printf("--Big asteroids generated!\n");
 }
@@ -160,9 +160,11 @@ void rotateAsteroidVertices(void *asteroid, int verticesNb) {
     }
 }
 
-void generateVertices(void *asteroid, int nbVertices) {
+void generateVertices(void *asteroid, int nbVertices, bool generationStyle) {
     const float radius = ((SmlAsteroid *) asteroid)->base.radius;
     const float spread = ((SmlAsteroid *) asteroid)->base.spread;
+    float distanceFromCenter;
+    float rndSpread;
     Vector2 *ppoints = NULL;
     float radSpacing = 0;
     switch (((AsteroidBase *) asteroid)->type) {
@@ -190,20 +192,43 @@ void generateVertices(void *asteroid, int nbVertices) {
     }
     radSpacing = (2 * PI) / nbVertices;
     for (int i = 0; i < nbVertices; i++) {
-        const float rndSpread = (rand() % ((int) (spread * 100) + 1)) / 100.0f;
-        const float distanceFromCenter = rndSpread + radius;
+        if (generationStyle == true) {
+            rndSpread = ((float)rand() / (float)RAND_MAX) * spread*2;
+            distanceFromCenter = rndSpread + radius - spread;
+        } else {
+            rndSpread = ((float)rand() / (float)RAND_MAX) * spread;
+            distanceFromCenter = rndSpread + radius;
+        }
         ppoints[i].x = cosf(radSpacing * i) * distanceFromCenter;
         ppoints[i].y = sinf(radSpacing * i) * distanceFromCenter;
         //printf("p%d, (%.2f, %.2f)\n",i ,ppoints[i].x, ppoints[i].y);
     }
 }
-
-void randomSpeed(AsteroidBase *asteroids) {
+//speed.x = ((rand() % (MAX_ASTEROID_SPEED * 201)) - 100) / 100.0f;
+//speed.y = ((rand() % (MAX_ASTEROID_SPEED * 201)) - 100) / 100.0f;
+void randomSpeed(AsteroidBase *asteroid, AsteroidType type) {
     Vector2 speed;
-    speed.x = ((rand() % (MAX_ASTEROID_SPEED * 200)) - 100) / 100.0f;
-    speed.y = ((rand() % (MAX_ASTEROID_SPEED * 200)) - 100) / 100.0f;
-    asteroids->speed.x = speed.x;
-    asteroids->speed.y = speed.y;
+    int maxSpeedScaled;
+    switch (type) {
+        case BIG:   maxSpeedScaled = (int)(bigTraits.maxSpeed*10);
+                    speed.x = (float)((rand() % (maxSpeedScaled*2 + 1))-maxSpeedScaled)/10.0f;
+                    speed.y = (float)((rand() % (maxSpeedScaled*2 + 1))-maxSpeedScaled)/10.0f;
+                    break;
+        case MEDIUM:    maxSpeedScaled = (int)(midTraits.maxSpeed*10);
+                        speed.x = (float)((rand() % (maxSpeedScaled*2 + 1))-maxSpeedScaled)/10.0f;
+                        speed.y = (float)((rand() % (maxSpeedScaled*2 + 1))-maxSpeedScaled)/10.0f;
+                        break;
+        case SMALL: maxSpeedScaled = (int)(smlTraits.maxSpeed*10);
+                    speed.x = (float)((rand() % (maxSpeedScaled*2 + 1))-maxSpeedScaled)/10.0f;
+                    speed.y = (float)((rand() % (maxSpeedScaled*2 + 1))-maxSpeedScaled)/10.0f;
+                    break;
+        default:
+            printf("Unknown Asteroid type!\n");
+            exit(1);
+    }
+
+    asteroid->speed.x = speed.x;
+    asteroid->speed.y = speed.y;
     printf("speed (%.2f, %.2f)\n", speed.x, speed.y);
 }
 
@@ -298,7 +323,7 @@ void renderAsteroids(AsteroidArray *arr) {
 }
 
 void updateAsteroidsTraits() {
-    const int maxSemicolon = 8;
+    const int maxSemicolon = 10;
     const int indexName = 1;
     const int indexType = 2;
     const int indexRadius = 3;
@@ -307,6 +332,8 @@ void updateAsteroidsTraits() {
     const int indexMaxRotationSpeed = 6;
     const int indexScore = 7;
     const int indexVertices = 8;
+    const int indexGenerationStyle = 9;
+    const int indexMaxSpeed = 10;
     char buffer[BUFFER_SIZE];
     char *filename = "../asteroidsTraits.csv";
     FILE *asteroidsTraits = fopen(filename, "r");
@@ -342,18 +369,22 @@ void updateAsteroidsTraits() {
 
         pTraits->radius = atof(entry[indexRadius]);
         pTraits->spread = atof(entry[indexSpread]);
-        pTraits->minRotationSpeed = atoi(entry[indexMinRotationSpeed]);
-        pTraits->maxRotationSpeed = atoi(entry[indexMaxRotationSpeed]);
+        pTraits->minRotationSpeed = atof(entry[indexMinRotationSpeed]);
+        pTraits->maxRotationSpeed = atof(entry[indexMaxRotationSpeed]);
         pTraits->score = atoi(entry[indexScore]);
         pTraits->nbVertices = atoi(entry[indexVertices]);
+        pTraits->generationStyle = atoi(entry[indexGenerationStyle]);
+        pTraits->maxSpeed = atof(entry[indexMaxSpeed]);
 
         printf("Config:\t\t %s-%s\n", entry[indexName], entry[indexType]);
         printf("radius:\t\t %.2f\n", pTraits->radius);
         printf("Spread:\t\t %.2f\n", pTraits->spread);
-        printf("Min Spin Speed:\t %d\n", pTraits->minRotationSpeed);
-        printf("Max Spin Speed:\t %d\n", pTraits->maxRotationSpeed);
+        printf("Min Spin Speed:\t %.2f\n", pTraits->minRotationSpeed);
+        printf("Max Spin Speed:\t %.2f\n", pTraits->maxRotationSpeed);
         printf("Score:\t\t %d\n\n", pTraits->score);
-        printf("Vertices:\t\t %d\n\n", pTraits->nbVertices);
+        printf("Vertices:\t\t %d\n", pTraits->nbVertices);
+        printf("Generation style:\t\t %d\n", pTraits->generationStyle);
+        printf("Max Speed:\t %.2f\n", pTraits->maxSpeed);
     }
     fclose(asteroidsTraits);
 }
