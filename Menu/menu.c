@@ -1,7 +1,3 @@
-//
-// Created by julie on 2025-04-27.
-//
-
 #include "menu.h"
 
 #include <stdio.h>
@@ -9,7 +5,7 @@
 
 #include "raylib.h"
 #include "asteroids.h"
-#define RAYGUI_IMPLEMENTATION
+#include "files.h"
 #include "raygui.h"
 #include "style_jungle.h"
 #define DARKERGRAY (Color){20,20,20,255}
@@ -26,10 +22,11 @@
 #define BIG_ASTEROID_POS        (Vector2){GetScreenWidth()/4, GetScreenHeight()/4}
 #define MID_ASTEROID_POS        (Vector2){GetScreenWidth()/4, GetScreenHeight()/8*5}
 #define SML_ASTEROID_POS        (Vector2){GetScreenWidth()/4, GetScreenHeight()/8*7}
+#define MAX_LINE_BUFFER_SIZE 256
 #define EPSILON 0.1f
-static AsteroidTraits bigTraits = {BIG,100,20,-30,30, 100,20, 25, 0};
-static AsteroidTraits midTraits = {MEDIUM,65,25,-40,40, 100,50, 18, 0};
-static AsteroidTraits smlTraits = {SMALL,35,15,-50,50, 100, 100, 12, 0};
+extern AsteroidTraits bigTraits;
+extern AsteroidTraits midTraits;
+extern AsteroidTraits smlTraits;
 static bool isModified = true;
 static char currentPresetName[MAX_LINE_BUFFER_SIZE];
 static int currentlyModifiedType = BIG;
@@ -155,6 +152,18 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
     "Big;Medium;Small", &currentlyModifiedType, dropdownToggle)) {
         dropdownToggle = !dropdownToggle;
     }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
+        && CheckCollisionPointRec(mousePos,getAsteroidBox(&bigTraits, BIG_ASTEROID_POS))) {
+        currentlyModifiedType = BIG;
+    }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
+        && CheckCollisionPointRec(mousePos,getAsteroidBox(&midTraits, MID_ASTEROID_POS))) {
+        currentlyModifiedType = MEDIUM;
+        }
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
+    && CheckCollisionPointRec(mousePos,getAsteroidBox(&smlTraits, SML_ASTEROID_POS))) {
+        currentlyModifiedType = SMALL;
+    }
 
     switch (currentlyModifiedType) {
         case SMALL:
@@ -194,6 +203,7 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
         *isTitleMenu = true;
         *isAsteroidEditScreen = false;
         isModified = true;
+        readPresetFile();
         }
     GuiButton((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7-120, 250, 100}, "Reset");
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
@@ -205,7 +215,7 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
     GuiButton((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100}, "Save");
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
         && CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100})) {
-        //SAVE CURRENT STATE in asteroidsTraits.csv
+        savePreset(currentPresetName);
         resetAsteroidAttributes();
         isModified = true;
         currentPresetName[0] = '\0';
@@ -410,4 +420,9 @@ void drawAstOptions(AsteroidTraits *traits, Vector2 asteroidPos) {
         "Vertices",&traits->nbVertices, 2, 10000, chosenTextBox == verticiesSpinner);
     if (traits->nbVertices < 0) traits->nbVertices = 0;//prevent crash
     checkForUpdate(temp ,traits->nbVertices);
+}
+
+Rectangle getAsteroidBox(AsteroidTraits *traits, Vector2 pos) {
+    return (Rectangle){pos.x-traits->radius, pos.y-traits->radius,
+            traits->radius*2, traits->radius*2};
 }

@@ -56,7 +56,7 @@ int main(void) {
     bool hasDebugMode = false;
     int waveNumber = 0;
 
-    updateAsteroidsTraits();
+    readPresetFile();
 
     //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
     InitWindow(1920, 1080, "Asteroids"); //linux

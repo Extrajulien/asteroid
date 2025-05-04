@@ -1,7 +1,3 @@
-//
-// Created by julie on 2025-04-27.
-//
-
 #ifndef MENU_H
 #define MENU_H
 #include "raylib.h"
@@ -21,6 +17,7 @@ void refreshAsteroids(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArra
 void createBigAsteroidEditMode(AsteroidArray *asteroids);
 void createMidAsteroidEditMode(AsteroidArray *asteroids);
 void createSmlAsteroidEditMode(AsteroidArray *asteroids);
+Rectangle getAsteroidBox(AsteroidTraits *traits, Vector2 pos);
 
 void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen, bool *editPresets);
 void loadThemes();

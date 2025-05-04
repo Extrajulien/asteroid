@@ -1,7 +1,3 @@
-//
-// Created by 2485548 on 2025-04-14.
-//
-
 #ifndef ASTEROIDCLION_ASTEROIDS_H
 #define ASTEROIDCLION_ASTEROIDS_H
 #define ASTEROID_SPREAD 20.0
@@ -80,7 +76,7 @@ void wrapAroundAsteroid(AsteroidArray *asteroidArr);
 void rotateAsteroid(AsteroidArray *asteroidArr, AsteroidType type);
 void rotateAsteroidVertices(void *asteroid, int verticesNb);
 
-void updateAsteroidsTraits();
+void readPresetFile();
 
 void randomPosition(AsteroidBase *asteroids);
 void generateWave(AsteroidArray *asteroid, int waveNum);

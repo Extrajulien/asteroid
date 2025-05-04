@@ -38,12 +38,15 @@ target_include_directories(raygui INTERFACE ${raygui_SOURCE_DIR}/src)
 add_library(style_jungle INTERFACE)
 target_include_directories(style_jungle INTERFACE ${raygui_SOURCE_DIR}/styles/jungle)
 
+#set(CMAKE_EXE_LINKER_FLAGS "-static")
+
 # === Main Executable ===
 add_executable(AsteroidClion
         main.c
         Player/player.c
         Asteroids/asteroids.c
         Menu/menu.c
+        files.c
 )
 
 # === Include Directories ===
@@ -52,6 +55,7 @@ target_include_directories(AsteroidClion PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/Asteroids
         ${CMAKE_CURRENT_SOURCE_DIR}/Menu
         ${raygui_SOURCE_DIR}/src  # Ensure raygui header directory is included
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # === Link Dependencies ===

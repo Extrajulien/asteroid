@@ -1,22 +1,20 @@
-//
-// Created by 2485548 on 2025-04-14.
-//
-
 #include "asteroids.h"
 
+#include <files.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #define BUFFER_SIZE 256
-static AsteroidTraits bigTraits = {BIG, 0, 0, 0, 0, 0};
-static AsteroidTraits midTraits = {MEDIUM, 0, 0, 0, 0, 0};
-static AsteroidTraits smlTraits = {SMALL, 0, 0, 0, 0, 0};
+extern AsteroidTraits bigTraits;
+extern AsteroidTraits midTraits;
+extern AsteroidTraits smlTraits;
 
 //TODO -----
 // - Creer les collision peut tirer dessus peut tuer le joueur
 // -
 // - si ben temps libre asteroides peuvent se foncer dedans et repondir
+
 
 void moveAsteroids(AsteroidArray *asteroidArr) {
     if (asteroidArr->size == 0) { return; }
@@ -92,7 +90,6 @@ void generateWave(AsteroidArray *asteroidArr, int waveNum) {
 }
 
 void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
-    const int minRotationSpeed = -30;
     asteroids->size += nbAsteroid;
     asteroids->asteroid = malloc(nbAsteroid * sizeof(void *)); //init asteroid arr
 
@@ -204,8 +201,6 @@ void generateVertices(void *asteroid, int nbVertices, bool generationStyle) {
         //printf("p%d, (%.2f, %.2f)\n",i ,ppoints[i].x, ppoints[i].y);
     }
 }
-//speed.x = ((rand() % (MAX_ASTEROID_SPEED * 201)) - 100) / 100.0f;
-//speed.y = ((rand() % (MAX_ASTEROID_SPEED * 201)) - 100) / 100.0f;
 void randomSpeed(AsteroidBase *asteroid, AsteroidType type) {
     Vector2 speed;
     int maxSpeedScaled;
@@ -320,73 +315,6 @@ void renderAsteroids(AsteroidArray *arr) {
             printf("Unknown Asteroid type!\n");
             exit(1);
     }
-}
-
-void updateAsteroidsTraits() {
-    const int maxSemicolon = 10;
-    const int indexName = 1;
-    const int indexType = 2;
-    const int indexRadius = 3;
-    const int indexSpread = 4;
-    const int indexMinRotationSpeed = 5;
-    const int indexMaxRotationSpeed = 6;
-    const int indexScore = 7;
-    const int indexVertices = 8;
-    const int indexGenerationStyle = 9;
-    const int indexMaxSpeed = 10;
-    char buffer[BUFFER_SIZE];
-    char *filename = "../asteroidsTraits.csv";
-    FILE *asteroidsTraits = fopen(filename, "r");
-    if (asteroidsTraits == NULL) {
-        printf("le fichier '%s' n'existe pas!\n", filename);
-        exit(1);
-    }
-
-    fgets(buffer, BUFFER_SIZE, asteroidsTraits); //skip titres
-    while (fgets(buffer, BUFFER_SIZE, asteroidsTraits)) {
-        if (buffer[0] != '1') continue; // ne prend en consideration que ceux qui sont actifs
-        int indexEntry = 0;
-        char *entry[maxSemicolon + 1];
-        char *token = strtok(buffer, ";");
-
-        while (token && indexEntry < maxSemicolon + 1) {
-            entry[indexEntry++] = token;
-            token = strtok(NULL, ";");
-        }
-
-        AsteroidTraits *pTraits = NULL;
-        switch (entry[indexType][0]) {
-            case 'B': pTraits = &bigTraits;
-                break;
-            case 'M': pTraits = &midTraits;
-                break;
-            case 'S': pTraits = &smlTraits;
-                break;
-            default:
-                printf("le type d'astéroide 'S/M/B' est invalide");
-                exit(1);
-        }
-
-        pTraits->radius = atof(entry[indexRadius]);
-        pTraits->spread = atof(entry[indexSpread]);
-        pTraits->minRotationSpeed = atof(entry[indexMinRotationSpeed]);
-        pTraits->maxRotationSpeed = atof(entry[indexMaxRotationSpeed]);
-        pTraits->score = atoi(entry[indexScore]);
-        pTraits->nbVertices = atoi(entry[indexVertices]);
-        pTraits->generationStyle = atoi(entry[indexGenerationStyle]);
-        pTraits->maxSpeed = atof(entry[indexMaxSpeed]);
-
-        printf("Config:\t\t %s-%s\n", entry[indexName], entry[indexType]);
-        printf("radius:\t\t %.2f\n", pTraits->radius);
-        printf("Spread:\t\t %.2f\n", pTraits->spread);
-        printf("Min Spin Speed:\t %.2f\n", pTraits->minRotationSpeed);
-        printf("Max Spin Speed:\t %.2f\n", pTraits->maxRotationSpeed);
-        printf("Score:\t\t %d\n\n", pTraits->score);
-        printf("Vertices:\t\t %d\n", pTraits->nbVertices);
-        printf("Generation style:\t\t %d\n", pTraits->generationStyle);
-        printf("Max Speed:\t %.2f\n", pTraits->maxSpeed);
-    }
-    fclose(asteroidsTraits);
 }
 
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type) {
