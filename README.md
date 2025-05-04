@@ -1,4 +1,5 @@
 # Asteroid
+---
 Asteroid game built in C, (Made with Raylib)
 Feature a built in editor to modify asteroids properties and a preset selector
 Setup
