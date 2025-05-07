@@ -59,6 +59,7 @@ typedef struct {
 typedef struct {
     void **asteroid;
     short size;
+    short nbAsteroid;
 } AsteroidArray;
 
 typedef struct {
@@ -72,6 +73,12 @@ typedef struct {
     int nbVertices;
     bool generationStyle;
 } AsteroidTraits;
+
+typedef struct {
+    AsteroidArray *bigArr, *midArr, *smlArr;
+    Bullet *bullets;
+    int *score;
+} PackageCollisionBullet;
 
 void moveAsteroids(AsteroidArray *asteroidArr);
 void wrapAroundAsteroid(AsteroidArray *asteroidArr);
@@ -90,9 +97,10 @@ void generateVertices(void *asteroid, int nbVertices, bool generationStyle);
 void renderAsteroids(AsteroidArray *arr);
 
 void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
-void checkCollisionAstBullet(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr, Bullet *bullets, int *score);
+void* checkCollisionAstBullet(void* arg);
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type);
 void createMidAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
+void createSmlAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
 
 /*
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);

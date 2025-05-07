@@ -30,7 +30,6 @@ typedef struct {
     Vector2 size;
     Vector2 speed;
     float distance;
-    int possibleTarget;
 }Bullet;
 
 void resetPlayer(Player *player);

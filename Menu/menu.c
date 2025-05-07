@@ -309,14 +309,16 @@ void createSmlAsteroidEditMode(AsteroidArray *asteroids) {
     const float rotation = ((rand() % (int)((smlTraits.maxRotationSpeed) - smlTraits.minRotationSpeed))
         + smlTraits.minRotationSpeed)/100.0f;
 
+    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.isCollisionEnabled = true;
     ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.radius = smlTraits.radius;     //init radius
     ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.spread = smlTraits.spread;     //init spread
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.type = SMALL;                  //init type
+    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.type = MEDIUM;                 //init type
     ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.angle = 0;                     //init angle
     ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.score = smlTraits.score;       //init score
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;  //init rotation
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.position = SML_ASTEROID_POS;     //init pos
+    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;           //init rotation
+    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.position = SML_ASTEROID_POS;   //init pos
     ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.speed = (Vector2){0,0};   //init speed
+    ((SmlAsteroid*)asteroids -> asteroid[0]) -> nbVertices = smlTraits.nbVertices;  //set nb vertices
 
     generateVertices(asteroids -> asteroid[0], smlTraits.nbVertices, smlTraits.generationStyle);//init points
 

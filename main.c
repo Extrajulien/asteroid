@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>//hell nah
 
 #include "asteroids.h"
 #include "menu.h"
@@ -14,6 +15,7 @@
 
 #define TWHITE (Color){255,255,255,150}
 
+Player player;
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
@@ -23,12 +25,11 @@ void renderBullets(Bullet *bullet);
 
 void moveBullets(Bullet *bullets);
 
+void initBullets(Bullet *bullets);
+
 void deleteBullet(Bullet *bullet, int index);
 
 void wrapAroundBullet(Bullet *bullets);
-
-void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid,
-                  SmlAsteroid **smlAsteroid); //fix this
 
 void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
                 AsteroidArray *smlAstArr);
@@ -41,13 +42,12 @@ void movementGame(Player *player, Bullet *bullet);
 int main(void) {
     // Initialization
     //--------------------------------------------------------------------------------------
-    Player player;
+    pthread_t thread1;
     Bullet bullets[MAX_BULLETS];
-    AsteroidArray bigAstArr = {NULL, 0};
-    AsteroidArray midAstArr = {NULL, 0};
-    AsteroidArray smlAstArr = {NULL, 0};
+    AsteroidArray bigAstArr = {NULL, 0, 0};
+    AsteroidArray midAstArr = {NULL, 0, 0};
+    AsteroidArray smlAstArr = {NULL, 0, 0};
     srand((unsigned int)time(NULL));
-
 
     bool isTitleMenu = true;
     bool isAsteroidEditScreen = false;
@@ -61,6 +61,7 @@ int main(void) {
 
     //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
     InitWindow(1920, 1080, "Asteroids"); //linux
+    initBullets(bullets);
     //ToggleBorderlessWindowed();
     generateWave(&bigAstArr, waveNumber);
     resetPlayer(&player);
@@ -87,16 +88,36 @@ int main(void) {
 
         //game
         if (isGame) {
+            if (bigAstArr.nbAsteroid == 0 && midAstArr.nbAsteroid == 0 && smlAstArr.nbAsteroid == 0) {
+                freeAsteroidArray(&bigAstArr, BIG);
+                freeAsteroidArray(&midAstArr, MEDIUM);
+                freeAsteroidArray(&smlAstArr, SMALL);
+                waveNumber++;
+                generateWave(&bigAstArr, waveNumber);
+            }
             movementGame(&player, bullets);
             if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
             updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
+            PackageCollisionBullet *package = malloc(sizeof(PackageCollisionBullet));
+            *package = (PackageCollisionBullet){&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
+            //pthread_create(&thread1, NULL, checkCollisionAstBullet, package);
+            checkCollisionAstBullet(package);
+            //pthread_join(thread1, NULL);
+            free(package);
+
             if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
-                free(bigAstArr.asteroid);
-                free(midAstArr.asteroid);
+                freeAsteroidArray(&bigAstArr, BIG);
+                freeAsteroidArray(&midAstArr, MEDIUM);
+                freeAsteroidArray(&smlAstArr, SMALL);
                 bigAstArr.size = 0;
                 midAstArr.size = 0;
                 waveNumber = 0;
+                bigAstArr.nbAsteroid = 0;
+                midAstArr.nbAsteroid = 0;
+                smlAstArr.nbAsteroid = 0;
+                score = 0;
+                initBullets(bullets);
                 generateWave(&bigAstArr, waveNumber);
                 resetPlayer(&player);
                 if (IsKeyPressed(KEY_TAB)) {
@@ -124,7 +145,7 @@ int main(void) {
             renderAsteroids(&bigAstArr);
             renderAsteroids(&midAstArr);
             renderAsteroids(&smlAstArr);
-            checkCollisionAstBullet(&bigAstArr, &midAstArr, &smlAstArr, bullets, &score);
+
             char scoreText[100] = "";
             sprintf(scoreText,"%d", score);
             DrawText(scoreText, 10, 10, 30, YELLOW);
@@ -154,6 +175,9 @@ int main(void) {
                 freeAsteroidArray(&bigAstArr, BIG);
                 freeAsteroidArray(&midAstArr, MEDIUM);
                 freeAsteroidArray(&smlAstArr, SMALL);
+                bigAstArr.nbAsteroid = 0;
+                midAstArr.nbAsteroid = 0;
+                smlAstArr.nbAsteroid = 0;
                 generateWave(&bigAstArr, 0);
             }
         }
@@ -167,7 +191,7 @@ int main(void) {
     //--------------------------------------------------------------------------------------
     freeAsteroidArray(&bigAstArr, ((BigAsteroid*)bigAstArr.asteroid[0])->base.type);
     freeAsteroidArray(&midAstArr, ((MidAsteroid*)midAstArr.asteroid[0])->base.type);
-    //freeAsteroidArray(&smlAstArr, ((SmlAsteroid*)smlAstArr.asteroid[0])->base.type);
+    freeAsteroidArray(&smlAstArr, SMALL);
     return 0;
 }
 
@@ -275,9 +299,9 @@ void renderBullets(Bullet *bullet) {
 
 void moveBullets(Bullet *bullets) {
     for (int i = 0; i < MAX_BULLETS; ++i) {
+        if (bullets[i].distance == 0) continue;
         float speedX = bullets[i].speed.x * GetFrameTime() * 120;
         float speedY = bullets[i].speed.y * GetFrameTime() * 120;
-
         bullets[i].position.x += speedX;
         bullets[i].position.y += speedY;
         bullets[i].distance -= sqrtf(SQUARE(speedX) + SQUARE(speedY));
@@ -289,14 +313,13 @@ void moveBullets(Bullet *bullets) {
 }
 
 void deleteBullet(Bullet *bullet, int index) {
-    bullet[index].size = (Vector2){0, 0};
-    bullet[index].position = (Vector2){-30000, -30000};
     bullet[index].speed = (Vector2){0, 0};
     bullet[index].distance = 0;
 }
 
 void wrapAroundBullet(Bullet *bullets) {
     for (int i = 0; i < MAX_BULLETS; ++i) {
+        if (bullets[i].distance == 0) continue;
         if (bullets[i].position.x > GetScreenWidth() + bullets[i].size.x) bullets[i].position.x = -bullets[i].size.x;
         if (bullets[i].position.y > GetScreenHeight() + bullets[i].size.y) bullets[i].position.y = -bullets[i].size.y;
         if (bullets[i].position.x < -bullets[i].size.x) bullets[i].position.x = GetScreenWidth() + bullets[i].size.x;
@@ -304,10 +327,14 @@ void wrapAroundBullet(Bullet *bullets) {
     }
 }
 
-void shotAsteroid(Bullet *bullets, BigAsteroid **bigAsteroid, MidAsteroid **midAsteroid, SmlAsteroid **smlAsteroid) {
-    //condition de hit box genre s'il se situe entre les points des asteroides
-    //if ()
+void createPresetAsteroidTraits() {
 }
 
-void createPresetAsteroidTraits() {
+void initBullets(Bullet *bullets) {
+    for (int i = 0; i < MAX_BULLETS; i++) {
+        bullets[i].distance = 0;
+        bullets[i].position = (Vector2){50,50};
+        bullets[i].speed = (Vector2){0,0};
+        bullets[i].size = (Vector2){5,5};
+    }
 }

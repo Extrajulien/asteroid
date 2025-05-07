@@ -141,8 +141,6 @@ void shoot(Player *player, Bullet *bullet, float speed) {
         }
     }
     bullet[index].distance = 2500;//life distance
-    bullet[index].size.x = 5;
-    bullet[index].size.y = 5;
     bullet[index].position = (Vector2) {player->position.x, player->position.y};
     bullet[index].speed = (Vector2) {
             (speed * cosf(angleRad) * ((fabsf(player->speed.x) / 4) + 1)),
