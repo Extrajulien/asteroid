@@ -1,6 +1,6 @@
 #include "asteroids.h"
 
-#include <files.h>
+#include "files.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,8 +35,8 @@ void wrapAroundAsteroid(AsteroidArray *asteroidArr) {
             ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.y
         };
 
-        if (pos.x > GetScreenWidth() + radius) ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.x = -radius;
-        if (pos.y > GetScreenHeight() + radius) ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.y = -radius;
+        if (pos.x > GetScreenWidth() + radius) ((SmlAsteroid*) asteroidArr->asteroid[i])->base.position.x = -radius;
+        if (pos.y > GetScreenHeight() + radius) ((SmlAsteroid*) asteroidArr->asteroid[i])->base.position.y = -radius;
         if (pos.x < -radius) ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.x = GetScreenWidth() + radius;
         if (pos.y < -radius) ((SmlAsteroid *) asteroidArr->asteroid[i])->base.position.y = GetScreenHeight() + radius;
     }
@@ -99,7 +99,7 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
     for (int i = 0; i < nbAsteroid; i++) {
         const float rotation = ((rand() % (int)((bigTraits.maxRotationSpeed) - bigTraits.minRotationSpeed))
             + bigTraits.minRotationSpeed)/100.0f;
-
+        ((BigAsteroid *) asteroids->asteroid[i])->base.isCollisionEnabled = true;
         ((BigAsteroid *) asteroids->asteroid[i])->base.radius = bigTraits.radius; //init radius
         ((BigAsteroid *) asteroids->asteroid[i])->base.spread = bigTraits.spread; //init spread
         ((BigAsteroid *) asteroids->asteroid[i])->base.type = BIG; //init type
@@ -245,6 +245,7 @@ void renderAsteroids(AsteroidArray *arr) {
         case SMALL:
             verticesNb = ((SmlAsteroid *) arr->asteroid[0])->nbVertices;
             for (int i = 0; i < arr->size; i++) {
+                if (!((SmlAsteroid *) arr->asteroid[i])->base.isCollisionEnabled) continue;
                 //for each asteroid
                 Vector2 pos = ((SmlAsteroid *) arr->asteroid[i])->base.position;
                 for (int j = 0; j < verticesNb - 1; ++j) {
@@ -268,6 +269,7 @@ void renderAsteroids(AsteroidArray *arr) {
         case MEDIUM:
             verticesNb = ((MidAsteroid *) arr->asteroid[0])->nbVertices;
             for (int i = 0; i < arr->size; i++) {
+                if (!((MidAsteroid *) arr->asteroid[i])->base.isCollisionEnabled) continue;
                 //for each asteroid
                 Vector2 pos = ((MidAsteroid *) arr->asteroid[i])->base.position;
                 for (int j = 0; j < verticesNb - 1; ++j) {
@@ -291,6 +293,7 @@ void renderAsteroids(AsteroidArray *arr) {
         case BIG:
             verticesNb = ((BigAsteroid *) arr->asteroid[0])->nbVertices;
             for (int i = 0; i < arr->size; i++) {
+                if (!((BigAsteroid *) arr->asteroid[i])->base.isCollisionEnabled) continue;
                 //for each asteroid
                 Vector2 pos = ((BigAsteroid *) arr->asteroid[i])->base.position;
                 for (int j = 0; j < verticesNb - 1; ++j) {
@@ -315,6 +318,152 @@ void renderAsteroids(AsteroidArray *arr) {
             printf("Unknown Asteroid type!\n");
             exit(1);
     }
+}
+
+void checkCollisionAstBullet(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr, Bullet *bullets, int *score) {
+    Vector2 startPos;
+    Vector2 endPos;
+    const int treshold = 15;
+    Vector2 astPos;
+    for (int i = 0; i < MAX_BULLETS; ++i) {//chaque balle
+        if (smlArr->size == 0) break;
+        for (int j = 0; j < smlArr->size; ++j) {//chaque asteroid
+
+            if (!((SmlAsteroid *) smlArr->asteroid[j])->base.isCollisionEnabled) continue;
+
+            astPos = ((SmlAsteroid *) smlArr->asteroid[j])->base.position;
+            for (int k = 0; k < smlTraits.nbVertices - 1; ++k) {// pour chaque point
+                if (!((SmlAsteroid *) smlArr->asteroid[j])->base.isCollisionEnabled) break;
+                startPos = ((SmlAsteroid *) smlArr->asteroid[j])->points[k];
+                endPos = ((SmlAsteroid *) smlArr->asteroid[j])->points[k + 1];
+                startPos.x += astPos.x;
+                startPos.y += astPos.y;
+                endPos.x += astPos.x;
+                endPos.y += astPos.y;
+                if (CheckCollisionPointLine(bullets[i].position, startPos, endPos, treshold)){
+                    printf("collision petit\n");
+                    ((SmlAsteroid *) smlArr->asteroid[j])->base.isCollisionEnabled = false;
+                    bullets[i].speed = (Vector2){0,0};
+                    bullets[i].position = (Vector2){-10000, 10000};
+                    *score += ((SmlAsteroid *) smlArr->asteroid[j])->base.score;
+                }
+                DrawLineEx(startPos, endPos, 15, BLUE);
+            }
+            startPos = ((SmlAsteroid *) smlArr->asteroid[j])->points[smlTraits.nbVertices - 1];
+            endPos = ((SmlAsteroid *) smlArr->asteroid[j])->points[0];
+            startPos.x += astPos.x;
+            startPos.y += astPos.y;
+            endPos.x += astPos.x;
+            endPos.y += astPos.y;
+            DrawLineEx(startPos, endPos, 15, BLUE);
+
+        }
+    }
+    for (int i = 0; i < MAX_BULLETS; ++i) {//chaque balle
+        if (midArr->size == 0) break;
+        for (int j = 0; j < midArr->size; ++j) {//chaque asteroid
+
+            if (!((MidAsteroid *) midArr->asteroid[j])->base.isCollisionEnabled) continue;
+
+            astPos = ((MidAsteroid *) midArr->asteroid[j])->base.position;
+            for (int k = 0; k < midTraits.nbVertices - 1; ++k) {// pour chaque point
+                if (!((MidAsteroid *) midArr->asteroid[j])->base.isCollisionEnabled) break;
+                startPos = ((MidAsteroid *) midArr->asteroid[j])->points[k];
+                endPos = ((MidAsteroid *) midArr->asteroid[j])->points[k + 1];
+                startPos.x += astPos.x;
+                startPos.y += astPos.y;
+                endPos.x += astPos.x;
+                endPos.y += astPos.y;
+                if (CheckCollisionPointLine(bullets[i].position, startPos, endPos, treshold)){
+                    printf("collision moyen\n");
+                    ((MidAsteroid *) midArr->asteroid[j])->base.isCollisionEnabled = false;
+                    bullets[i].speed = (Vector2){0,0};
+                    bullets[i].position = (Vector2){-10000, 10000};
+                    *score += ((MidAsteroid *) midArr->asteroid[j])->base.score;
+                }
+            }
+            startPos = ((MidAsteroid *) midArr->asteroid[j])->points[midTraits.nbVertices - 1];
+            endPos = ((MidAsteroid *) midArr->asteroid[j])->points[0];
+            startPos.x += astPos.x;
+            startPos.y += astPos.y;
+            endPos.x += astPos.x;
+            endPos.y += astPos.y;
+
+        }
+    }
+
+    for (int i = 0; i < MAX_BULLETS; ++i) {//chaque balle
+        if (bigArr->size == 0) break;
+        for (int j = 0; j < bigArr->size; ++j) {//chaque asteroid
+
+            if (!((BigAsteroid *) bigArr->asteroid[j])->base.isCollisionEnabled) continue;
+
+            astPos = ((BigAsteroid *) bigArr->asteroid[j])->base.position;
+            for (int k = 0; k < bigTraits.nbVertices - 1; ++k) {// pour chaque point
+                if (!((BigAsteroid *) bigArr->asteroid[j])->base.isCollisionEnabled) break;
+                startPos = ((BigAsteroid *) bigArr->asteroid[j])->points[k];
+                endPos = ((BigAsteroid *) bigArr->asteroid[j])->points[k + 1];
+                startPos.x += astPos.x;
+                startPos.y += astPos.y;
+                endPos.x += astPos.x;
+                endPos.y += astPos.y;
+                if (CheckCollisionPointLine(bullets[i].position, startPos, endPos, treshold)){
+                    printf("collision gros\n");
+                    ((BigAsteroid *) bigArr->asteroid[j])->base.isCollisionEnabled = false;
+                    bullets[i].speed = (Vector2){0,0};
+                    bullets[i].position = (Vector2){-10000, 10000};
+                    *score += ((BigAsteroid *) bigArr->asteroid[j])->base.score;
+                    createMidAsteroid(midArr, 2, ((BigAsteroid *) bigArr->asteroid[j])->base.position);
+                }
+            }
+            startPos = ((BigAsteroid *) bigArr->asteroid[j])->points[bigTraits.nbVertices - 1];
+            endPos = ((BigAsteroid *) bigArr->asteroid[j])->points[0];
+            startPos.x += astPos.x;
+            startPos.y += astPos.y;
+            endPos.x += astPos.x;
+            endPos.y += astPos.y;
+
+        }
+    }
+
+}
+
+void createMidAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position) {
+    if (arr->size == 0) {
+        arr->asteroid = malloc(nbAsteroid * sizeof(void*));
+        if (arr->asteroid == NULL) {
+            printf("Malloc mid Asteroid failed, line 439");
+            exit(1);
+        }
+    } else {
+        arr->asteroid = realloc(arr->asteroid, (arr->size + nbAsteroid) * sizeof(void*));
+        if (arr->asteroid == NULL) {
+            printf("Realloc mid Asteroid failed, line 445");
+            exit(1);
+        }
+    }
+    for (int i = arr->size; i < arr->size+nbAsteroid; ++i) {
+        arr->asteroid[i] = malloc(sizeof(MidAsteroid));
+        printf("Allocating arr->asteroid[%d]\n", i);
+        if (arr->asteroid[i] == NULL) {
+            printf("Malloc individual [%d] mid Asteroid failed, line 452", i);
+            exit(1);
+        }
+        const float rotation = ((rand() % (int)((midTraits.maxRotationSpeed) - midTraits.minRotationSpeed))
+        + midTraits.minRotationSpeed)/100.0f;
+        ((MidAsteroid*) arr->asteroid[i])->base.isCollisionEnabled = true;
+        ((MidAsteroid*) arr->asteroid[i])->base.radius = midTraits.radius; //init radius
+        ((MidAsteroid*) arr->asteroid[i])->base.spread = midTraits.spread; //init spread
+        ((MidAsteroid*) arr->asteroid[i])->base.type = MEDIUM; //init type
+        ((MidAsteroid*) arr->asteroid[i])->base.angle = 0; //init angle
+        ((MidAsteroid*) arr->asteroid[i])->base.score = midTraits.score; //init score
+        ((MidAsteroid*) arr->asteroid[i])->base.rotation = rotation; //init rotation
+        ((MidAsteroid*) arr->asteroid[i])->base.position = position;; //init pos
+        randomSpeed(&((MidAsteroid*) arr->asteroid[i])->base, MEDIUM); //init speed
+
+        generateVertices(arr->asteroid[i], midTraits.nbVertices, midTraits.generationStyle); //init points
+    }
+    arr->size += nbAsteroid;
 }
 
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type) {

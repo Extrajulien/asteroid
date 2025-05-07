@@ -105,21 +105,16 @@ void savePreset(char *presetName) {
 }
 
 bool validatePresetName(char *presetName) {
-
-    for (int i = 0;i < strlen(presetName)-1;i++) {
-        if (isspace(presetName[i])) {
-            for (int j = i; j < strlen(presetName)-1;j++) {//from space to end
-                presetName[j] = presetName[j+1];
-            }
-            i--;
-            presetName[strlen(presetName)-1] = '\0';
+    char spacelessName[strlen(presetName)];
+    int pos = 0;
+    for (int i = 0;i < strlen(presetName);i++) {
+        if (isalpha(presetName[i])) {
+            spacelessName[pos] = presetName[i];
+            pos++;
         }
     }
-    for (int i = 0; i < strlen(presetName);i++) {//remove all after first space
-        if (isspace(presetName[i])) {
-            presetName[i] = '\0';
-            break;
-        }
-    }
+    printf("TEXT--'%s' -> '%s'\n", presetName, spacelessName);
+    spacelessName[pos] = '\0';
+    strcpy(presetName, spacelessName);
     return true;
 }

@@ -10,6 +10,7 @@
 #define BIG_VERTICES 25
 
 #include "raylib.h"
+#include "player.h"
 
 typedef enum {
     BIG,
@@ -28,9 +29,10 @@ typedef struct {
     float spread;
     float weight;                   //area of polygon
     int score;
+    bool isCollisionEnabled;
 } AsteroidBase;
 
-//100pts
+//petit asteroide composant
 typedef struct {
     AsteroidBase base;
     Vector2 *generatedPoints;   //vertices unRotated
@@ -38,7 +40,7 @@ typedef struct {
     Vector2 *points;
 } SmlAsteroid;
 
-//50pts
+//moyen asteroide composant
 typedef struct {
     AsteroidBase base;
     Vector2 *generatedPoints;   //vertices unRotated
@@ -46,7 +48,7 @@ typedef struct {
     Vector2 *points;
 } MidAsteroid;
 
-//20pts
+//Gros asteroide composant
 typedef struct {
     AsteroidBase base;
     Vector2 *generatedPoints;   //vertices unRotated
@@ -88,8 +90,9 @@ void generateVertices(void *asteroid, int nbVertices, bool generationStyle);
 void renderAsteroids(AsteroidArray *arr);
 
 void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
-
+void checkCollisionAstBullet(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr, Bullet *bullets, int *score);
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type);
+void createMidAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
 
 /*
 void bigAsteroidShot(BigAsteroidArray **asteroid, MidAsteroidArray **newAsteroid, short index);

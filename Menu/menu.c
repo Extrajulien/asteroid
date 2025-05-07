@@ -235,8 +235,8 @@ void updateEditAsteroidMenu(AsteroidArray *bigArr, AsteroidArray *midArr, Astero
         printf("%f", ((BigAsteroid*)bigArr->asteroid[0])->base.radius);
         //printf("%d", ((MidAsteroid*)midArr->asteroid[0])->base.type);
         //printf("%d", ((SmlAsteroid*)smlArr->asteroid[0])->base.type);
-        freeAsteroidArray(bigArr, ((BigAsteroid*)bigArr->asteroid[0])->base.type);
-        //freeAsteroidArray(midArr, ((MidAsteroid*)midArr->asteroid)->base.type);
+        freeAsteroidArray(bigArr, BIG);
+        freeAsteroidArray(midArr, MEDIUM);
         //freeAsteroidArray(smlArr, ((SmlAsteroid*)smlArr->asteroid)->base.type);
 
         refreshAsteroids(bigArr, midArr, smlArr);
@@ -261,7 +261,7 @@ void createBigAsteroidEditMode(AsteroidArray *asteroids) {
 
     const float rotation = ((rand() % (int)((bigTraits.maxRotationSpeed) - bigTraits.minRotationSpeed))
         + bigTraits.minRotationSpeed)/100.0f;
-
+        ((BigAsteroid *) asteroids->asteroid[0])->base.isCollisionEnabled = true;
         ((BigAsteroid*)asteroids -> asteroid[0]) -> base.radius = bigTraits.radius;      //init radius
         ((BigAsteroid*)asteroids -> asteroid[0]) -> base.spread = bigTraits.spread;      //init spread
         ((BigAsteroid*)asteroids -> asteroid[0]) -> base.type = BIG;           //init type
@@ -284,16 +284,16 @@ void createMidAsteroidEditMode(AsteroidArray *asteroids) {
 
     const float rotation = ((rand() % (int)((midTraits.maxRotationSpeed) - midTraits.minRotationSpeed))
         + midTraits.minRotationSpeed)/100.0f;
-
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.radius = midTraits.radius;      //init radius
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.spread = midTraits.spread;      //init spread
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.type = MEDIUM;           //init type
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.angle = 0;            //init angle
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.score = midTraits.score;           //init score
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;  //init rotation
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.position = MID_ASTEROID_POS;     //init pos
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.speed = (Vector2){0,0};     //init speed
-    ((MidAsteroid*)asteroids -> asteroid[0]) ->nbVertices = midTraits.nbVertices;     //set nb vertices
+    ((MidAsteroid *) asteroids->asteroid[0])->base.isCollisionEnabled = true;
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.radius = midTraits.radius;     //init radius
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.spread = midTraits.spread;     //init spread
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.type = MEDIUM;                 //init type
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.angle = 0;                     //init angle
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.score = midTraits.score;       //init score
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;           //init rotation
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.position = MID_ASTEROID_POS;   //init pos
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.speed = (Vector2){0,0};   //init speed
+    ((MidAsteroid*)asteroids -> asteroid[0]) -> nbVertices = midTraits.nbVertices;  //set nb vertices
 
     generateVertices(asteroids -> asteroid[0], midTraits.nbVertices, midTraits.generationStyle);//init points
 

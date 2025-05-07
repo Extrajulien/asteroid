@@ -55,6 +55,7 @@ int main(void) {
     bool isGame = false;
     bool hasDebugMode = false;
     int waveNumber = 0;
+    int score = 0;
 
     readPresetFile();
 
@@ -92,7 +93,9 @@ int main(void) {
 
             if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
                 free(bigAstArr.asteroid);
+                free(midAstArr.asteroid);
                 bigAstArr.size = 0;
+                midAstArr.size = 0;
                 waveNumber = 0;
                 generateWave(&bigAstArr, waveNumber);
                 resetPlayer(&player);
@@ -121,6 +124,10 @@ int main(void) {
             renderAsteroids(&bigAstArr);
             renderAsteroids(&midAstArr);
             renderAsteroids(&smlAstArr);
+            checkCollisionAstBullet(&bigAstArr, &midAstArr, &smlAstArr, bullets, &score);
+            char scoreText[100] = "";
+            sprintf(scoreText,"%d", score);
+            DrawText(scoreText, 10, 10, 30, YELLOW);
 
             if (hasDebugMode) {
                 drawGrid(GetScreenWidth() - 200, 200, 300, &player, true);
@@ -159,7 +166,7 @@ int main(void) {
     CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
     freeAsteroidArray(&bigAstArr, ((BigAsteroid*)bigAstArr.asteroid[0])->base.type);
-    //freeAsteroidArray(&midAstArr, ((MidAsteroid*)midAstArr.asteroid[0])->base.type);
+    freeAsteroidArray(&midAstArr, ((MidAsteroid*)midAstArr.asteroid[0])->base.type);
     //freeAsteroidArray(&smlAstArr, ((SmlAsteroid*)smlAstArr.asteroid[0])->base.type);
     return 0;
 }
@@ -283,7 +290,7 @@ void moveBullets(Bullet *bullets) {
 
 void deleteBullet(Bullet *bullet, int index) {
     bullet[index].size = (Vector2){0, 0};
-    bullet[index].position = (Vector2){0, 0};
+    bullet[index].position = (Vector2){-30000, -30000};
     bullet[index].speed = (Vector2){0, 0};
     bullet[index].distance = 0;
 }
@@ -292,8 +299,8 @@ void wrapAroundBullet(Bullet *bullets) {
     for (int i = 0; i < MAX_BULLETS; ++i) {
         if (bullets[i].position.x > GetScreenWidth() + bullets[i].size.x) bullets[i].position.x = -bullets[i].size.x;
         if (bullets[i].position.y > GetScreenHeight() + bullets[i].size.y) bullets[i].position.y = -bullets[i].size.y;
-        if (bullets[i].position.x < -bullets[i].size.x) bullets[i].position.x = GetScreenWidth();
-        if (bullets[i].position.y < -bullets[i].size.y) bullets[i].position.y = GetScreenHeight();
+        if (bullets[i].position.x < -bullets[i].size.x) bullets[i].position.x = GetScreenWidth() + bullets[i].size.x;
+        if (bullets[i].position.y < -bullets[i].size.y) bullets[i].position.y = GetScreenHeight() + bullets[i].size.y;
     }
 }
 
