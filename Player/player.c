@@ -5,6 +5,7 @@
 #include "player.h"
 #include <math.h>
 #include <stdlib.h>
+#include "main_api.h"
 
 
 void stretchPlayer(Player *player, float thrustTime) {
@@ -40,6 +41,18 @@ void resetPlayer(Player *player) {
     player->angleBackLeft = (7.0 * PI) / 6.0;
     player->angleBackRight = (5.0 * PI) / 6.0;
     player->speed = (Vector2) {0, 0};
+}
+
+void initPlayer(Player *player) {
+    player->angle = 90.0;
+    player->position = (Vector2) {(GetScreenWidth() / 2), (GetScreenHeight() / 2)};
+    player->radius = 40;
+    player->borderWidth = 6;
+    player->angleBackLeft = (7.0 * PI) / 6.0;
+    player->angleBackRight = (5.0 * PI) / 6.0;
+    player->speed = (Vector2) {0, 0};
+    player->lives = 2;
+    player->die = playerDie;
 }
 
 void glide(Player *player) {
@@ -145,4 +158,13 @@ void shoot(Player *player, Bullet *bullet, float speed) {
     bullet[index].speed = (Vector2) {
             (speed * cosf(angleRad) * ((fabsf(player->speed.x) / 4) + 1)),
             (speed * -sinf(angleRad) * ((fabsf(player->speed.y) / 4) + 1))};
+}
+
+void playerDie(Player *player) {
+    if (player->lives > 0) {
+        player->lives--;
+        resetPlayer(player);
+        return;
+    }
+    gameoverPlayer(player);
 }

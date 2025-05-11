@@ -80,6 +80,11 @@ typedef struct {
     int *score;
 } PackageCollisionBullet;
 
+typedef struct {
+    Player *player;
+    AsteroidArray *bigArr, *midArr, *smlArr;
+} PackageCollisionPlayer;
+
 void moveAsteroids(AsteroidArray *asteroidArr);
 void wrapAroundAsteroid(AsteroidArray *asteroidArr);
 void rotateAsteroid(AsteroidArray *asteroidArr, AsteroidType type);
@@ -96,9 +101,11 @@ void generateVertices(void *asteroid, int nbVertices, bool generationStyle);
 
 void renderAsteroids(AsteroidArray *arr);
 
-void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
 void* checkCollisionAstBullet(void* arg);
+void* checkCollisionAstPlayer(void * arg);
+
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type);
+void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
 void createMidAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
 void createSmlAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
 

@@ -49,6 +49,9 @@ add_executable(AsteroidClion
         Asteroids/asteroids.c
         Menu/menu.c
         files.c
+        main_api.h
+        particles.c
+        particles.h
 )
 
 # === Include Directories ===

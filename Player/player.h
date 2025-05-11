@@ -12,7 +12,7 @@
 #define MAX_BULLETS 10
 #define SQUARE(x) ((x) * (x))
 
-typedef struct {
+typedef struct Player{
     Vector2 tip;
     Vector2 backLeft;
     Vector2 backRight;
@@ -23,6 +23,8 @@ typedef struct {
     float borderWidth;
     float angleBackLeft;
     float angleBackRight;
+    int lives;
+    void (*die)(struct Player *self);
 } Player;
 
 typedef struct {
@@ -32,6 +34,8 @@ typedef struct {
     float distance;
 }Bullet;
 
+void playerDie(Player *player);
+void initPlayer(Player *player);
 void resetPlayer(Player *player);
 void thrust(Player *player, float thrustTime);
 void glide(Player *player);

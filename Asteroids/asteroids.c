@@ -232,7 +232,7 @@ void randomSpeed(AsteroidBase *asteroid, AsteroidType type) {
 
 void randomPosition(AsteroidBase *asteroids) {
     const Vector2 playerPos = player.position;
-    const int spawnRadius = 300;
+    const int spawnRadius = 150;
     Vector2 pos;
     pos.x = rand() % (GetScreenWidth() -spawnRadius*2);
     pos.y = rand() % (GetScreenHeight()-spawnRadius*2);
@@ -524,6 +524,36 @@ void createSmlAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position) {
     }
     arr->size += nbAsteroid;
     arr->nbAsteroid += nbAsteroid;
+}
+//TODO fait ca bonhomme
+void* checkCollisionAstPlayer(void * arg) {
+    PackageCollisionPlayer package = *(PackageCollisionPlayer*) arg;
+    Vector2 startPos;
+    Vector2 endPos;
+    Vector2 astPos;
+
+    for (int i = 0; i < package.bigArr->size; ++i) {
+        for (int j = 0; j < ((BigAsteroid*)package.bigArr->asteroid[i])->nbVertices-1; ++j) {
+            if (!((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled) continue;
+            astPos = ((BigAsteroid *) package.bigArr->asteroid[i])->base.position;
+            startPos = ((BigAsteroid *) package.bigArr->asteroid[i])->points[j];
+            endPos = ((BigAsteroid *) package.bigArr->asteroid[i])->points[j + 1];
+            startPos.x += astPos.x;
+            startPos.y += astPos.y;
+            endPos.x += astPos.x;
+            endPos.y += astPos.y;
+            if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
+                || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
+                || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+                player.die(&player);
+                package.bigArr->nbAsteroid--;
+                createMidAsteroid(package.midArr, 2, ((BigAsteroid*)package.bigArr->asteroid[i])->base.position);
+                ((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled = false;
+                return NULL;
+            }
+        }
+    }
+    return NULL;
 }
 
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type) {

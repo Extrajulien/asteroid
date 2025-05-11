@@ -1,3 +1,7 @@
+#define FRAME_PER_SEC 120
+
+#define TWHITE (Color){255,255,255,150}
+
 #include "raylib.h"
 #include <stdio.h>
 #include <math.h>
@@ -5,15 +9,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>//hell nah
+#include <raygui.h>
 
+#include "main_api.h"
 #include "asteroids.h"
 #include "menu.h"
 
 #include "Player/player.h"
-
-#define FRAME_PER_SEC 120
-
-#define TWHITE (Color){255,255,255,150}
 
 Player player;
 
@@ -36,6 +38,15 @@ void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, Astero
 
 void movementGame(Player *player, Bullet *bullet);
 
+void showGameoverScreen();
+
+static bool isTitleMenu = true;
+static bool isAsteroidEditScreen = false;
+static bool isEditPresetsScreen = false;
+static bool isGame = false;
+static bool hasDebugMode = false;
+static bool isGameoverScreen = false;
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -49,11 +60,6 @@ int main(void) {
     AsteroidArray smlAstArr = {NULL, 0, 0};
     srand((unsigned int)time(NULL));
 
-    bool isTitleMenu = true;
-    bool isAsteroidEditScreen = false;
-    bool isEditPresetsScreen = false;
-    bool isGame = false;
-    bool hasDebugMode = false;
     int waveNumber = 0;
     int score = 0;
 
@@ -64,7 +70,7 @@ int main(void) {
     initBullets(bullets);
     //ToggleBorderlessWindowed();
     generateWave(&bigAstArr, waveNumber);
-    resetPlayer(&player);
+    initPlayer(&player);
     SetTargetFPS(FRAME_PER_SEC); // Set our game to run at 60 frames-per-second
     loadThemes();
     //--------------------------------------------------------------------------------------
@@ -80,6 +86,10 @@ int main(void) {
         //title menu
         if (isTitleMenu) {
             titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
+            if (isGame) {
+                initPlayer(&player);
+                isGameoverScreen = false;
+            }
         }
 
         if (isAsteroidEditScreen) {
@@ -99,12 +109,17 @@ int main(void) {
             if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
             updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
-            PackageCollisionBullet *package = malloc(sizeof(PackageCollisionBullet));
-            *package = (PackageCollisionBullet){&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
-            //pthread_create(&thread1, NULL, checkCollisionAstBullet, package);
-            checkCollisionAstBullet(package);
+            PackageCollisionBullet *packageBullet = malloc(sizeof(PackageCollisionBullet));
+            *packageBullet = (PackageCollisionBullet){&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
+            //pthread_create(&thread1, NULL, checkCollisionAstBullet, packageBullet);
+            checkCollisionAstBullet(packageBullet);
             //pthread_join(thread1, NULL);
-            free(package);
+            free(packageBullet);
+
+            PackageCollisionPlayer *packagePlayer = malloc(sizeof(PackageCollisionPlayer));
+            *packagePlayer = (PackageCollisionPlayer){&player, &bigAstArr, &midAstArr, &smlAstArr};
+            checkCollisionAstPlayer(packagePlayer);
+            free(packagePlayer);
 
             if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
                 freeAsteroidArray(&bigAstArr, BIG);
@@ -127,6 +142,11 @@ int main(void) {
             }
         }
 
+        if (isGameoverScreen) {
+            ClearBackground(BLACK);
+            updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
+        }
+
         //updateAsteroid(&bigAsteroid, &midAsteroid, &smlAsteroid);
 
         // Draw
@@ -135,6 +155,13 @@ int main(void) {
         char rotation[100] = "";
         sprintf(rotation, "%.2f", player.angle);
         char speedAmnt[100] = "";
+
+        if (isGameoverScreen) {
+            showGameoverScreen();
+            renderAsteroids(&bigAstArr);
+            renderAsteroids(&midAstArr);
+            renderAsteroids(&smlAstArr);
+        }
 
         if (isGame) {
             sprintf(speedAmnt, "%.2f", sqrtf(SQUARE(player.speed.x) + SQUARE(player.speed.y)));
@@ -336,5 +363,26 @@ void initBullets(Bullet *bullets) {
         bullets[i].position = (Vector2){50,50};
         bullets[i].speed = (Vector2){0,0};
         bullets[i].size = (Vector2){5,5};
+    }
+}
+
+void gameoverPlayer(Player *player) {
+    isGameoverScreen = true;
+    isGame = false;
+
+}
+
+void showGameoverScreen() {
+    static float timer = 0;
+    const int fontSize = 256;
+    const char* gameover = "Game Over";
+    const Vector2 textSize = MeasureTextEx(GetFontDefault(), gameover, fontSize, 25);
+    DrawTextEx(GetFontDefault(), gameover,
+        (Vector2){GetScreenWidth()/2-textSize.x/2, GetScreenHeight()/2-textSize.y/2}, fontSize, 25, ORANGE);
+    timer += GetFrameTime();
+    if (timer > 3) {
+    isGameoverScreen = false;
+        isTitleMenu = true;
+        timer = 0;
     }
 }
