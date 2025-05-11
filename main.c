@@ -14,6 +14,7 @@
 #include "main_api.h"
 #include "asteroids.h"
 #include "menu.h"
+#include "particles.h"
 
 #include "Player/player.h"
 
@@ -157,10 +158,10 @@ int main(void) {
         char speedAmnt[100] = "";
 
         if (isGameoverScreen) {
-            showGameoverScreen();
             renderAsteroids(&bigAstArr);
             renderAsteroids(&midAstArr);
             renderAsteroids(&smlAstArr);
+            showGameoverScreen();
         }
 
         if (isGame) {
