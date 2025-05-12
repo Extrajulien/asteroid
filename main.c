@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>//hell nah
-#include <raygui.h>
 
 #include "main_api.h"
 #include "asteroids.h"
@@ -65,13 +64,13 @@ int main(void) {
     int score = 0;
 
     readPresetFile();
-
+    particleArrInit(10);
     //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
     InitWindow(1920, 1080, "Asteroids"); //linux
     initBullets(bullets);
     //ToggleBorderlessWindowed();
-    generateWave(&bigAstArr, waveNumber);
     initPlayer(&player);
+    generateWave(&bigAstArr, waveNumber);
     SetTargetFPS(FRAME_PER_SEC); // Set our game to run at 60 frames-per-second
     loadThemes();
     //--------------------------------------------------------------------------------------
@@ -89,6 +88,12 @@ int main(void) {
             titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
             if (isGame) {
                 initPlayer(&player);
+                score = 0;
+                freeAsteroidArray(&bigAstArr, BIG);
+                freeAsteroidArray(&midAstArr, MEDIUM);
+                freeAsteroidArray(&smlAstArr, SMALL);
+                waveNumber = 0;
+                generateWave(&bigAstArr, waveNumber);
                 isGameoverScreen = false;
             }
         }
@@ -137,6 +142,7 @@ int main(void) {
                 generateWave(&bigAstArr, waveNumber);
                 resetPlayer(&player);
                 if (IsKeyPressed(KEY_TAB)) {
+                    particleArrDestroy();
                     isTitleMenu = true;
                     isGame = false;
                 }
@@ -158,6 +164,7 @@ int main(void) {
         char speedAmnt[100] = "";
 
         if (isGameoverScreen) {
+            drawParticles();
             renderAsteroids(&bigAstArr);
             renderAsteroids(&midAstArr);
             renderAsteroids(&smlAstArr);
@@ -167,7 +174,7 @@ int main(void) {
         if (isGame) {
             sprintf(speedAmnt, "%.2f", sqrtf(SQUARE(player.speed.x) + SQUARE(player.speed.y)));
             ClearBackground(BLACK);
-
+            drawParticles();
             renderBullets(bullets);
             drawPlayer(&player);
             renderAsteroids(&bigAstArr);
@@ -176,7 +183,10 @@ int main(void) {
 
             char scoreText[100] = "";
             sprintf(scoreText,"%d", score);
-            DrawText(scoreText, 10, 10, 30, YELLOW);
+            DrawText(scoreText, 10, 50, 32, WHITE);
+            char livesText[100] = "";
+            sprintf(livesText,"pv:%d", player.lives);
+            DrawText(livesText, 10, 10, 40, ORANGE);
 
             if (hasDebugMode) {
                 drawGrid(GetScreenWidth() - 200, 200, 300, &player, true);
@@ -230,6 +240,7 @@ void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, Astero
     moveAsteroids(bigAstArr);
     moveAsteroids(midAstArr);
     moveAsteroids(smlAstArr);
+    moveParticles();
     wrapAroundBullet(bullet);
     wrapAroundPlayer(player);
     wrapAroundAsteroid(bigAstArr);
@@ -355,9 +366,6 @@ void wrapAroundBullet(Bullet *bullets) {
     }
 }
 
-void createPresetAsteroidTraits() {
-}
-
 void initBullets(Bullet *bullets) {
     for (int i = 0; i < MAX_BULLETS; i++) {
         bullets[i].distance = 0;
@@ -385,5 +393,6 @@ void showGameoverScreen() {
     isGameoverScreen = false;
         isTitleMenu = true;
         timer = 0;
+        particleArrDestroy();
     }
 }

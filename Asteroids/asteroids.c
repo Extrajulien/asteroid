@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "particles.h"
 #define BUFFER_SIZE 256
 extern AsteroidTraits bigTraits;
 extern AsteroidTraits midTraits;
@@ -354,6 +356,11 @@ void* checkCollisionAstBullet(void* arg) {
                 endPos.x += astPos.x;
                 endPos.y += astPos.y;
                 if (CheckCollisionPointLine(package.bullets[i].position, startPos, endPos, treshold)){
+                    float angle = atan2f(-package.bullets[i].speed.y, package.bullets[i].speed.x);
+                    angle -= M_PI;
+                    if (angle < 0) angle += 2*M_PI;
+                    if (angle > 2*M_PI) angle -= 2*M_PI;
+                    createParticles(angle, package.bullets[i].position, 8, 50.0,  DEFAULT_PARTICLE_COLOR, 0.5, 900);
                     printf("collision petit\n");
                     ((SmlAsteroid *) package.smlArr->asteroid[j])->base.isCollisionEnabled = false;
                     package.bullets[i].speed = (Vector2){0,0};
@@ -389,6 +396,11 @@ void* checkCollisionAstBullet(void* arg) {
                 endPos.y += astPos.y;
                 if (CheckCollisionPointLine(package.bullets[i].position, startPos, endPos, treshold)){
                     printf("collision moyen\n");
+                    float angle = atan2f(-package.bullets[i].speed.y, package.bullets[i].speed.x);
+                    angle -= M_PI;
+                    if (angle < 0) angle += 2*M_PI;
+                    if (angle > 2*M_PI) angle -= 2*M_PI;
+                    createParticles(angle, package.bullets[i].position, 11, 60.0,  DEFAULT_PARTICLE_COLOR, 0.5, 1000);
                     ((MidAsteroid *) package.midArr->asteroid[j])->base.isCollisionEnabled = false;
                     package.bullets[i].speed = (Vector2){0,0};
                     package.bullets[i].distance = 0;
@@ -424,6 +436,12 @@ void* checkCollisionAstBullet(void* arg) {
                 endPos.x += astPos.x;
                 endPos.y += astPos.y;
                 if (CheckCollisionPointLine(package.bullets[i].position, startPos, endPos, treshold)){
+                    float angle = atan2f(-package.bullets[i].speed.y, package.bullets[i].speed.x);
+                    angle -= M_PI;
+                    if (angle < 0) angle += 2*M_PI;
+                    if (angle > 2*M_PI) angle -= 2*M_PI;
+
+                    createParticles(angle, package.bullets[i].position, 13, 70.0,  DEFAULT_PARTICLE_COLOR, 0.6, 900);
                     printf("collision gros\n");
                     ((BigAsteroid *) package.bigArr->asteroid[j])->base.isCollisionEnabled = false;
                     package.bullets[i].speed = (Vector2){0,0};
@@ -526,12 +544,11 @@ void createSmlAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position) {
     arr->nbAsteroid += nbAsteroid;
 }
 //TODO fait ca bonhomme
-void* checkCollisionAstPlayer(void * arg) {
+void* checkCollisionAstPlayer(void *arg) {
     PackageCollisionPlayer package = *(PackageCollisionPlayer*) arg;
     Vector2 startPos;
     Vector2 endPos;
     Vector2 astPos;
-
     for (int i = 0; i < package.bigArr->size; ++i) {
         for (int j = 0; j < ((BigAsteroid*)package.bigArr->asteroid[i])->nbVertices-1; ++j) {
             if (!((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled) continue;
@@ -545,12 +562,56 @@ void* checkCollisionAstPlayer(void * arg) {
             if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
                 || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
                 || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+                createParticles(0, package.player->position, 80, 360.0, ORANGE, 1.0, 1300);
                 player.die(&player);
                 package.bigArr->nbAsteroid--;
                 createMidAsteroid(package.midArr, 2, ((BigAsteroid*)package.bigArr->asteroid[i])->base.position);
                 ((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled = false;
                 return NULL;
             }
+        }
+    }
+    for (int i = 0; i < package.midArr->size; ++i) {
+        for (int j = 0; j < ((MidAsteroid*)package.midArr->asteroid[i])->nbVertices-1; ++j) {
+            if (!((MidAsteroid *) package.midArr->asteroid[i])->base.isCollisionEnabled) continue;
+            astPos = ((MidAsteroid *) package.midArr->asteroid[i])->base.position;
+            startPos = ((MidAsteroid *) package.midArr->asteroid[i])->points[j];
+            endPos = ((MidAsteroid *) package.midArr->asteroid[i])->points[j + 1];
+            startPos.x += astPos.x;
+            startPos.y += astPos.y;
+            endPos.x += astPos.x;
+            endPos.y += astPos.y;
+            if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
+                || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
+                || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+                createParticles(0, package.player->position, 80, 360.0, ORANGE, 0.9, 1300);
+                player.die(&player);
+                package.midArr->nbAsteroid--;
+                createSmlAsteroid(package.smlArr, 2, ((MidAsteroid*)package.midArr->asteroid[i])->base.position);
+                ((MidAsteroid *) package.midArr->asteroid[i])->base.isCollisionEnabled = false;
+                return NULL;
+                }
+        }
+    }
+    for (int i = 0; i < package.smlArr->size; ++i) {
+        for (int j = 0; j < ((SmlAsteroid*)package.smlArr->asteroid[i])->nbVertices-1; ++j) {
+            if (!((SmlAsteroid *) package.smlArr->asteroid[i])->base.isCollisionEnabled) continue;
+            astPos = ((SmlAsteroid *) package.smlArr->asteroid[i])->base.position;
+            startPos = ((SmlAsteroid *) package.smlArr->asteroid[i])->points[j];
+            endPos = ((SmlAsteroid *) package.smlArr->asteroid[i])->points[j + 1];
+            startPos.x += astPos.x;
+            startPos.y += astPos.y;
+            endPos.x += astPos.x;
+            endPos.y += astPos.y;
+            if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
+                || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
+                || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+                createParticles(0, package.player->position, 80, 360.0, ORANGE, 0.8, 1300);
+                player.die(&player);
+                package.smlArr->nbAsteroid--;
+                ((SmlAsteroid *) package.smlArr->asteroid[i])->base.isCollisionEnabled = false;
+                return NULL;
+                }
         }
     }
     return NULL;
@@ -580,4 +641,5 @@ void freeAsteroidArray(AsteroidArray *arr, AsteroidType type) {
     free(arr->asteroid);
     arr->asteroid = NULL;
     arr->size = 0;
+    arr->nbAsteroid = 0;
 }

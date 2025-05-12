@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include "asteroids.h"
 #include "files.h"
+#include "particles.h"
 #include "raygui.h"
 #include "style_jungle.h"
 #define DARKERGRAY (Color){20,20,20,255}
@@ -108,6 +109,7 @@ void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen,
     const Vector2 mousePos = GetMousePosition();
     if (CheckCollisionPointRec(mousePos, getStartGameBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            particleArrInit(10);
             *isTitleMenu = false;
             *isGame = true;
             return;
@@ -121,8 +123,10 @@ void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen,
     }
     if (CheckCollisionPointRec(mousePos, getManagePresetsBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            /*
             *isTitleMenu = false;
             *editPresets = true;
+            */
         }
     }
     if (IsKeyPressed(KEY_SPACE)) {
