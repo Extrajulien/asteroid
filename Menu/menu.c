@@ -32,7 +32,7 @@ static bool isModified = true;
 static char currentPresetName[MAX_LINE_BUFFER_SIZE];
 static int currentlyModifiedType = BIG;
 enum ChosenTextBox {
-    verticiesSpinner,
+    verticesSpinner,
     presetName,
     dropdownType
 };
@@ -190,7 +190,7 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
     //-----------------------------------------------------------------------------------------------------------------------
 
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {//chose text box and let go of it
-        if (CheckCollisionPointRec(mousePos, NB_VERTICES_SET_BOX)) chosenTextBox = verticiesSpinner;
+        if (CheckCollisionPointRec(mousePos, NB_VERTICES_SET_BOX)) chosenTextBox = verticesSpinner;
         else if (CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()/2, GetScreenHeight()/8*7, 500, 100})) {
             chosenTextBox = presetName;
         }else {
@@ -423,7 +423,7 @@ void drawAstOptions(AsteroidTraits *traits, Vector2 asteroidPos) {
 
     temp = traits->nbVertices;
     GuiSpinner(NB_VERTICES_SET_BOX,
-        "Vertices",&traits->nbVertices, 2, 10000, chosenTextBox == verticiesSpinner);
+        "Vertices",&traits->nbVertices, 2, 10000, chosenTextBox == verticesSpinner);
     if (traits->nbVertices < 0) traits->nbVertices = 0;//prevent crash
     checkForUpdate(temp ,traits->nbVertices);
 }
