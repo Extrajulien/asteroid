@@ -7,7 +7,7 @@
 
 #include "raylib.h"
 
-#define MAX_STRECH 0.15
+#define MAX_STRETCH 0.15f
 #define MAX_PLAYER_SPEED 10
 #define MAX_BULLETS 10
 #define SQUARE(x) ((x) * (x))
@@ -42,10 +42,8 @@ void glide(Player *player);
 void stretchPlayer(Player *player, float thrustTime);
 void resile(Player *player);
 void wrapAroundPlayer(Player *player);
-void shoot(Player *player, Bullet *bullet, float speed);
-void drawPlayer(Player *player);
-void thrustGraphic(Player *player);
+void shoot(const Player *player, Bullet *bullet, float speed);
+void drawPlayer(const Player *player);
 void setPlayerBorders(Player *player);
-void drawTopPlayer(Player *player);
 
 #endif //PLAYER_H
