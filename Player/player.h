@@ -8,7 +8,8 @@
 #include "raylib.h"
 
 #define MAX_STRETCH 0.15f
-#define MAX_PLAYER_SPEED 10
+#define THRUST_RAMP_TIME 2.0f
+#define MAX_PLAYER_SPEED 1
 #define MAX_BULLETS 10
 #define SQUARE(x) ((x) * (x))
 

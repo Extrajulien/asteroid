@@ -1,6 +1,7 @@
 #include "player.h"
 #include <limits.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "main_api.h"
 
@@ -55,23 +56,30 @@ void initPlayer(Player *player) {
 }
 
 void glide(Player *player) {
-    player->speed.x = player->speed.x / (GetFrameTime() + 1);
-    player->speed.y = player->speed.y / (GetFrameTime() + 1);
+    player->speed.x *= GetFrameTime();
+    player->speed.y *= GetFrameTime();
 
     player->position.x += player->speed.x;
     player->position.y -= player->speed.y;
-
-    if (fabsf(player->speed.x) < 0.01) player->speed.x = 0;
-    if (fabsf(player->speed.y) < 0.01) player->speed.y = 0;
+    if (fabsf(player->speed.x) < 0.0001) player->speed.x = 0;
+    if (fabsf(player->speed.y) < 0.0001) player->speed.y = 0;
 
     resile(player);
 }
 
 void thrust(Player *player, const float thrustTime) {
-    const float power = SQUARE(thrustTime) * 500 > MAX_PLAYER_SPEED ? MAX_PLAYER_SPEED : SQUARE(thrustTime) * 500;
+
+    const static float THRUST_POWER = THRUST_RAMP_TIME * MAX_PLAYER_SPEED;
+
+
+    const float power = SQUARE(thrustTime) * THRUST_POWER > (float) MAX_PLAYER_SPEED ? (float) MAX_PLAYER_SPEED : SQUARE(thrustTime) * THRUST_POWER;
+
     const float angleRad = player->angle * PI / 180;
-    player->speed.x += (power * cosf(angleRad)) * GetFrameTime();
-    player->speed.y += (power * sinf(angleRad)) * GetFrameTime();
+    player->speed.x += (power * cosf(angleRad));
+    player->speed.y += (power * sinf(angleRad));
+
+    printf("time: %f  power: %f  speed {x, y}:  {%f, %f} \n", thrustTime, power, player->speed.x, player->speed.y);
+
     stretchPlayer(player, thrustTime);
 }
 
