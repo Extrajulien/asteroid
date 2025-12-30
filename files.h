@@ -5,7 +5,6 @@
 #define BUFFER_SIZE 256
 #include "asteroids.h"
 
-void createPresetFile();
 void readPresetFile();
 void savePreset(char *presetName);
 bool validatePresetName(char *presetName);

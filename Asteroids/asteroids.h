@@ -90,8 +90,6 @@ void wrapAroundAsteroid(AsteroidArray *asteroidArr);
 void rotateAsteroid(AsteroidArray *asteroidArr, AsteroidType type);
 void rotateAsteroidVertices(void *asteroid, int verticesNb);
 
-void readPresetFile();
-
 void randomPosition(AsteroidBase *asteroids);
 void generateWave(AsteroidArray *asteroid, int waveNum);
 

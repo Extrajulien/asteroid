@@ -9,14 +9,7 @@ AsteroidTraits bigTraits = {BIG,100,20,-30,30, 100,20, 25, 0};
 AsteroidTraits midTraits = {MEDIUM,65,25,-40,40, 100,50, 18, 0};
 AsteroidTraits smlTraits = {SMALL,35,15,-50,50, 100, 100, 12, 0};
 
-void createPresetFile() {
-    FILE *asteroidsTraits = fopen(PRESET_FILE_NAME, "w");
-    fprintf(asteroidsTraits, "isUsed;Nom;AsteroidType;Radius;Spread;MinRotationSpeed;MaxRotationSpeed;score;nbVertices;generationStyle;MaxSpeed\n");
-    fprintf(asteroidsTraits, "1;DEFAULT;B;100.0;20;-30;30;20;25;1;10\n");
-    fprintf(asteroidsTraits, "1;DEFAULT;M;65.0;25;-40;40;50;18;1;12\n");
-    fprintf(asteroidsTraits, "1;DEFAULT;S;35.0;15;-50;50;100;12;1;15\n");
-    fclose(asteroidsTraits);
-}
+void createPresetFile();
 
 void readPresetFile() {
     const int maxSemicolon = 10;
@@ -117,4 +110,13 @@ bool validatePresetName(char *presetName) {
     spacelessName[pos] = '\0';
     strcpy(presetName, spacelessName);
     return true;
+}
+
+void createPresetFile() {
+    FILE *asteroidsTraits = fopen(PRESET_FILE_NAME, "w");
+    fprintf(asteroidsTraits, "isUsed;Nom;AsteroidType;Radius;Spread;MinRotationSpeed;MaxRotationSpeed;score;nbVertices;generationStyle;MaxSpeed\n");
+    fprintf(asteroidsTraits, "1;DEFAULT;B;100.0;20;-30;30;20;25;1;10\n");
+    fprintf(asteroidsTraits, "1;DEFAULT;M;65.0;25;-40;40;50;18;1;12\n");
+    fprintf(asteroidsTraits, "1;DEFAULT;S;35.0;15;-50;50;100;12;1;15\n");
+    fclose(asteroidsTraits);
 }
