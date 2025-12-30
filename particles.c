@@ -1,7 +1,6 @@
 #include "particles.h"
 
 #include <math.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -78,20 +77,20 @@ void moveParticles() {
 // particle functions
 // -------------------------------------------------------------------------------------------------------
 
-void createParticles(float angle, Vector2 position, int nbParticles, float spread,
-    Color color, float lifetime, float speed) {
+void createParticles(const float angle, const Vector2 position, const int nbParticles, const float spread,
+    const Color color, const float lifetime, const float speed) {
     for (int i = 0; i < nbParticles; ++i) {
-        float const newAngle = angle + (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f) * (spread * DEG2RAD);
-        particleArrAdd(newParticle(position, (Vector2){10, 5}
-        , speed, lifetime, newAngle, color));
+        float const newAngle = angle + ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f) * (spread * DEG2RAD);
+        particleArrAdd(newParticle(position, (Vector2) {10, 5}, speed, lifetime, newAngle, color));
     }
 }
 
 Particle newParticle(Vector2 const position, Vector2 const size,
     float const speed, float const lifetime, float const angle, Color const color) {
     return (Particle){
-        .bounds = (Rectangle){position.x, position.y, size.x, size.y},
-        .speed = speed, .lifetime = lifetime,
+        .bounds = (Rectangle) {position.x, position.y, size.x, size.y},
+        .speed = speed,
+        .lifetime = lifetime,
         .angle = angle,
         .draw = particleDraw,
         .move = particleMove,
@@ -100,14 +99,12 @@ Particle newParticle(Vector2 const position, Vector2 const size,
 }
 
 void particleMove(Particle *particle) {
-    float const speed = particle->speed - particle->speed*(particle->currentLifetime/particle->lifetime);
-    float *posX = &particle->bounds.x;
-    float *posY = &particle->bounds.y;
+    float const speed = particle->speed - particle->speed * (particle->currentLifetime / particle->lifetime);
     float const angleRad = particle->angle;
     if (speed > 0) {
-        *posX += cosf(angleRad) * GetFrameTime() * speed;
-        *posY -= sinf(angleRad) * GetFrameTime() * speed;
-        particle->color.a = 255 - 255*(particle->currentLifetime/particle->lifetime);
+        particle->bounds.x += cosf(angleRad) * GetFrameTime() * speed;
+        particle->bounds.y -= sinf(angleRad) * GetFrameTime() * speed;
+        particle->color.a = 255 - 255 * (particle->currentLifetime / particle->lifetime);
     }
     particle->currentLifetime += GetFrameTime();
 }
@@ -116,7 +113,7 @@ bool checkIfParticleIsNotValid(Particle const *particle) {
     return particle->currentLifetime > particle->lifetime;
 }
 
-void particleDraw(Particle *particle) {
-    Vector2 position = { particle->bounds.width/2, particle->bounds.height/2 };
-    DrawRectanglePro(particle->bounds, position, particle->angle*(RAD2DEG), particle->color);
+void particleDraw(const Particle *particle) {
+    const Vector2 position = { particle->bounds.width/2, particle->bounds.height/2 };
+    DrawRectanglePro(particle->bounds, position, particle->angle * (RAD2DEG), particle->color);
 }

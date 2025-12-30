@@ -11,7 +11,7 @@ typedef struct Particle{
     bool isShown;
     Color color;
     void (*move)(struct Particle *self);
-    void (*draw)(struct Particle *self);
+    void (*draw)(const struct Particle *self);
 }Particle;
 
 typedef struct ParticleArray{
@@ -22,7 +22,7 @@ typedef struct ParticleArray{
 
 Particle newParticle(Vector2 position, Vector2 size, float speed, float lifetime, float angle, Color color);
 void particleMove(Particle *particle);
-void particleDraw(Particle *particle);
+void particleDraw(const Particle *particle);
 void createParticles(float angle, Vector2 position, int nbParticles, float spread, Color color, float lifetime, float speed);
 bool checkIfParticleIsNotValid(Particle const *particle);
 
