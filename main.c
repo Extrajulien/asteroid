@@ -1,6 +1,6 @@
-#define FRAME_PER_SEC 120
-
 #define TWHITE (Color){255,255,255,150}
+
+#include <limits.h>
 
 #include "raylib.h"
 #include <stdio.h>
@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
-#include <pthread.h>//hell nah
 
 #include "main_api.h"
 #include "asteroids.h"
@@ -72,7 +71,7 @@ int main(void) {
     //ToggleBorderlessWindowed();
     initPlayer(&player);
     generateWave(&bigAstArr, waveNumber);
-    SetTargetFPS(FRAME_PER_SEC); // Set our game to run at 60 frames-per-second
+    SetTargetFPS(MAX_FPS); // Set our game to run at 60 frames-per-second
     loadThemes();
     //--------------------------------------------------------------------------------------
 
@@ -116,17 +115,11 @@ int main(void) {
             if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
             updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
-            PackageCollisionBullet *packageBullet = malloc(sizeof(PackageCollisionBullet));
-            *packageBullet = (PackageCollisionBullet){&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
-            //pthread_create(&thread1, NULL, checkCollisionAstBullet, packageBullet);
-            checkCollisionAstBullet(packageBullet);
-            //pthread_join(thread1, NULL);
-            free(packageBullet);
+            PackageCollisionBullet packageBullet = {&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
+            checkCollisionAstBullet(&packageBullet);
 
-            PackageCollisionPlayer *packagePlayer = malloc(sizeof(PackageCollisionPlayer));
-            *packagePlayer = (PackageCollisionPlayer){&player, &bigAstArr, &midAstArr, &smlAstArr};
-            checkCollisionAstPlayer(packagePlayer);
-            free(packagePlayer);
+            PackageCollisionPlayer packagePlayer = (PackageCollisionPlayer){&player, &bigAstArr, &midAstArr, &smlAstArr};
+            checkCollisionAstPlayer(&packagePlayer);
 
             if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
                 freeAsteroidArray(&bigAstArr, BIG);
@@ -154,8 +147,6 @@ int main(void) {
             ClearBackground(BLACK);
             updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
         }
-
-        //updateAsteroid(&bigAsteroid, &midAsteroid, &smlAsteroid);
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -254,7 +245,7 @@ void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, Astero
 }
 
 void movementGame(Player *player, Bullet *bullet) {
-    const float rotationSpeed = 230.0;
+    const float rotationSpeed = 230.0f;
     static float howLongPressed = 0; //in seconds
 
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
@@ -264,11 +255,11 @@ void movementGame(Player *player, Bullet *bullet) {
         howLongPressed = 0;
     }
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-        player->angle -= (rotationSpeed * GetFrameTime()); //rotate
+        player->angle -= rotationSpeed * GetFrameTime(); //rotate
         if (player->angle <= 0) player->angle = 360;
     }
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-        player->angle += (rotationSpeed * GetFrameTime());
+        player->angle += rotationSpeed * GetFrameTime();
         if (player->angle >= 360) player->angle = 0;
     }
 
