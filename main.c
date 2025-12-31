@@ -53,7 +53,6 @@ static bool isGameoverScreen = false;
 int main(void) {
     // Initialization
     //--------------------------------------------------------------------------------------
-    pthread_t thread1;
     Bullet bullets[MAX_BULLETS];
     AsteroidArray bigAstArr = {NULL, 0, 0};
     AsteroidArray midAstArr = {NULL, 0, 0};
