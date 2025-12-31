@@ -1,7 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 #include "raylib.h"
-#include "asteroids.h"
+#include "asteroid.h"
 
 Rectangle getStartGameBox();
 Rectangle getEditAsteroidsModeBox();

@@ -4,9 +4,9 @@
 #include <stdlib.h>
 
 #include "raylib.h"
-#include "asteroids.h"
+#include "asteroid.h"
 #include "files.h"
-#include "particles.h"
+#include "particle.h"
 #include "raygui.h"
 #include "style_jungle.h"
 #define DARKERGRAY (Color){20,20,20,255}
@@ -258,7 +258,7 @@ void refreshAsteroids(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArra
 }
 
 void createBigAsteroidEditMode(AsteroidArray *asteroids) {
-    asteroids -> size = 1;
+    asteroids -> reservedSize = 1;
     asteroids -> asteroid = malloc(sizeof(void *));//init asteroid arr
 
         asteroids -> asteroid[0] = malloc(sizeof(BigAsteroid));  // Allocate memory for each asteroid
@@ -281,7 +281,7 @@ void createBigAsteroidEditMode(AsteroidArray *asteroids) {
 }
 
 void createMidAsteroidEditMode(AsteroidArray *asteroids) {
-    asteroids -> size = 1;
+    asteroids -> reservedSize = 1;
     asteroids -> asteroid = malloc(sizeof(void *));//init asteroid arr
 
     asteroids -> asteroid[0] = malloc(sizeof(MidAsteroid));  // Allocate memory for each asteroid
@@ -305,7 +305,7 @@ void createMidAsteroidEditMode(AsteroidArray *asteroids) {
 }
 
 void createSmlAsteroidEditMode(AsteroidArray *asteroids) {
-    asteroids -> size = 1;
+    asteroids -> reservedSize = 1;
     asteroids -> asteroid = malloc(sizeof(void *));//init asteroid arr
 
     asteroids -> asteroid[0] = malloc(sizeof(SmlAsteroid));  // Allocate memory for each asteroid

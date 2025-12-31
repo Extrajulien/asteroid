@@ -3,7 +3,7 @@
 #define RAYGUI_IMPLEMENTATION
 #define PRESET_FILE_NAME "../asteroidsTraits.csv"
 #define BUFFER_SIZE 256
-#include "asteroids.h"
+#include "asteroid.h"
 
 void readPresetFile();
 void savePreset(char *presetName);
