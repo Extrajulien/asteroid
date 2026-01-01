@@ -5,7 +5,9 @@
 #include "game_api.h"
 #include "raymath.h"
 
+void thrust(Player *player, float thrustTime);
 void updatePlayerMovement(Player *player, Bullet *bulletArr);
+void shoot(const Player *player, Bullet *bullet, float speed);
 void drawTopPlayer(const Player *player);
 void drawThrust(const Player *player);
 void stretchPlayer(Player *player, float thrustTime);
@@ -15,15 +17,36 @@ void wrapAroundPlayer(Player *player);
 void playerDie(Player *player);
 void resile(Player *player);
 
-void drawPlayer(const Player *player) {
+void PLAYER_Init(Player *player) {
+    player->angle = 90.0f;
+    player->position = (Vector2) {((float) GetScreenWidth() / 2),  ((float) GetScreenHeight() / 2)};
+    player->radius = 40;
+    player->borderWidth = 6;
+    player->angleBackLeft = (7.0f * PI) / 6.0f;
+    player->angleBackRight = (5.0f * PI) / 6.0f;
+    player->speed = (Vector2) {0, 0};
+    player->lives = 2;
+    player->die = playerDie;
+}
+
+void PLAYER_Reset(Player *player) {
+    player->angle = 90.0f;
+    player->position = (Vector2) {((float) GetScreenWidth() / 2), ((float) GetScreenHeight() / 2)};
+    player->radius = 40;
+    player->borderWidth = 6;
+    player->angleBackLeft = (7.0f * PI) / 6.0f;
+    player->angleBackRight = (5.0f * PI) / 6.0f;
+    player->speed = (Vector2) {0, 0};
+}
+
+void PLAYER_Draw(const Player *player) {
     drawThrust(player);
     DrawTriangle(player->tip, player->backLeft, player->backRight, WHITE);//white border & hitbox
     drawTopPlayer(player);
 }
 
-void updatePlayer(Player *player, Bullet *bulletArr) {
+void PLAYER_Update(Player *player, Bullet *bulletArr) {
     updatePlayerMovement(player, bulletArr);
-
     glide(player);
     wrapAroundPlayer(player);
     updateCollisionBorders(player);
@@ -51,7 +74,7 @@ void updatePlayerMovement(Player *player, Bullet *bulletArr) {
     if (IsKeyPressed(KEY_SPACE)) {
         shoot(player, bulletArr, 10);
     }
-    if (IsKeyDown(KEY_R)) resetPlayer(player);
+    if (IsKeyDown(KEY_R)) PLAYER_Reset(player);
 }
 
 void wrapAroundPlayer(Player *player) {
@@ -59,28 +82,6 @@ void wrapAroundPlayer(Player *player) {
     if (player->position.y > (float) GetScreenHeight() + player->radius) player->position.y = -player->radius;
     if (player->position.x < -player->radius) player->position.x = (float) GetScreenWidth() + player->radius;
     if (player->position.y < -player->radius) player->position.y = (float) GetScreenHeight() + player->radius;
-}
-
-void resetPlayer(Player *player) {
-    player->angle = 90.0f;
-    player->position = (Vector2) {((float) GetScreenWidth() / 2), ((float) GetScreenHeight() / 2)};
-    player->radius = 40;
-    player->borderWidth = 6;
-    player->angleBackLeft = (7.0f * PI) / 6.0f;
-    player->angleBackRight = (5.0f * PI) / 6.0f;
-    player->speed = (Vector2) {0, 0};
-}
-
-void initPlayer(Player *player) {
-    player->angle = 90.0f;
-    player->position = (Vector2) {((float) GetScreenWidth() / 2),  ((float) GetScreenHeight() / 2)};
-    player->radius = 40;
-    player->borderWidth = 6;
-    player->angleBackLeft = (7.0f * PI) / 6.0f;
-    player->angleBackRight = (5.0f * PI) / 6.0f;
-    player->speed = (Vector2) {0, 0};
-    player->lives = 2;
-    player->die = playerDie;
 }
 
 void glide(Player *player) {
@@ -103,10 +104,7 @@ void thrust(Player *player, const float thrustTime) {
     const static float THRUST_POWER = MAX_PLAYER_SPEED / SQUARE( THRUST_RAMP_TIME );
 
     const float currentPower = SQUARE(thrustTime) * THRUST_POWER;
-
     const float previousPower = SQUARE(thrustTime - GetFrameTime()) * THRUST_POWER;
-
-
     const float powerIncrement = currentPower - previousPower;
 
     const float angleRad = player->angle * DEG2RAD;
@@ -163,7 +161,7 @@ void shoot(const Player *player, Bullet *bullet, const float speed) {
 void playerDie(Player *player) {
     if (player->lives > 0) {
         player->lives--;
-        resetPlayer(player);
+        PLAYER_Reset(player);
         return;
     }
     gameoverPlayer(player);

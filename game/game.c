@@ -61,7 +61,7 @@ int StartAsteroidGame() {
     InitWindow(1920, 1080, "Asteroids"); //linux
     initBullets(bullets);
     //ToggleBorderlessWindowed();
-    initPlayer(&player);
+    PLAYER_Init(&player);
     generateWave(&bigAstArr, waveNumber);
     SetTargetFPS(MAX_FPS); // Set our game to run at 60 frames-per-second
     loadThemes();
@@ -74,7 +74,7 @@ int StartAsteroidGame() {
         if (isTitleMenu) {
             titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
             if (isGame) {
-                initPlayer(&player);
+                PLAYER_Init(&player);
                 score = 0;
                 freeAsteroidArray(&bigAstArr, BIG);
                 freeAsteroidArray(&midAstArr, MEDIUM);
@@ -120,7 +120,7 @@ int StartAsteroidGame() {
                 score = 0;
                 initBullets(bullets);
                 generateWave(&bigAstArr, waveNumber);
-                resetPlayer(&player);
+                PLAYER_Reset(&player);
                 if (IsKeyPressed(KEY_TAB)) {
                     particleArrDestroy();
                     isTitleMenu = true;
@@ -153,7 +153,7 @@ int StartAsteroidGame() {
                 ClearBackground(BLACK);
                 drawParticles();
                 renderBullets(bullets);
-                drawPlayer(&player);
+                PLAYER_Draw(&player);
                 renderAsteroids(&bigAstArr);
                 renderAsteroids(&midAstArr);
                 renderAsteroids(&smlAstArr);
@@ -207,7 +207,7 @@ int StartAsteroidGame() {
 
 void updateGame(Player *player, Bullet *bulletArr, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
                 AsteroidArray *smlAstArr) {
-    updatePlayer(player, bulletArr);
+    PLAYER_Update(player, bulletArr);
     moveBullets(bulletArr);
     moveAsteroids(bigAstArr);
     moveAsteroids(midAstArr);

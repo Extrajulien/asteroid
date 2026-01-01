@@ -34,11 +34,9 @@ typedef struct {
 } Bullet;
 
 
-void initPlayer(Player *player);
-void resetPlayer(Player *player);
-void thrust(Player *player, float thrustTime);
-void shoot(const Player *player, Bullet *bullet, float speed);
-void drawPlayer(const Player *player);
-void updatePlayer(Player *player, Bullet *bulletArr);
+void PLAYER_Init(Player *player);
+void PLAYER_Reset(Player *player);
+void PLAYER_Draw(const Player *player);
+void PLAYER_Update(Player *player, Bullet *bulletArr);
 
 #endif //PLAYER_H
