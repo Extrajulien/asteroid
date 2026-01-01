@@ -6,6 +6,7 @@
 #include "game_api.h"
 #include "raymath.h"
 
+void drawPlayerOutline(const Player *player);
 void thrust(Player *player, float thrustTime);
 void updatePlayerMovement(Player *player, Bullet *bulletArr);
 void shoot(const Player *player, Bullet *bullet, float speed);
@@ -51,6 +52,12 @@ void PLAYER_Update(Player *player, Bullet *bulletArr) {
     glide(player);
     wrapAroundPlayer(player);
     updateCollisionBorders(player);
+}
+
+bool PLAYER_IsLineInBounds(const Player *player, const Vector2* start, const Vector2* end) {
+    return CheckCollisionLines(player->bounds.tip, player->bounds.backLeft,*start, *end, NULL)
+                || CheckCollisionLines(player->bounds.backLeft, player->bounds.backRight, *start, *end, NULL)
+                || CheckCollisionLines(player->bounds.backRight, player->bounds.tip, *start, *end, NULL);
 }
 
 void updatePlayerMovement(Player *player, Bullet *bulletArr) {
@@ -124,15 +131,15 @@ void thrust(Player *player, const float thrustTime) {
 //---DRAW FUNCTIONS-----------------------------------------------------
 void updateCollisionBorders(Player *player) {
     const float angleRad = player->angle * DEG2RAD;
-    player->tip = (Vector2) {
+    player->bounds.tip = (Vector2) {
         player->position.x + (player->radius * cosf(angleRad)),
         player->position.y - (player->radius * sinf(angleRad))
     };
-    player->backLeft = (Vector2) {
+    player->bounds.backLeft = (Vector2) {
         player->position.x + (player->radius * cosf(angleRad - player->angleBackLeft)),
         player->position.y - (player->radius * sinf(angleRad - player->angleBackLeft))
     };
-    player->backRight = (Vector2) {
+    player->bounds.backRight = (Vector2) {
         player->position.x + (player->radius * cosf(angleRad - player->angleBackRight)),
         player->position.y - (player->radius * sinf(angleRad - player->angleBackRight))
     };
@@ -216,9 +223,9 @@ void drawThrust(const Player *player) {
 
 void drawTopPlayer(const Player *player) {
     const float angleRad = player->angle * DEG2RAD;
-    Vector2 tip = player->tip;
-    Vector2 backLeft = player->backLeft;
-    Vector2 backRight = player->backRight;
+    Vector2 tip = player->bounds.tip;
+    Vector2 backLeft = player->bounds.backLeft;
+    Vector2 backRight = player->bounds.backRight;
     tip.x -= player->borderWidth * cosf(angleRad);
     tip.y += player->borderWidth * sinf(angleRad);
 

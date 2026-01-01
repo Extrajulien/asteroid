@@ -347,7 +347,7 @@ void* checkCollisionAstBullet(void* arg) {
     Vector2 endPos;
     const int treshold = 15;
     Vector2 astPos;
-    for (int i = 0; i < MAX_BULLETS; ++i) {//chaque balle
+    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {//chaque balle
         if (package.bullets[i].distance == 0) continue;
         if (package.smlArr->reservedSize == 0) break;
         for (int j = 0; j < package.smlArr->reservedSize; ++j) {//chaque asteroid
@@ -386,7 +386,7 @@ void* checkCollisionAstBullet(void* arg) {
 
         }
     }
-    for (int i = 0; i < MAX_BULLETS; ++i) {//chaque balle
+    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {//chaque balle
         if (package.bullets[i].distance == 0) continue;
         if (package.midArr->reservedSize == 0) break;
         for (int j = 0; j < package.midArr->reservedSize; ++j) {//chaque asteroid
@@ -427,7 +427,7 @@ void* checkCollisionAstBullet(void* arg) {
         }
     }
 
-    for (int i = 0; i < MAX_BULLETS; ++i) {//chaque balle
+    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {//chaque balle
         if (package.bullets[i].distance == 0) continue;
         if (package.bigArr->reservedSize == 0) break;
         for (int j = 0; j < package.bigArr->reservedSize; ++j) {//chaque asteroid
@@ -567,9 +567,7 @@ void* checkCollisionAstPlayer(void *arg) {
             startPos.y += astPos.y;
             endPos.x += astPos.x;
             endPos.y += astPos.y;
-            if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
-                || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
-                || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+            if (PLAYER_IsLineInBounds(&player, &startPos, &endPos)) {
                 createParticles(0, package.player->position, 80, 360.0, ORANGE, 1.0, 1300);
                 player.die(&player);
                 package.bigArr->nbAsteroid--;
@@ -589,9 +587,7 @@ void* checkCollisionAstPlayer(void *arg) {
             startPos.y += astPos.y;
             endPos.x += astPos.x;
             endPos.y += astPos.y;
-            if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
-                || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
-                || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+            if (PLAYER_IsLineInBounds(&player, &startPos, &endPos)) {
                 createParticles(0, package.player->position, 80, 360.0, ORANGE, 0.9, 1300);
                 player.die(&player);
                 package.midArr->nbAsteroid--;
@@ -611,9 +607,7 @@ void* checkCollisionAstPlayer(void *arg) {
             startPos.y += astPos.y;
             endPos.x += astPos.x;
             endPos.y += astPos.y;
-            if (CheckCollisionLines(package.player->tip, package.player->backLeft,startPos, endPos, NULL)
-                || CheckCollisionLines(package.player->backLeft, package.player->backRight, startPos, endPos, NULL)
-                || CheckCollisionLines(package.player->backRight, package.player->tip, startPos, endPos, NULL)) {
+            if (PLAYER_IsLineInBounds(&player, &startPos, &endPos)) {
                 createParticles(0, package.player->position, 80, 360.0, ORANGE, 0.8, 1300);
                 player.die(&player);
                 package.smlArr->nbAsteroid--;

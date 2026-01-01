@@ -14,6 +14,7 @@
 #include "menu.h"
 #include "particle.h"
 #include "files.h"
+#include "game_math.h"
 
 #include "player.h"
 
@@ -46,7 +47,7 @@ static bool hasDebugMode = false;
 static bool isGameoverScreen = false;
 
 int StartAsteroidGame() {
-    Bullet bullets[MAX_BULLETS];
+    Bullet bullets[PLAYER_MAX_BULLETS];
     AsteroidArray bigAstArr = {NULL, 0, 0};
     AsteroidArray midAstArr = {NULL, 0, 0};
     AsteroidArray smlAstArr = {NULL, 0, 0};
@@ -149,7 +150,7 @@ int StartAsteroidGame() {
             }
 
             if (isGame) {
-                sprintf(speedAmnt, "%.2f", sqrtf(SQUARE(player.speed.x) + SQUARE(player.speed.y)));
+                sprintf(speedAmnt, "%.2f", sqrtf(Square(player.speed.x) + Square(player.speed.y)));
                 ClearBackground(BLACK);
                 drawParticles();
                 renderBullets(bullets);
@@ -258,7 +259,7 @@ void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet) {
     DrawRectangle(player->position.x / scale + topLeft.x, player->position.y / scale + topLeft.y, 10, 10, GREEN);
 
 
-    for (int i = 0; i < MAX_BULLETS; ++i) {
+    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {
         Vector2 size = {bullet[i].size.x / scale, bullet[i].size.y / scale};
         if (size.x < 3) {
             size.x = 3;
@@ -272,7 +273,7 @@ void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet) {
 }
 
 void renderBullets(Bullet *bullet) {
-    for (int i = 0; i < MAX_BULLETS; i++) {
+    for (int i = 0; i < PLAYER_MAX_BULLETS; i++) {
         if (bullet[i].distance > 0) {
             DrawRectangle((int) bullet[i].position.x, (int) bullet[i].position.y, (int) bullet[i].size.x,
                           (int) bullet[i].size.y, WHITE);
@@ -281,13 +282,13 @@ void renderBullets(Bullet *bullet) {
 }
 
 void moveBullets(Bullet *bullets) {
-    for (int i = 0; i < MAX_BULLETS; ++i) {
+    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {
         if (bullets[i].distance == 0) continue;
         float speedX = bullets[i].speed.x * GetFrameTime() * 120;
         float speedY = bullets[i].speed.y * GetFrameTime() * 120;
         bullets[i].position.x += speedX;
         bullets[i].position.y += speedY;
-        bullets[i].distance -= sqrtf(SQUARE(speedX) + SQUARE(speedY));
+        bullets[i].distance -= sqrtf(Square(speedX) + Square(speedY));
 
         if (bullets[i].distance <= 0) {
             deleteBullet(bullets, i);
@@ -301,7 +302,7 @@ void deleteBullet(Bullet *bullet, int index) {
 }
 
 void wrapAroundBullet(Bullet *bullets) {
-    for (int i = 0; i < MAX_BULLETS; ++i) {
+    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {
         if (bullets[i].distance == 0) continue;
         if (bullets[i].position.x > GetScreenWidth() + bullets[i].size.x) bullets[i].position.x = -bullets[i].size.x;
         if (bullets[i].position.y > GetScreenHeight() + bullets[i].size.y) bullets[i].position.y = -bullets[i].size.y;
@@ -311,7 +312,7 @@ void wrapAroundBullet(Bullet *bullets) {
 }
 
 void initBullets(Bullet *bullets) {
-    for (int i = 0; i < MAX_BULLETS; i++) {
+    for (int i = 0; i < PLAYER_MAX_BULLETS; i++) {
         bullets[i].distance = 0;
         bullets[i].position = (Vector2){50,50};
         bullets[i].speed = (Vector2){0,0};
