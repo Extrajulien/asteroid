@@ -1,19 +1,17 @@
-//
-// Created by julie on 2025-04-12.
-//
-
 #ifndef PLAYER_H
 #define PLAYER_H
 
 #include "raylib.h"
 
 #define MAX_STRETCH 0.15f
-#define THRUST_RAMP_TIME 2.0f
-#define MAX_PLAYER_SPEED 1
+#define THRUST_RAMP_TIME 1.0f
+#define SPEED_DAMPING 0.5f
+#define MAX_PLAYER_SPEED 1000 // px per sec
+#define BULLET_LIFE_DISTANCE 25000
 #define MAX_BULLETS 10
 #define SQUARE(x) ((x) * (x))
 
-typedef struct Player{
+typedef struct Player {
     Vector2 tip;
     Vector2 backLeft;
     Vector2 backRight;
@@ -33,18 +31,14 @@ typedef struct {
     Vector2 size;
     Vector2 speed;
     float distance;
-}Bullet;
+} Bullet;
 
-void playerDie(Player *player);
+
 void initPlayer(Player *player);
 void resetPlayer(Player *player);
 void thrust(Player *player, float thrustTime);
-void glide(Player *player);
-void stretchPlayer(Player *player, float thrustTime);
-void resile(Player *player);
-void wrapAroundPlayer(Player *player);
 void shoot(const Player *player, Bullet *bullet, float speed);
 void drawPlayer(const Player *player);
-void setPlayerBorders(Player *player);
+void updatePlayer(Player *player, Bullet *bulletArr);
 
 #endif //PLAYER_H

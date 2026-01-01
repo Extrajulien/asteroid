@@ -36,8 +36,6 @@ void wrapAroundBullet(Bullet *bullets);
 void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
                 AsteroidArray *smlAstArr);
 
-void movementGame(Player *player, Bullet *bullet);
-
 void showGameoverScreen();
 
 static bool isTitleMenu = true;
@@ -100,7 +98,6 @@ int StartAsteroidGame() {
                 waveNumber++;
                 generateWave(&bigAstArr, waveNumber);
             }
-            movementGame(&player, bullets);
             if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
             updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
@@ -208,49 +205,21 @@ int StartAsteroidGame() {
     return 0;
 }
 
-void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
+void updateGame(Player *player, Bullet *bulletArr, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
                 AsteroidArray *smlAstArr) {
-    glide(player);
-    moveBullets(bullet);
+    updatePlayer(player, bulletArr);
+    moveBullets(bulletArr);
     moveAsteroids(bigAstArr);
     moveAsteroids(midAstArr);
     moveAsteroids(smlAstArr);
     moveParticles();
-    wrapAroundBullet(bullet);
-    wrapAroundPlayer(player);
+    wrapAroundBullet(bulletArr);
     wrapAroundAsteroid(bigAstArr);
     wrapAroundAsteroid(midAstArr);
     wrapAroundAsteroid(smlAstArr);
     rotateAsteroid(bigAstArr, BIG);
     rotateAsteroid(midAstArr, MEDIUM);
     rotateAsteroid(smlAstArr, SMALL);
-    setPlayerBorders(player);
-}
-
-void movementGame(Player *player, Bullet *bullet) {
-    const float rotationSpeed = 230.0f;
-    static float howLongPressed = 0; //in seconds
-
-    if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
-        howLongPressed += GetFrameTime();
-        thrust(player, howLongPressed);
-    } else {
-        howLongPressed = 0;
-    }
-    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-        player->angle -= rotationSpeed * GetFrameTime(); //rotate
-        if (player->angle <= 0) player->angle = 360;
-    }
-    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-        player->angle += rotationSpeed * GetFrameTime();
-        if (player->angle >= 360) player->angle = 0;
-    }
-
-    if (IsKeyPressed(KEY_SPACE)) {
-        shoot(player, bullet, 10);
-    }
-
-    if (IsKeyDown(KEY_R)) resetPlayer(player);
 }
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay) {
