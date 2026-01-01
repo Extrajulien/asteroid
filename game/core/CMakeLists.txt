@@ -2,6 +2,7 @@ add_library(core STATIC
         src/asteroid.c
         src/player.c
         src/particle.c
+        include/game_math.h
 )
 
 target_include_directories(core PUBLIC

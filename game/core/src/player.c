@@ -1,4 +1,5 @@
 #include "player.h"
+#include "game_math.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +42,7 @@ void PLAYER_Reset(Player *player) {
 
 void PLAYER_Draw(const Player *player) {
     drawThrust(player);
-    DrawTriangle(player->tip, player->backLeft, player->backRight, WHITE);//white border & hitbox
+    drawPlayerOutline(player);
     drawTopPlayer(player);
 }
 
@@ -89,8 +90,8 @@ void glide(Player *player) {
     player->position.y -= player->speed.y * GetFrameTime();
 
 
-    player->speed.x *= expf(- SPEED_DAMPING * GetFrameTime());
-    player->speed.y *= expf(- SPEED_DAMPING * GetFrameTime());
+    player->speed.x *= expf(- PLAYER_SPEED_DAMPING * GetFrameTime());
+    player->speed.y *= expf(- PLAYER_SPEED_DAMPING * GetFrameTime());
 
 
 
@@ -101,20 +102,20 @@ void glide(Player *player) {
 }
 
 void thrust(Player *player, const float thrustTime) {
-    const static float THRUST_POWER = MAX_PLAYER_SPEED / SQUARE( THRUST_RAMP_TIME );
+    const float THRUST_POWER = PLAYER_MAX_PLAYER_SPEED / Square( PLAYER_THRUST_RAMP_TIME );
 
-    const float currentPower = SQUARE(thrustTime) * THRUST_POWER;
-    const float previousPower = SQUARE(thrustTime - GetFrameTime()) * THRUST_POWER;
+    const float currentPower = Square(thrustTime) * THRUST_POWER;
+    const float previousPower = Square(thrustTime - GetFrameTime()) * THRUST_POWER;
     const float powerIncrement = currentPower - previousPower;
 
     const float angleRad = player->angle * DEG2RAD;
     player->speed.x += (powerIncrement * cosf(angleRad));
     player->speed.y += (powerIncrement * sinf(angleRad));
 
-    if (Vector2Length(player->speed) > MAX_PLAYER_SPEED) {
+    if (Vector2Length(player->speed) > PLAYER_MAX_PLAYER_SPEED) {
         player->speed = Vector2Normalize(player->speed);
-        player->speed.x *= MAX_PLAYER_SPEED;
-        player->speed.y *= MAX_PLAYER_SPEED;
+        player->speed.x *= PLAYER_MAX_PLAYER_SPEED;
+        player->speed.y *= PLAYER_MAX_PLAYER_SPEED;
     }
 
     stretchPlayer(player, thrustTime);
@@ -144,13 +145,13 @@ void shoot(const Player *player, Bullet *bullet, const float speed) {
     const float playerSpeedNudgeY = fabsf(player->speed.y * GetFrameTime()) / 4;
 
     int index = 0;
-    for (int i = 0; i < MAX_BULLETS; i++) {
+    for (int i = 0; i < PLAYER_MAX_BULLETS; i++) {
         if (bullet[i].distance <= 0) {
             index = i;
             break;
         }
     }
-    bullet[index].distance = BULLET_LIFE_DISTANCE;
+    bullet[index].distance = PLAYER_BULLET_LIFE_DISTANCE;
     bullet[index].position = (Vector2) {player->position.x, player->position.y};
     bullet[index].speed = (Vector2) {
             (speed *  cosf(angleRad) * (1 + playerSpeedNudgeX)),
@@ -168,13 +169,13 @@ void playerDie(Player *player) {
 }
 
 void stretchPlayer(Player *player, const float thrustTime) {
-    player->angleBackLeft -= SQUARE(thrustTime) / 2;
-    player->angleBackRight += SQUARE(thrustTime) / 2;
+    player->angleBackLeft -= Square(thrustTime) / 2;
+    player->angleBackRight += Square(thrustTime) / 2;
 
-    if (player->angleBackLeft < ((7.0f * PI) / 6.0f) - MAX_STRETCH)
-        player->angleBackLeft = ((7.0f * PI) / 6.0f) - MAX_STRETCH;
-    if (player->angleBackRight > ((5.0f * PI) / 6.0f) + MAX_STRETCH)
-        player->angleBackRight = ((5.0f * PI) / 6.0f) + MAX_STRETCH;
+    if (player->angleBackLeft < ((7.0f * PI) / 6.0f) - PLAYER_MAX_STRETCH)
+        player->angleBackLeft = ((7.0f * PI) / 6.0f) - PLAYER_MAX_STRETCH;
+    if (player->angleBackRight > ((5.0f * PI) / 6.0f) + PLAYER_MAX_STRETCH)
+        player->angleBackRight = ((5.0f * PI) / 6.0f) + PLAYER_MAX_STRETCH;
 }
 
 void resile(Player *player) {
@@ -228,4 +229,8 @@ void drawTopPlayer(const Player *player) {
     backRight.y += (player->borderWidth) * sinf(angleRad - player->angleBackRight + 0.5f);
 
     DrawTriangle(tip, backLeft, backRight, BLACK);
+}
+
+void drawPlayerOutline(const Player *player) {
+    DrawTriangle(player->bounds.tip, player->bounds.backLeft, player->bounds.backRight, WHITE);
 }
