@@ -90,8 +90,8 @@ void wrapAroundAsteroid(AsteroidArray *asteroidArr);
 void rotateAsteroid(AsteroidArray *asteroidArr, AsteroidType type);
 void rotateAsteroidVertices(void *asteroid, int verticesNb);
 
-void randomPosition(AsteroidBase *asteroids);
-void generateWave(AsteroidArray *asteroid, int waveNum);
+void randomPosition(AsteroidBase *asteroids, const Player* player);
+void generateWave(AsteroidArray *asteroid, int waveNum, const Player *player);
 
 void randomSpeed(AsteroidBase *asteroid, AsteroidType type);
 
@@ -103,7 +103,7 @@ void* checkCollisionAstBullet(void* arg);
 void* checkCollisionAstPlayer(void* arg);
 
 void freeAsteroidArray(AsteroidArray *arr, AsteroidType type);
-void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid);
+void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid, const Player *player);
 void createMidAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
 void createSmlAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position);
 

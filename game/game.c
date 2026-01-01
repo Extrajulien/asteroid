@@ -17,8 +17,7 @@
 #include "game_math.h"
 
 #include "player.h"
-
-Player player;
+#include "raymath.h"
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
@@ -55,15 +54,16 @@ int StartAsteroidGame() {
 
     int waveNumber = 0;
     int score = 0;
-
     readPresetFile();
     particleArrInit(10);
     //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
     InitWindow(1920, 1080, "Asteroids"); //linux
     initBullets(bullets);
     //ToggleBorderlessWindowed();
-    PLAYER_Init(&player);
-    generateWave(&bigAstArr, waveNumber);
+
+    Player* player = malloc(PLAYER_SizeOf());
+    PLAYER_Create(player);
+    generateWave(&bigAstArr, waveNumber, player);
     SetTargetFPS(MAX_FPS); // Set our game to run at 60 frames-per-second
     loadThemes();
     //--------------------------------------------------------------------------------------
@@ -75,13 +75,13 @@ int StartAsteroidGame() {
         if (isTitleMenu) {
             titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
             if (isGame) {
-                PLAYER_Init(&player);
+                PLAYER_Create(player);
                 score = 0;
                 freeAsteroidArray(&bigAstArr, BIG);
                 freeAsteroidArray(&midAstArr, MEDIUM);
                 freeAsteroidArray(&smlAstArr, SMALL);
                 waveNumber = 0;
-                generateWave(&bigAstArr, waveNumber);
+                generateWave(&bigAstArr, waveNumber, player);
                 isGameoverScreen = false;
             }
         }
@@ -97,15 +97,15 @@ int StartAsteroidGame() {
                 freeAsteroidArray(&midAstArr, MEDIUM);
                 freeAsteroidArray(&smlAstArr, SMALL);
                 waveNumber++;
-                generateWave(&bigAstArr, waveNumber);
+                generateWave(&bigAstArr, waveNumber, player);
             }
             if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
-            updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
+            updateGame(player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
             PackageCollisionBullet packageBullet = {&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
             checkCollisionAstBullet(&packageBullet);
 
-            PackageCollisionPlayer packagePlayer = (PackageCollisionPlayer){&player, &bigAstArr, &midAstArr, &smlAstArr};
+            PackageCollisionPlayer packagePlayer = (PackageCollisionPlayer){player, &bigAstArr, &midAstArr, &smlAstArr};
             checkCollisionAstPlayer(&packagePlayer);
 
             if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
@@ -120,8 +120,8 @@ int StartAsteroidGame() {
                 smlAstArr.nbAsteroid = 0;
                 score = 0;
                 initBullets(bullets);
-                generateWave(&bigAstArr, waveNumber);
-                PLAYER_Reset(&player);
+                generateWave(&bigAstArr, waveNumber, player);
+                PLAYER_Reset(player);
                 if (IsKeyPressed(KEY_TAB)) {
                     particleArrDestroy();
                     isTitleMenu = true;
@@ -132,13 +132,13 @@ int StartAsteroidGame() {
 
         if (isGameoverScreen) {
             ClearBackground(BLACK);
-            updateGame(&player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
+            updateGame(player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
         }
 
         {
             BeginDrawing();
             char rotation[100] = "";
-            sprintf(rotation, "%.2f", player.angle);
+            sprintf(rotation, "%.2f", PLAYER_GetAngle(player));
             char speedAmnt[100] = "";
 
             if (isGameoverScreen) {
@@ -150,11 +150,11 @@ int StartAsteroidGame() {
             }
 
             if (isGame) {
-                sprintf(speedAmnt, "%.2f", sqrtf(Square(player.speed.x) + Square(player.speed.y)));
+                sprintf(speedAmnt, "%.2f", Vector2Length(PLAYER_GetSpeed(player)));
                 ClearBackground(BLACK);
                 drawParticles();
                 renderBullets(bullets);
-                PLAYER_Draw(&player);
+                PLAYER_Draw(player);
                 renderAsteroids(&bigAstArr);
                 renderAsteroids(&midAstArr);
                 renderAsteroids(&smlAstArr);
@@ -163,16 +163,16 @@ int StartAsteroidGame() {
                 sprintf(scoreText,"%d", score);
                 DrawText(scoreText, 10, 50, 32, WHITE);
                 char livesText[100] = "";
-                sprintf(livesText,"pv:%d", player.lives);
+                sprintf(livesText,"pv:%d", PLAYER_GetLifeCount(player));
                 DrawText(livesText, 10, 10, 40, ORANGE);
 
                 if (hasDebugMode) {
-                    drawGrid(GetScreenWidth() - 200, 200, 300, &player, true);
-                    drawGrid(GetScreenWidth() / 2, GetScreenHeight() / 2, 4500, &player, false);
+                    drawGrid(GetScreenWidth() - 200, 200, 300, player, true);
+                    drawGrid(GetScreenWidth() / 2, GetScreenHeight() / 2, 4500, player, false);
                     DrawText(rotation, 30, 30, 20, LIGHTGRAY);
                     DrawText(speedAmnt, 30, 50, 20, LIGHTGRAY);
                     DrawFPS(30, 80);
-                    drawEntitiesPos((Vector2){GetScreenWidth() - 800, 100}, &player, bullets);
+                    drawEntitiesPos((Vector2){GetScreenWidth() - 800, 100}, player, bullets);
                 }
             }
             if (isTitleMenu) {
@@ -192,7 +192,7 @@ int StartAsteroidGame() {
                     bigAstArr.nbAsteroid = 0;
                     midAstArr.nbAsteroid = 0;
                     smlAstArr.nbAsteroid = 0;
-                    generateWave(&bigAstArr, 0);
+                    generateWave(&bigAstArr, 0, player);
                 }
             }
             EndDrawing();
@@ -203,6 +203,7 @@ int StartAsteroidGame() {
     freeAsteroidArray(&bigAstArr, ((BigAsteroid*)bigAstArr.asteroid[0])->base.type);
     freeAsteroidArray(&midAstArr, ((MidAsteroid*)midAstArr.asteroid[0])->base.type);
     freeAsteroidArray(&smlAstArr, SMALL);
+    free(player);
     return 0;
 }
 
@@ -242,21 +243,25 @@ void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay) {
                  TWHITE);
     }
     if (hasVectorDisplay) {
-        float horizontalVector = x + player->speed.x * 10;
-        float verticalVector = y - player->speed.y * 10;
-        Vector2 startVector = {x, y};
-        Vector2 endVector = {horizontalVector, verticalVector};
-        DrawLineEx(startVector, endVector, 4.0, RED);
+        const Vector2 speed = PLAYER_GetSpeed(player);
+        const float horizontalVector = x + speed.x * 10;
+        const float verticalVector = y - speed.y * 10;
+        const Vector2 startVector = {x, y};
+        const Vector2 endVector = {horizontalVector, verticalVector};
+        DrawLineEx(startVector, endVector, 4.0f, RED);
     }
 }
 
 void drawEntitiesPos(Vector2 position, Player *player, Bullet *bullet) {
     int scale = 7;
     Vector2 topLeft = {position.x, position.y};
+    const Vector2 playerPos = PLAYER_GetPosition(player);
     DrawRectangle(position.x, position.y, GetScreenWidth() / scale, GetScreenHeight() / scale, WHITE);
     DrawRectangleLines(position.x, position.y, GetScreenWidth() / scale, GetScreenHeight() / scale, GRAY);
 
-    DrawRectangle(player->position.x / scale + topLeft.x, player->position.y / scale + topLeft.y, 10, 10, GREEN);
+
+
+    DrawRectangle(playerPos.x / scale + topLeft.x, playerPos.y / scale + topLeft.y, 10, 10, GREEN);
 
 
     for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {

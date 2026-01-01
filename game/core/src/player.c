@@ -6,6 +6,29 @@
 #include "game_api.h"
 #include "raymath.h"
 
+static const float PLAYER_MAX_STRETCH = 0.15f;
+static const float PLAYER_THRUST_RAMP_TIME = 1.0f;
+static const float PLAYER_SPEED_DAMPING = 0.5f;
+static const float PLAYER_MAX_PLAYER_SPEED = 1000; // px per sec
+
+typedef struct {
+    Vector2 tip;
+    Vector2 backLeft;
+    Vector2 backRight;
+} Triangle;
+
+typedef struct Player {
+    Triangle bounds;
+    Vector2 position;
+    float angle;
+    Vector2 speed;
+    float radius;
+    float borderWidth;
+    float angleBackLeft;
+    float angleBackRight;
+    int lives;
+} Player;
+
 void drawPlayerOutline(const Player *player);
 void thrust(Player *player, float thrustTime);
 void updatePlayerMovement(Player *player, Bullet *bulletArr);
@@ -19,7 +42,7 @@ void wrapAroundPlayer(Player *player);
 void playerDie(Player *player);
 void resile(Player *player);
 
-void PLAYER_Init(Player *player) {
+void PLAYER_Create(Player* player) {
     player->angle = 90.0f;
     player->position = (Vector2) {((float) GetScreenWidth() / 2),  ((float) GetScreenHeight() / 2)};
     player->radius = 40;
@@ -28,10 +51,13 @@ void PLAYER_Init(Player *player) {
     player->angleBackRight = (5.0f * PI) / 6.0f;
     player->speed = (Vector2) {0, 0};
     player->lives = 2;
-    player->die = playerDie;
 }
 
-void PLAYER_Reset(Player *player) {
+Vector2 PLAYER_GetSpeed(const Player *player) {
+    return player->speed;
+}
+
+void PLAYER_Reset(Player* player) {
     player->angle = 90.0f;
     player->position = (Vector2) {((float) GetScreenWidth() / 2), ((float) GetScreenHeight() / 2)};
     player->radius = 40;
@@ -59,6 +85,38 @@ bool PLAYER_IsLineInBounds(const Player *player, const Vector2* start, const Vec
                 || CheckCollisionLines(player->bounds.backLeft, player->bounds.backRight, *start, *end, NULL)
                 || CheckCollisionLines(player->bounds.backRight, player->bounds.tip, *start, *end, NULL);
 }
+
+void PLAYER_Die(Player *player) {
+    if (player->lives > 0) {
+        player->lives--;
+        PLAYER_Reset(player);
+        return;
+    }
+    gameoverPlayer(player);
+}
+
+size_t PLAYER_SizeOf() {
+    return sizeof(Player);
+}
+
+Vector2 PLAYER_GetPosition(const Player *player) {
+    return player->position;
+}
+
+int PLAYER_GetLifeCount(const Player *player) {
+    return player->lives;
+}
+
+float PLAYER_GetAngle(const Player *player) {
+    return player->angle;
+}
+
+
+
+
+
+
+
 
 void updatePlayerMovement(Player *player, Bullet *bulletArr) {
     const float rotationSpeed = 230.0f;
@@ -164,15 +222,6 @@ void shoot(const Player *player, Bullet *bullet, const float speed) {
             (speed *  cosf(angleRad) * (1 + playerSpeedNudgeX)),
             (speed * -sinf(angleRad) * (1 + playerSpeedNudgeY))
     };
-}
-
-void playerDie(Player *player) {
-    if (player->lives > 0) {
-        player->lives--;
-        PLAYER_Reset(player);
-        return;
-    }
-    gameoverPlayer(player);
 }
 
 void stretchPlayer(Player *player, const float thrustTime) {

@@ -11,8 +11,6 @@ extern AsteroidTraits bigTraits;
 extern AsteroidTraits midTraits;
 extern AsteroidTraits smlTraits;
 
-extern Player player;
-
 //TODO -----
 // - Creer les collision peut tirer dessus peut tuer le joueur
 // -
@@ -82,17 +80,17 @@ void rotateAsteroid(AsteroidArray *asteroidArr, AsteroidType type) {
 //asteroid Array
 //-------------------------------------------------------------------------------------
 
-void generateWave(AsteroidArray *asteroidArr, int waveNum) {
+void generateWave(AsteroidArray *asteroidArr, int waveNum, const Player *player) {
     int nbAsteroid = waveNum * WAVE_ASTEROID_AMNT + WAVE_ASTEROID_AMNT;
 
     if (waveNum % 10 == 0 && waveNum != 0) {
         //TODO ----big wave (+25)
         return;
     }
-    createBigAsteroid(asteroidArr, nbAsteroid);
+    createBigAsteroid(asteroidArr, nbAsteroid, player);
 }
 
-void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
+void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid, const Player *player) {
     asteroids->reservedSize += nbAsteroid;
     asteroids->nbAsteroid += nbAsteroid;
     asteroids->asteroid = malloc(nbAsteroid * sizeof(void *)); //init asteroid arr
@@ -111,7 +109,7 @@ void createBigAsteroid(AsteroidArray *asteroids, int nbAsteroid) {
         ((BigAsteroid *) asteroids->asteroid[i])->base.score = bigTraits.score; //init score
         ((BigAsteroid *) asteroids->asteroid[i])->nbVertices = bigTraits.nbVertices; //init score
         ((BigAsteroid *) asteroids->asteroid[i])->base.rotation = rotation; //init rotation
-        randomPosition(&((BigAsteroid *) asteroids->asteroid[i])->base); //init pos
+        randomPosition(&((BigAsteroid *) asteroids->asteroid[i])->base, player); //init pos
         randomSpeed(&((BigAsteroid *) asteroids->asteroid[i])->base, BIG); //init speed
 
         generateVertices(asteroids->asteroid[i], bigTraits.nbVertices, bigTraits.generationStyle); //init points
@@ -240,8 +238,8 @@ void randomSpeed(AsteroidBase *asteroid, AsteroidType type) {
     printf("speed (%.2f, %.2f)\n", speed.x, speed.y);
 }
 
-void randomPosition(AsteroidBase *asteroids) {
-    const Vector2 playerPos = player.position;
+void randomPosition(AsteroidBase *asteroids, const Player* player) {
+    const Vector2 playerPos = PLAYER_GetPosition(player);
     const int spawnRadius = 150;
     Vector2 pos;
     pos.x = rand() % (GetScreenWidth() -spawnRadius*2);
@@ -551,9 +549,11 @@ void createSmlAsteroid(AsteroidArray *arr, int nbAsteroid, Vector2 position) {
     arr->reservedSize += nbAsteroid;
     arr->nbAsteroid += nbAsteroid;
 }
-//TODO fait ca bonhomme
+
+
 void* checkCollisionAstPlayer(void *arg) {
     PackageCollisionPlayer package = *(PackageCollisionPlayer*) arg;
+    Player *player = package.player;
     Vector2 startPos;
     Vector2 endPos;
     Vector2 astPos;
@@ -567,9 +567,9 @@ void* checkCollisionAstPlayer(void *arg) {
             startPos.y += astPos.y;
             endPos.x += astPos.x;
             endPos.y += astPos.y;
-            if (PLAYER_IsLineInBounds(&player, &startPos, &endPos)) {
-                createParticles(0, package.player->position, 80, 360.0, ORANGE, 1.0, 1300);
-                player.die(&player);
+            if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
+                createParticles(0, PLAYER_GetPosition(player), 80, 360.0, ORANGE, 1.0, 1300);
+                PLAYER_Die(player);
                 package.bigArr->nbAsteroid--;
                 createMidAsteroid(package.midArr, 2, ((BigAsteroid*)package.bigArr->asteroid[i])->base.position);
                 ((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled = false;
@@ -587,9 +587,9 @@ void* checkCollisionAstPlayer(void *arg) {
             startPos.y += astPos.y;
             endPos.x += astPos.x;
             endPos.y += astPos.y;
-            if (PLAYER_IsLineInBounds(&player, &startPos, &endPos)) {
-                createParticles(0, package.player->position, 80, 360.0, ORANGE, 0.9, 1300);
-                player.die(&player);
+            if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
+                createParticles(0, PLAYER_GetPosition(package.player), 80, 360.0, ORANGE, 0.9, 1300);
+                PLAYER_Die(package.player);
                 package.midArr->nbAsteroid--;
                 createSmlAsteroid(package.smlArr, 2, ((MidAsteroid*)package.midArr->asteroid[i])->base.position);
                 ((MidAsteroid *) package.midArr->asteroid[i])->base.isCollisionEnabled = false;
@@ -607,9 +607,9 @@ void* checkCollisionAstPlayer(void *arg) {
             startPos.y += astPos.y;
             endPos.x += astPos.x;
             endPos.y += astPos.y;
-            if (PLAYER_IsLineInBounds(&player, &startPos, &endPos)) {
-                createParticles(0, package.player->position, 80, 360.0, ORANGE, 0.8, 1300);
-                player.die(&player);
+            if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
+                createParticles(0, PLAYER_GetPosition(package.player), 80, 360.0, ORANGE, 0.8, 1300);
+                PLAYER_Die(package.player);
                 package.smlArr->nbAsteroid--;
                 ((SmlAsteroid *) package.smlArr->asteroid[i])->base.isCollisionEnabled = false;
                 return NULL;
