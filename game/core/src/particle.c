@@ -6,7 +6,7 @@
 static ParticleArray particleArr = {
     .particles = NULL,
     .size = 0,
-    .maxSize = 0
+    .reservedSize = 0
 };
 // Array functions
 // -------------------------------------------------------------------------------------------------------
@@ -14,11 +14,11 @@ static ParticleArray particleArr = {
 void particleArrDestroy() {
     free(particleArr.particles);
     particleArr.size = 0;
-    particleArr.maxSize = 0;
+    particleArr.reservedSize = 0;
 }
 
 void particleArrInit(const int size) {
-    particleArr.maxSize = size;
+    particleArr.reservedSize = size;
     particleArr.particles = malloc(size * sizeof(Particle));
     if (particleArr.particles == NULL) {
         printf("Particle Allocation Failed");
@@ -28,9 +28,9 @@ void particleArrInit(const int size) {
 
 void particleArrExpand(const int increment) {
     const int size = particleArr.size;
-    if (size + increment > particleArr.maxSize) {
-        particleArr.maxSize *= 2;
-        Particle *temp = realloc(particleArr.particles, sizeof(Particle) * (particleArr.maxSize));
+    if (size + increment > particleArr.reservedSize) {
+        particleArr.reservedSize *= 2;
+        Particle *temp = realloc(particleArr.particles, sizeof(Particle) * (particleArr.reservedSize));
         if (temp == NULL) {
             printf("Particle Realloc Failed");
             exit(1);
@@ -39,6 +39,7 @@ void particleArrExpand(const int increment) {
     }
 }
 
+//pushes the particle at the end of the array
 void particleArrRemoveAt(int const index) {
     for (int i = index; i < particleArr.size - 1; ++i) {
         particleArr.particles[i] = particleArr.particles[i + 1];
@@ -60,7 +61,7 @@ void drawParticles() {
 
 void clearDeadParticles() {
     for (int i = 0; i < particleArr.size; ++i) {
-        if(checkIfParticleIsNotValid(&particleArr.particles[i])) {
+        if(particleIsNotValid(&particleArr.particles[i])) {
             particleArrRemoveAt(i);
         }
     }
@@ -108,7 +109,7 @@ void particleMove(Particle *particle) {
     particle->currentLifetime += GetFrameTime();
 }
 
-bool checkIfParticleIsNotValid(Particle const *particle) {
+bool particleIsNotValid(Particle const *particle) {
     return particle->currentLifetime > particle->lifetime;
 }
 

@@ -17,14 +17,14 @@ typedef struct Particle{
 typedef struct ParticleArray{
     Particle *particles;
     int size;
-    int maxSize;
-}ParticleArray;
+    int reservedSize;
+} ParticleArray;
 
 Particle newParticle(Vector2 position, Vector2 size, float speed, float lifetime, float angle, Color color);
 void particleMove(Particle *particle);
 void particleDraw(const Particle *particle);
 void createParticles(float angle, Vector2 position, int nbParticles, float spread, Color color, float lifetime, float speed);
-bool checkIfParticleIsNotValid(Particle const *particle);
+bool particleIsNotValid(Particle const *particle);
 
 void particleArrDestroy();
 void particleArrInit(int size);
