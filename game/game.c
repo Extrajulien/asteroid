@@ -15,6 +15,7 @@
 #include "particle.h"
 #include "files.h"
 #include "game_math.h"
+#include "screen.h"
 
 #include "player.h"
 #include "raymath.h"
@@ -36,16 +37,12 @@ void wrapAroundBullet(Bullet *bullets);
 
 void updateGame(Player *player, Bullet *bulletArr, AsteroidArray *asteroidArray);
 
-void showGameoverScreen();
-
-static bool isTitleMenu = true;
-static bool isAsteroidEditScreen = false;
-static bool isEditPresetsScreen = false;
-static bool isGame = false;
-static bool hasDebugMode = false;
-static bool isGameoverScreen = false;
+void showGameoverScreen(Screen *currentScreen);
 
 int StartAsteroidGame() {
+    Screen currentScreen = SCREEN_TITLE;
+    bool hasDebugMode = false;
+
     Bullet bullets[PLAYER_MAX_BULLETS];
     AsteroidArray *asteroidArray = ASTEROIDS_CreateArray();
     WaveContext wave = WAVE_CONTEXT_Create();
@@ -66,21 +63,20 @@ int StartAsteroidGame() {
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         //title menu
-        if (isTitleMenu) {
-            titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
-            if (isGame) {
+        if (currentScreen == SCREEN_TITLE) {
+            titleMenuInput(&currentScreen);
+            if (currentScreen == SCREEN_GAME) {
                 PLAYER_Reset(player);
                 WAVE_SpawnAsteroids(asteroidArray, &wave, PLAYER_GetExclusionCircle(player));
-                isGameoverScreen = false;
             }
         }
 
-        if (isAsteroidEditScreen) {
+        if (currentScreen == SCREEN_PRESET_CREATE) {
             refreshAsteroids(asteroidArray, wave.presetArr);
         }
 
         //game
-        if (isGame) {
+        if (currentScreen == SCREEN_GAME) {
             if (asteroidArray->nbAsteroid == 0) {
                 WAVE_SpawnAsteroids(asteroidArray, &wave, PLAYER_GetExclusionCircle(player));
             }
@@ -91,6 +87,10 @@ int StartAsteroidGame() {
             ASTEROIDS_CollideBullets(asteroidArray, bullets, bulletHitEventQueue);
             WAVE_ExplodeAsteroids(asteroidArray, &wave, bulletHitEventQueue);
             PLAYER_UpdateBulletHits(bulletHitEventQueue, player, bullets);
+
+            if (PLAYER_IsDead(player)) {
+                currentScreen = SCREEN_GAME_OVER;
+            }
 
             /*
             PackageCollisionPlayer packagePlayer = (PackageCollisionPlayer){player, &bigAstArr, &midAstArr, &smlAstArr};
@@ -104,14 +104,13 @@ int StartAsteroidGame() {
                 PLAYER_Reset(player);
                 if (IsKeyPressed(KEY_TAB)) {
                     particleArrDestroy();
-                    isTitleMenu = true;
-                    isGame = false;
+                    currentScreen = SCREEN_TITLE;
                 }
             }
             ASTEROID_BULLET_HIT_QUEUE_Purge(bulletHitEventQueue);
         }
 
-        if (isGameoverScreen) {
+        if (currentScreen == SCREEN_GAME_OVER) {
             ClearBackground(BLACK);
             updateGame(player, bullets, asteroidArray);
         }
@@ -122,13 +121,13 @@ int StartAsteroidGame() {
             sprintf(rotation, "%.2f", PLAYER_GetAngle(player));
             char speedAmnt[100] = "";
 
-            if (isGameoverScreen) {
+            if (currentScreen == SCREEN_GAME_OVER) {
                 drawParticles();
                 ASTEROIDS_Render(asteroidArray);
-                showGameoverScreen();
+                showGameoverScreen(&currentScreen);
             }
 
-            if (isGame) {
+            if (currentScreen == SCREEN_GAME) {
                 sprintf(speedAmnt, "%.2f", Vector2Length(PLAYER_GetSpeed(player)));
                 ClearBackground(BLACK);
                 drawParticles();
@@ -153,15 +152,15 @@ int StartAsteroidGame() {
                     drawEntitiesPos((Vector2){GetScreenWidth() - 800, 100}, player, bullets);
                 }
             }
-            if (isTitleMenu) {
+            if (currentScreen == SCREEN_TITLE) {
                 ClearBackground(BLACK);
                 titleMenu();
             }
-            if (isAsteroidEditScreen) {
+            if (currentScreen == SCREEN_PRESET_CREATE) {
                 ClearBackground(BLACK);
-                editAsteroidMenu(asteroidArray, wave.presetArr, &isTitleMenu, &isAsteroidEditScreen);
+                editAsteroidMenu(asteroidArray, wave.presetArr, &currentScreen);
                 ASTEROIDS_Render(asteroidArray);
-                if (isTitleMenu) {
+                if (currentScreen == SCREEN_TITLE) {
                     refreshAsteroids(asteroidArray, wave.presetArr);
                 }
             }
@@ -284,13 +283,7 @@ void initBullets(Bullet *bullets) {
     }
 }
 
-void gameoverPlayer(Player *player) {
-    isGameoverScreen = true;
-    isGame = false;
-    free(player);
-}
-
-void showGameoverScreen() {
+void showGameoverScreen(Screen *currentScreen) {
     static float timer = 0;
     const int fontSize = 256;
     const char* gameover = "Game Over";
@@ -299,8 +292,7 @@ void showGameoverScreen() {
         (Vector2){GetScreenWidth()/2-textSize.x/2, GetScreenHeight()/2-textSize.y/2}, fontSize, 25, ORANGE);
     timer += GetFrameTime();
     if (timer > 3) {
-    isGameoverScreen = false;
-        isTitleMenu = true;
+        *currentScreen = SCREEN_TITLE;
         timer = 0;
         particleArrDestroy();
     }

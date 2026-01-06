@@ -105,33 +105,24 @@ void titleMenu() {
 
 }
 
-void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen, bool *editPresets) {
+void titleMenuInput(Screen *currentScreen) {
     const Vector2 mousePos = GetMousePosition();
     if (CheckCollisionPointRec(mousePos, getStartGameBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            particleArrInit(10);
-            *isTitleMenu = false;
-            *isGame = true;
+            *currentScreen = SCREEN_GAME;
             return;
         }
     }
     if (CheckCollisionPointRec(mousePos, getEditAsteroidsModeBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            *isTitleMenu = false;
-            *isAsteroidEditScreen = true;
+            *currentScreen = SCREEN_PRESET_CREATE;
+            return;
         }
     }
     if (CheckCollisionPointRec(mousePos, getManagePresetsBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            /*
-            *isTitleMenu = false;
-            *editPresets = true;
-            */
+            *currentScreen = SCREEN_PRESET_LIST;
         }
-    }
-    if (IsKeyPressed(KEY_SPACE)) {
-        *isTitleMenu = false;
-        *isGame = true;
     }
 }
 
@@ -142,7 +133,7 @@ void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen,
 // edit asteroids
 // ----------------------------------------------------------------------------------------------------------------
 
-void editAsteroidMenu(const AsteroidArray *asteroidArray, AsteroidPresetArray *presetArray, bool *isTitleMenu, bool *isAsteroidEditScreen) {
+void editAsteroidMenu(const AsteroidArray *asteroidArray, AsteroidPresetArray *presetArray, Screen *currentScreen) {
     static AsteroidSize currentlyModifiedType = SIZE_BIG;
     static bool dropdownToggle = false;
     Vector2 mousePos = GetMousePosition();
@@ -180,8 +171,7 @@ void editAsteroidMenu(const AsteroidArray *asteroidArray, AsteroidPresetArray *p
     GuiButton((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7, 250, 100}, "Exit");
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
         && CheckCollisionPointRec(mousePos,(Rectangle){GetScreenWidth()-250, GetScreenHeight()/8*7, 200, 100})) {
-        *isTitleMenu = true;
-        *isAsteroidEditScreen = false;
+        *currentScreen = SCREEN_TITLE;
         isModified = true;
         readPresetFile(presetArray);
         }

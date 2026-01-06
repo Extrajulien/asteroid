@@ -23,6 +23,7 @@ void PLAYER_Respawn(Player *player);
 void PLAYER_Draw(const Player *player);
 void PLAYER_Update(Player *player, Bullet *bulletArr);
 void PLAYER_Die(Player *player);
+bool PLAYER_IsDead(const Player *player);
 void PLAYER_UpdateBulletHits(const AsteroidBulletHitEventQueue *queue, Player *player, Bullet *bulletArr);
 
 Vector2 PLAYER_GetSpeed(const Player *player);

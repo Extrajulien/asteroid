@@ -1,5 +1,6 @@
 add_library(menu STATIC
         src/menu.c
+        include/screen.h
 )
 
 

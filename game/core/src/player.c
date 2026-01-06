@@ -103,9 +103,11 @@ void PLAYER_Die(Player *player) {
     if (player->lives > 0) {
         player->lives--;
         PLAYER_Respawn(player);
-        return;
     }
-    gameoverPlayer(player);
+}
+
+bool PLAYER_IsDead(const Player *player) {
+    return player->lives <= 0;
 }
 
 Vector2 PLAYER_GetPosition(const Player *player) {
