@@ -25,12 +25,8 @@
 #define SML_ASTEROID_POS        (Vector2){GetScreenWidth()/4, GetScreenHeight()/8*7}
 #define MAX_LINE_BUFFER_SIZE 256
 #define EPSILON 0.1f
-extern AsteroidTraits bigTraits;
-extern AsteroidTraits midTraits;
-extern AsteroidTraits smlTraits;
 static bool isModified = true;
 static char currentPresetName[MAX_LINE_BUFFER_SIZE];
-static int currentlyModifiedType = BIG;
 enum ChosenTextBox {
     verticesSpinner,
     presetName,
@@ -40,6 +36,10 @@ enum ChosenTextBox chosenTextBox = -1;
 
 // title menu
 // ----------------------------------------------------------------------------------------------------------------
+Rectangle getAsteroidBox(const Asteroid* asteroid);
+void clickSelectAsteroid(const AsteroidArray* asteroidArray, AsteroidSize *selection);
+const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize *selection);
+void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid);
 
 Rectangle getStartGameBox() {
     return (Rectangle){(GetScreenWidth()-350) / 2, GetScreenHeight() / 2, 350, 100};
@@ -142,7 +142,8 @@ void titleMenuInput(bool *isTitleMenu, bool *isGame, bool *isAsteroidEditScreen,
 // edit asteroids
 // ----------------------------------------------------------------------------------------------------------------
 
-void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
+void editAsteroidMenu(const AsteroidArray *asteroidArray, AsteroidPresetArray *presetArray, bool *isTitleMenu, bool *isAsteroidEditScreen) {
+    static AsteroidSize currentlyModifiedType = SIZE_BIG;
     static bool dropdownToggle = false;
     Vector2 mousePos = GetMousePosition();
     DrawRectangleV((Vector2){0,0},//show change section
@@ -153,38 +154,13 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
         (Vector2){GetScreenWidth()/2,GetScreenHeight()},DARKERGRAY);
 
     if (GuiDropdownBox((Rectangle){GetScreenWidth()/2 + 10, GetScreenHeight()/8-70, 250, 75},
-    "Big;Medium;Small", &currentlyModifiedType, dropdownToggle)) {
+    "Big;Medium;Small", (int*) &currentlyModifiedType, dropdownToggle)) {
         dropdownToggle = !dropdownToggle;
     }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-        && CheckCollisionPointRec(mousePos,getAsteroidBox(&bigTraits, BIG_ASTEROID_POS))) {
-        currentlyModifiedType = BIG;
-    }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-        && CheckCollisionPointRec(mousePos,getAsteroidBox(&midTraits, MID_ASTEROID_POS))) {
-        currentlyModifiedType = MEDIUM;
-        }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-    && CheckCollisionPointRec(mousePos,getAsteroidBox(&smlTraits, SML_ASTEROID_POS))) {
-        currentlyModifiedType = SMALL;
-    }
 
-    switch (currentlyModifiedType) {
-        case SMALL:
-            drawAstOptions(&smlTraits, SML_ASTEROID_POS);
-            break;
-        case MEDIUM:
-            drawAstOptions(&midTraits, MID_ASTEROID_POS);
-            break;
-        case BIG:
-            drawAstOptions(&bigTraits, BIG_ASTEROID_POS);
-            break;
-        default:
-            printf("Unknown Asteroid type in menu!\n");
-        exit(1);
-    }
+    clickSelectAsteroid(asteroidArray, &currentlyModifiedType);
 
-
+    drawAstOptions(&presetArray->presets[currentlyModifiedType], getAsteroid(asteroidArray, &currentlyModifiedType));
     //-----------------------------------------------------------------------------------------------------------------------
     //gui toggles
     //-----------------------------------------------------------------------------------------------------------------------
@@ -207,7 +183,7 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
         *isTitleMenu = true;
         *isAsteroidEditScreen = false;
         isModified = true;
-        readPresetFile();
+        readPresetFile(presetArray);
         }
     GuiButton((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7-120, 250, 100}, "Reset");
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
@@ -219,7 +195,7 @@ void editAsteroidMenu(bool *isTitleMenu, bool *isAsteroidEditScreen) {
     GuiButton((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100}, "Save");
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
         && CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100})) {
-        savePreset(currentPresetName);
+        savePreset(&presetArray->presets[currentlyModifiedType], currentPresetName);
         resetAsteroidAttributes();
         isModified = true;
         currentPresetName[0] = '\0';
@@ -232,6 +208,7 @@ void checkForUpdate(float oldValue, float newValue) {
     if (fabs(oldValue - newValue) > 0.1f) isModified = true;
 }
 
+/*
 void updateEditAsteroidMenu(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr) {
     if (IsKeyPressed(KEY_F)) isModified = true;
 
@@ -239,94 +216,34 @@ void updateEditAsteroidMenu(AsteroidArray *bigArr, AsteroidArray *midArr, Astero
         printf("%f", ((BigAsteroid*)bigArr->asteroid[0])->base.radius);
         //printf("%d", ((MidAsteroid*)midArr->asteroid[0])->base.type);
         //printf("%d", ((SmlAsteroid*)smlArr->asteroid[0])->base.type);
-        freeAsteroidArray(bigArr, BIG);
-        freeAsteroidArray(midArr, MEDIUM);
+        freeAsteroidArray(bigArr, SIZE_BIG);
+        freeAsteroidArray(midArr, SIZE_MEDIUM);
         //freeAsteroidArray(smlArr, ((SmlAsteroid*)smlArr->asteroid)->base.type);
 
         refreshAsteroids(bigArr, midArr, smlArr);
         isModified = false;
     }
-    rotateAsteroid(bigArr, BIG);
-    rotateAsteroid(midArr, MEDIUM);
-    rotateAsteroid(smlArr, SMALL);
+    rotateAsteroid(bigArr, SIZE_BIG);
+    rotateAsteroid(midArr, SIZE_MEDIUM);
+    rotateAsteroid(smlArr, SIZE_SMALL);
 }
+*/
 
-void refreshAsteroids(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr) {
-    createBigAsteroidEditMode(bigArr);
-    createMidAsteroidEditMode(midArr);
-    createSmlAsteroidEditMode(smlArr);
-}
+void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* presetArr) {
+    ASTEROIDS_Purge(asteroidArray);
+    if (presetArr->presetCount == ASTEROID_SIZE_COUNT) {
+        Asteroid big = ASTEROID_Create(&presetArr->presets[SIZE_BIG]);
+        big.position = BIG_ASTEROID_POS;
+        ASTEROIDS_Add(asteroidArray, big);
 
-void createBigAsteroidEditMode(AsteroidArray *asteroids) {
-    asteroids -> reservedSize = 1;
-    asteroids -> asteroid = malloc(sizeof(void *));//init asteroid arr
+        Asteroid mid = ASTEROID_Create(&presetArr->presets[SIZE_MEDIUM]);
+        mid.position = MID_ASTEROID_POS;
+        ASTEROIDS_Add(asteroidArray, mid);
 
-        asteroids -> asteroid[0] = malloc(sizeof(BigAsteroid));  // Allocate memory for each asteroid
-
-    const float rotation = ((rand() % (int)((bigTraits.maxRotationSpeed) - bigTraits.minRotationSpeed))
-        + bigTraits.minRotationSpeed)/100.0f;
-        ((BigAsteroid *) asteroids->asteroid[0])->base.isCollisionEnabled = true;
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.radius = bigTraits.radius;      //init radius
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.spread = bigTraits.spread;      //init spread
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.type = BIG;           //init type
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.angle = 0;            //init angle
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.score = bigTraits.score;           //init score
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;  //init rotation
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.position = BIG_ASTEROID_POS;     //init pos
-        ((BigAsteroid*)asteroids -> asteroid[0]) -> base.speed = (Vector2){0,0};     //init speed
-
-        generateVertices(asteroids -> asteroid[0], bigTraits.nbVertices, bigTraits.generationStyle);//init points
-
-    printf("--Big asteroids generated!\n");
-}
-
-void createMidAsteroidEditMode(AsteroidArray *asteroids) {
-    asteroids -> reservedSize = 1;
-    asteroids -> asteroid = malloc(sizeof(void *));//init asteroid arr
-
-    asteroids -> asteroid[0] = malloc(sizeof(MidAsteroid));  // Allocate memory for each asteroid
-
-    const float rotation = ((rand() % (int)((midTraits.maxRotationSpeed) - midTraits.minRotationSpeed))
-        + midTraits.minRotationSpeed)/100.0f;
-    ((MidAsteroid *) asteroids->asteroid[0])->base.isCollisionEnabled = true;
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.radius = midTraits.radius;     //init radius
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.spread = midTraits.spread;     //init spread
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.type = MEDIUM;                 //init type
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.angle = 0;                     //init angle
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.score = midTraits.score;       //init score
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;           //init rotation
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.position = MID_ASTEROID_POS;   //init pos
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> base.speed = (Vector2){0,0};   //init speed
-    ((MidAsteroid*)asteroids -> asteroid[0]) -> nbVertices = midTraits.nbVertices;  //set nb vertices
-
-    generateVertices(asteroids -> asteroid[0], midTraits.nbVertices, midTraits.generationStyle);//init points
-
-    printf("--Mid asteroids generated!\n");
-}
-
-void createSmlAsteroidEditMode(AsteroidArray *asteroids) {
-    asteroids -> reservedSize = 1;
-    asteroids -> asteroid = malloc(sizeof(void *));//init asteroid arr
-
-    asteroids -> asteroid[0] = malloc(sizeof(SmlAsteroid));  // Allocate memory for each asteroid
-
-    const float rotation = ((rand() % (int)((smlTraits.maxRotationSpeed) - smlTraits.minRotationSpeed))
-        + smlTraits.minRotationSpeed)/100.0f;
-
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.isCollisionEnabled = true;
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.radius = smlTraits.radius;     //init radius
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.spread = smlTraits.spread;     //init spread
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.type = MEDIUM;                 //init type
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.angle = 0;                     //init angle
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.score = smlTraits.score;       //init score
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.rotation = rotation;           //init rotation
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.position = SML_ASTEROID_POS;   //init pos
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> base.speed = (Vector2){0,0};   //init speed
-    ((SmlAsteroid*)asteroids -> asteroid[0]) -> nbVertices = smlTraits.nbVertices;  //set nb vertices
-
-    generateVertices(asteroids -> asteroid[0], smlTraits.nbVertices, smlTraits.generationStyle);//init points
-
-    printf("--Sml asteroids generated!\n");
+        Asteroid small = ASTEROID_Create(&presetArr->presets[SIZE_SMALL]);
+        small.position = SML_ASTEROID_POS;
+        ASTEROIDS_Add(asteroidArray, small);
+    }
 }
 
 void loadThemes() {
@@ -335,100 +252,124 @@ void loadThemes() {
 }
 
 void resetAsteroidAttributes() {
-    bigTraits = (AsteroidTraits){BIG,100,20,-30,30, 100,20, 25, 0};
-    midTraits = (AsteroidTraits){MEDIUM,65,25,-40,40, 100,50, 18, 0};
-    smlTraits = (AsteroidTraits){SMALL,35,15,-50,50, 100, 100, 12, 0};
+    // reset preset
 }
 
-void drawAstOptions(AsteroidTraits *traits, Vector2 asteroidPos) {
+void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid) {
     Vector2 mousepos = GetMousePosition();
     const int fontsize = 32;
     const int spacing = 1;
     float temp;
     Vector2 textSize;
-    if (traits->generationStyle == true) {
-        DrawRing(asteroidPos,(traits->radius-traits->spread),
-        (traits->radius+traits->spread), 0, 360, 0, SPREAD_COLOR);
+    if (preset->isRandomBothSides == true) {
+        DrawRing(asteroid->position,(preset->radius-preset->spread),
+        (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
     } else {
-        DrawRing(asteroidPos,traits->radius,
-        (traits->radius+traits->spread), 0, 360, 0, SPREAD_COLOR);
+        DrawRing(asteroid->position,preset->radius,
+        (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
     }
 
-    DrawRing(asteroidPos, traits->radius-1, traits->radius+1,
+    DrawRing(asteroid->position, preset->radius-1, preset->radius+1,
         0, 360, 0, RADIUS_COLOR);
     char radiusBig[15] = "";
-    sprintf(radiusBig, "[%.2f]", traits->radius);
+    sprintf(radiusBig, "[%.2f]", preset->radius);
     textSize = MeasureTextEx(GetFontDefault(),radiusBig, fontsize, spacing);
-    temp = traits->radius;
+    temp = preset->radius;
     GuiSliderBar(RADIUS_SET_BOX,
-        "Radius", "",&traits->radius, 0, 250);
+        "Radius", "",&preset->radius, 0, 250);
     if (CheckCollisionPointRec(mousepos, RADIUS_SET_BOX)) {
         DrawTextEx(GetFontDefault(), radiusBig,
         (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8-70+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
     }
 
-    checkForUpdate(temp, traits->radius);
+    checkForUpdate(temp, preset->radius);
 
     char spreadBig[15] = "";
-    sprintf(spreadBig, "[%.2f]", traits->spread);
+    sprintf(spreadBig, "[%.2f]", preset->spread);
     textSize = MeasureTextEx(GetFontDefault(),spreadBig, fontsize, spacing);
-    temp = traits->spread;
+    temp = preset->spread;
     GuiSliderBar(SPREAD_SET_BOX,
-        "Spread", "",&traits->spread, 0, 250);
+        "Spread", "",&preset->spread, 0, 250);
     if (CheckCollisionPointRec(mousepos, SPREAD_SET_BOX)) {
         DrawTextEx(GetFontDefault(), spreadBig,
         (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
     }
-    checkForUpdate(temp, traits->spread);
+    checkForUpdate(temp, preset->spread);
 
     char minRotationSpeedBig[15] = "";
-    sprintf(minRotationSpeedBig, "[%.2f]", traits->minRotationSpeed);
+    sprintf(minRotationSpeedBig, "[%.2f]", preset->minRotationSpeed);
     textSize = MeasureTextEx(GetFontDefault(),minRotationSpeedBig, fontsize, spacing);
-    temp = traits->minRotationSpeed;
+    temp = preset->minRotationSpeed;
     GuiSliderBar(MIN_ROTATION_SET_BOX,
-        "Min turn speed", "",&traits->minRotationSpeed, -1000, -1);
+        "Min turn speed", "",&preset->minRotationSpeed, -1000, -1);
     if (CheckCollisionPointRec(mousepos, MIN_ROTATION_SET_BOX)) {
         DrawTextEx(GetFontDefault(), minRotationSpeedBig,
         (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+70+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
     }
-    checkForUpdate(temp, traits->minRotationSpeed);
+    checkForUpdate(temp, preset->minRotationSpeed);
 
     char maxRotationSpeedBig[15] = "";
-    sprintf(maxRotationSpeedBig, "[%.2f]", traits->maxRotationSpeed);
+    sprintf(maxRotationSpeedBig, "[%.2f]", preset->maxRotationSpeed);
     textSize = MeasureTextEx(GetFontDefault(),maxRotationSpeedBig, fontsize, spacing);
-    temp = traits->maxRotationSpeed;
+    temp = preset->maxRotationSpeed;
     GuiSliderBar(MAX_ROTATION_SET_BOX,
-        "Max turn speed", "",&traits->maxRotationSpeed, 1, 1000);
+        "Max turn speed", "",&preset->maxRotationSpeed, 1, 1000);
     if (CheckCollisionPointRec(mousepos, MAX_ROTATION_SET_BOX)) {
         DrawTextEx(GetFontDefault(), maxRotationSpeedBig,
         (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+140+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
     }
-    checkForUpdate(temp, traits->maxRotationSpeed);
+    checkForUpdate(temp, preset->maxRotationSpeed);
 
     char maxSpeedBig[15] = "";
-    sprintf(maxSpeedBig, "[%.2f]", traits->maxSpeed);
+    sprintf(maxSpeedBig, "[%.2f]", preset->maxSpeed);
     textSize = MeasureTextEx(GetFontDefault(),maxSpeedBig, fontsize, spacing);
-    temp = traits->maxSpeed;
+    temp = preset->maxSpeed;
     GuiSliderBar(MAX_SPEED_SET_BOX,
-        "Max speed", "",&traits->maxSpeed, 0, 300);
+        "Max speed", "",&preset->maxSpeed, 0, 300);
     if (CheckCollisionPointRec(mousepos, MAX_SPEED_SET_BOX)) {
         DrawTextEx(GetFontDefault(), maxSpeedBig,
         (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+210+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
     }
-    checkForUpdate(temp, traits->maxSpeed);
+    checkForUpdate(temp, preset->maxSpeed);
 
-    temp = traits->generationStyle;
-    GuiToggle(GENERATION_STYLE_SET_BOX,"2 Side", &traits->generationStyle);
-    checkForUpdate(temp, traits->generationStyle);
+    temp = preset->isRandomBothSides;
+    GuiToggle(GENERATION_STYLE_SET_BOX,"2 Side", &preset->isRandomBothSides);
+    checkForUpdate(temp, preset->isRandomBothSides);
 
-    temp = traits->nbVertices;
+    temp = preset->nbVertices;
     GuiSpinner(NB_VERTICES_SET_BOX,
-        "Vertices",&traits->nbVertices, 2, 10000, chosenTextBox == verticesSpinner);
-    if (traits->nbVertices < 0) traits->nbVertices = 0;//prevent crash
-    checkForUpdate(temp ,traits->nbVertices);
+        "Vertices",&preset->nbVertices, 2, 10000, chosenTextBox == verticesSpinner);
+    if (preset->nbVertices < 0) preset->nbVertices = 0;//prevent crash
+    checkForUpdate(temp ,preset->nbVertices);
 }
 
-Rectangle getAsteroidBox(AsteroidTraits *traits, Vector2 pos) {
-    return (Rectangle){pos.x-traits->radius, pos.y-traits->radius,
-            traits->radius*2, traits->radius*2};
+Rectangle getAsteroidBox(const Asteroid* asteroid) {
+    return (Rectangle) {
+        asteroid->position.x - asteroid->shape.radius,
+        asteroid->position.y - asteroid->shape.radius,
+        asteroid->shape.radius * 2,
+        asteroid->shape.radius * 2
+    };
+}
+
+void clickSelectAsteroid(const AsteroidArray *asteroidArray, AsteroidSize *selection) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        const Vector2 mousePos = GetMousePosition();
+        for (int i = 0; i < asteroidArray->nbAsteroid; ++i) {
+            const Asteroid *asteroid = &asteroidArray->asteroid[i];
+            if (CheckCollisionPointRec(mousePos,getAsteroidBox(asteroid))) {
+                *selection = asteroid->type;
+            }
+        }
+    }
+}
+
+const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize *selection) {
+    for (int i = 0; i < asteroidArray->nbAsteroid; ++i) {
+        const Asteroid *asteroid = &asteroidArray->asteroid[i];
+        if (asteroid->type == *selection) {
+            return asteroid;
+        }
+    }
+    return NULL;
 }

@@ -18,6 +18,7 @@
 
 #include "player.h"
 #include "raymath.h"
+#include "wave.h"
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
@@ -33,8 +34,7 @@ void deleteBullet(Bullet *bullet, int index);
 
 void wrapAroundBullet(Bullet *bullets);
 
-void updateGame(Player *player, Bullet *bullet, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
-                AsteroidArray *smlAstArr);
+void updateGame(Player *player, Bullet *bulletArr, AsteroidArray *asteroidArray);
 
 void showGameoverScreen();
 
@@ -47,80 +47,60 @@ static bool isGameoverScreen = false;
 
 int StartAsteroidGame() {
     Bullet bullets[PLAYER_MAX_BULLETS];
-    AsteroidArray bigAstArr = {NULL, 0, 0};
-    AsteroidArray midAstArr = {NULL, 0, 0};
-    AsteroidArray smlAstArr = {NULL, 0, 0};
+    AsteroidArray *asteroidArray = ASTEROIDS_CreateArray();
+    WaveContext wave = WAVE_CONTEXT_Create();
     srand((unsigned int)time(NULL));
 
     int waveNumber = 0;
-    int score = 0;
-    readPresetFile();
+    readPresetFile(wave.presetArr);
     particleArrInit(10);
-    //InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Asteroid Julien Lamothe");//windows
-    InitWindow(1920, 1080, "Asteroids"); //linux
+    InitWindow(1920, 1080, "Asteroids");
     initBullets(bullets);
-    //ToggleBorderlessWindowed();
 
-    Player* player = malloc(PLAYER_SizeOf());
-    PLAYER_Create(player);
-    generateWave(&bigAstArr, waveNumber, player);
-    SetTargetFPS(MAX_FPS); // Set our game to run at 60 frames-per-second
+    Player* player = PLAYER_Create();
+    AsteroidBulletHitEventQueue *bulletHitEventQueue = ASTEROID_BULLET_HIT_QUEUE_Create();
+    SetTargetFPS(MAX_FPS);
     loadThemes();
-    //--------------------------------------------------------------------------------------
 
-    // Main game loop
+
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         //title menu
         if (isTitleMenu) {
             titleMenuInput(&isTitleMenu, &isGame, &isAsteroidEditScreen, &isEditPresetsScreen);
             if (isGame) {
-                PLAYER_Create(player);
-                score = 0;
-                freeAsteroidArray(&bigAstArr, BIG);
-                freeAsteroidArray(&midAstArr, MEDIUM);
-                freeAsteroidArray(&smlAstArr, SMALL);
-                waveNumber = 0;
-                generateWave(&bigAstArr, waveNumber, player);
+                PLAYER_Reset(player);
+                WAVE_SpawnAsteroids(asteroidArray, &wave, PLAYER_GetExclusionCircle(player));
                 isGameoverScreen = false;
             }
         }
 
         if (isAsteroidEditScreen) {
-            updateEditAsteroidMenu(&bigAstArr, &midAstArr, &smlAstArr);
+            refreshAsteroids(asteroidArray, wave.presetArr);
         }
 
         //game
         if (isGame) {
-            if (bigAstArr.nbAsteroid == 0 && midAstArr.nbAsteroid == 0 && smlAstArr.nbAsteroid == 0) {
-                freeAsteroidArray(&bigAstArr, BIG);
-                freeAsteroidArray(&midAstArr, MEDIUM);
-                freeAsteroidArray(&smlAstArr, SMALL);
-                waveNumber++;
-                generateWave(&bigAstArr, waveNumber, player);
+            if (asteroidArray->nbAsteroid == 0) {
+                WAVE_SpawnAsteroids(asteroidArray, &wave, PLAYER_GetExclusionCircle(player));
             }
             if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
-            updateGame(player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
 
-            PackageCollisionBullet packageBullet = {&bigAstArr, &midAstArr, &smlAstArr, bullets, &score};
-            checkCollisionAstBullet(&packageBullet);
+            updateGame(player, bullets, asteroidArray);
 
+            ASTEROIDS_CollideBullets(asteroidArray, bullets, bulletHitEventQueue);
+            WAVE_ExplodeAsteroids(asteroidArray, &wave, bulletHitEventQueue);
+            PLAYER_UpdateBulletHits(bulletHitEventQueue, player, bullets);
+
+            /*
             PackageCollisionPlayer packagePlayer = (PackageCollisionPlayer){player, &bigAstArr, &midAstArr, &smlAstArr};
             checkCollisionAstPlayer(&packagePlayer);
+            */
 
             if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
-                freeAsteroidArray(&bigAstArr, BIG);
-                freeAsteroidArray(&midAstArr, MEDIUM);
-                freeAsteroidArray(&smlAstArr, SMALL);
-                bigAstArr.reservedSize = 0;
-                midAstArr.reservedSize = 0;
-                waveNumber = 0;
-                bigAstArr.nbAsteroid = 0;
-                midAstArr.nbAsteroid = 0;
-                smlAstArr.nbAsteroid = 0;
-                score = 0;
+                ASTEROIDS_Purge(asteroidArray);
                 initBullets(bullets);
-                generateWave(&bigAstArr, waveNumber, player);
+                WAVE_SpawnAsteroids(asteroidArray, &wave, PLAYER_GetExclusionCircle(player));
                 PLAYER_Reset(player);
                 if (IsKeyPressed(KEY_TAB)) {
                     particleArrDestroy();
@@ -128,11 +108,12 @@ int StartAsteroidGame() {
                     isGame = false;
                 }
             }
+            ASTEROID_BULLET_HIT_QUEUE_Purge(bulletHitEventQueue);
         }
 
         if (isGameoverScreen) {
             ClearBackground(BLACK);
-            updateGame(player, bullets, &bigAstArr, &midAstArr, &smlAstArr);
+            updateGame(player, bullets, asteroidArray);
         }
 
         {
@@ -143,9 +124,7 @@ int StartAsteroidGame() {
 
             if (isGameoverScreen) {
                 drawParticles();
-                renderAsteroids(&bigAstArr);
-                renderAsteroids(&midAstArr);
-                renderAsteroids(&smlAstArr);
+                ASTEROIDS_Render(asteroidArray);
                 showGameoverScreen();
             }
 
@@ -154,13 +133,12 @@ int StartAsteroidGame() {
                 ClearBackground(BLACK);
                 drawParticles();
                 renderBullets(bullets);
+
                 PLAYER_Draw(player);
-                renderAsteroids(&bigAstArr);
-                renderAsteroids(&midAstArr);
-                renderAsteroids(&smlAstArr);
+                ASTEROIDS_Render(asteroidArray);
 
                 char scoreText[100] = "";
-                sprintf(scoreText,"%d", score);
+                sprintf(scoreText,"%d", PLAYER_GetScore(player));
                 DrawText(scoreText, 10, 50, 32, WHITE);
                 char livesText[100] = "";
                 sprintf(livesText,"pv:%d", PLAYER_GetLifeCount(player));
@@ -181,18 +159,10 @@ int StartAsteroidGame() {
             }
             if (isAsteroidEditScreen) {
                 ClearBackground(BLACK);
-                editAsteroidMenu(&isTitleMenu, &isAsteroidEditScreen);
-                renderAsteroids(&bigAstArr);
-                renderAsteroids(&midAstArr);
-                renderAsteroids(&smlAstArr);
+                editAsteroidMenu(asteroidArray, wave.presetArr, &isTitleMenu, &isAsteroidEditScreen);
+                ASTEROIDS_Render(asteroidArray);
                 if (isTitleMenu) {
-                    freeAsteroidArray(&bigAstArr, BIG);
-                    freeAsteroidArray(&midAstArr, MEDIUM);
-                    freeAsteroidArray(&smlAstArr, SMALL);
-                    bigAstArr.nbAsteroid = 0;
-                    midAstArr.nbAsteroid = 0;
-                    smlAstArr.nbAsteroid = 0;
-                    generateWave(&bigAstArr, 0, player);
+                    refreshAsteroids(asteroidArray, wave.presetArr);
                 }
             }
             EndDrawing();
@@ -200,28 +170,17 @@ int StartAsteroidGame() {
     }
     CloseWindow();
 
-    freeAsteroidArray(&bigAstArr, ((BigAsteroid*)bigAstArr.asteroid[0])->base.type);
-    freeAsteroidArray(&midAstArr, ((MidAsteroid*)midAstArr.asteroid[0])->base.type);
-    freeAsteroidArray(&smlAstArr, SMALL);
-    free(player);
+    ASTEROIDS_FreeArray(asteroidArray);
+    PLAYER_Free(player);
     return 0;
 }
 
-void updateGame(Player *player, Bullet *bulletArr, AsteroidArray *bigAstArr, AsteroidArray *midAstArr,
-                AsteroidArray *smlAstArr) {
+void updateGame(Player *player, Bullet *bulletArr, AsteroidArray *asteroidArray) {
     PLAYER_Update(player, bulletArr);
     moveBullets(bulletArr);
-    moveAsteroids(bigAstArr);
-    moveAsteroids(midAstArr);
-    moveAsteroids(smlAstArr);
+    ASTEROIDS_Update(asteroidArray);
     moveParticles();
     wrapAroundBullet(bulletArr);
-    wrapAroundAsteroid(bigAstArr);
-    wrapAroundAsteroid(midAstArr);
-    wrapAroundAsteroid(smlAstArr);
-    rotateAsteroid(bigAstArr, BIG);
-    rotateAsteroid(midAstArr, MEDIUM);
-    rotateAsteroid(smlAstArr, SMALL);
 }
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay) {
@@ -328,7 +287,7 @@ void initBullets(Bullet *bullets) {
 void gameoverPlayer(Player *player) {
     isGameoverScreen = true;
     isGame = false;
-
+    free(player);
 }
 
 void showGameoverScreen() {

@@ -10,6 +10,7 @@ static const float PLAYER_MAX_STRETCH = 0.15f;
 static const float PLAYER_THRUST_RAMP_TIME = 1.0f;
 static const float PLAYER_SPEED_DAMPING = 0.5f;
 static const float PLAYER_MAX_PLAYER_SPEED = 1000; // px per sec
+static const float PLAYER_SPAWN_SAFE_ZONE = 100;
 
 typedef struct {
     Vector2 tip;
@@ -20,6 +21,7 @@ typedef struct {
 typedef struct Player {
     Triangle bounds;
     Vector2 position;
+    Score score;
     float angle;
     Vector2 speed;
     float radius;
@@ -42,19 +44,22 @@ void wrapAroundPlayer(Player *player);
 void playerDie(Player *player);
 void resile(Player *player);
 
-void PLAYER_Create(Player* player) {
-    player->angle = 90.0f;
-    player->position = (Vector2) {((float) GetScreenWidth() / 2),  ((float) GetScreenHeight() / 2)};
-    player->radius = 40;
-    player->borderWidth = 6;
-    player->angleBackLeft = (7.0f * PI) / 6.0f;
-    player->angleBackRight = (5.0f * PI) / 6.0f;
-    player->speed = (Vector2) {0, 0};
-    player->lives = 2;
+Player* PLAYER_Create() {
+    Player *player = malloc(sizeof(Player));
+    if (!player) {
+        printf("PLAYER_Create - malloc failed\n");
+        exit(1);
+    }
+    PLAYER_Reset(player);
+    return player;
 }
 
 Vector2 PLAYER_GetSpeed(const Player *player) {
     return player->speed;
+}
+
+void PLAYER_Free(Player *player) {
+    free(player);
 }
 
 void PLAYER_Reset(Player* player) {
@@ -64,6 +69,14 @@ void PLAYER_Reset(Player* player) {
     player->borderWidth = 6;
     player->angleBackLeft = (7.0f * PI) / 6.0f;
     player->angleBackRight = (5.0f * PI) / 6.0f;
+    player->speed = (Vector2) {0, 0};
+    player->score = 0;
+    player->lives = 2;
+}
+
+void PLAYER_Respawn(Player *player) {
+    player->angle = 90.0f;
+    player->position = (Vector2) {((float) GetScreenWidth() / 2), ((float) GetScreenHeight() / 2)};
     player->speed = (Vector2) {0, 0};
 }
 
@@ -89,14 +102,10 @@ bool PLAYER_IsLineInBounds(const Player *player, const Vector2* start, const Vec
 void PLAYER_Die(Player *player) {
     if (player->lives > 0) {
         player->lives--;
-        PLAYER_Reset(player);
+        PLAYER_Respawn(player);
         return;
     }
     gameoverPlayer(player);
-}
-
-size_t PLAYER_SizeOf() {
-    return sizeof(Player);
 }
 
 Vector2 PLAYER_GetPosition(const Player *player) {
@@ -111,7 +120,25 @@ float PLAYER_GetAngle(const Player *player) {
     return player->angle;
 }
 
+void PLAYER_AddScore(Player *player, const int score) {
+    player->score += score;
+}
+int PLAYER_GetScore(const Player *player) {
+    return player->score;
+}
 
+SpawnExclusionCircle PLAYER_GetExclusionCircle(const Player *player) {
+    return (SpawnExclusionCircle) {player->position, PLAYER_SPAWN_SAFE_ZONE};
+}
+
+
+void PLAYER_UpdateBulletHits(const AsteroidBulletHitEventQueue *queue, Player *player, Bullet *bulletArr) {
+    for (int i = 0; i < queue->eventCount; ++i) {
+        const AsteroidBulletHitEvent *event = &queue->events[i];
+        bulletArr[event->BulletId].distance = 0;
+        PLAYER_AddScore(player, event->score);
+    }
+}
 
 
 
@@ -144,10 +171,7 @@ void updatePlayerMovement(Player *player, Bullet *bulletArr) {
 }
 
 void wrapAroundPlayer(Player *player) {
-    if (player->position.x > (float) GetScreenWidth() + player->radius) player->position.x = -player->radius;
-    if (player->position.y > (float) GetScreenHeight() + player->radius) player->position.y = -player->radius;
-    if (player->position.x < -player->radius) player->position.x = (float) GetScreenWidth() + player->radius;
-    if (player->position.y < -player->radius) player->position.y = (float) GetScreenHeight() + player->radius;
+    WrapAroundScreen(&player->position, player->radius);
 }
 
 void glide(Player *player) {

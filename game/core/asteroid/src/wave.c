@@ -1,0 +1,107 @@
+#include "wave.h"
+#include <stdio.h>
+#include "asteroid.h"
+#include "asteroid_array.h"
+#include <stdlib.h>
+#include "game_math.h"
+
+void PlaceAsteroidRandomPosition(Asteroid *asteroid, SpawnExclusionCircle exclusionCircle);
+void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset);
+void explodeAsteroid(Asteroid *asteroid, const AsteroidBulletHitEvent *event);
+void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, const WaveContext *wave);
+
+
+void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, const SpawnExclusionCircle exclusionCircle) {
+    for (int i = 0; i < wave->spawnRuleArr->count; ++i) {
+        const AsteroidWaveSpawnRule *rule = &wave->spawnRuleArr->spawnRules[i];
+        if (rule->spawnSize >= wave->presetArr->presetCount) {
+            printf("Invalid spawnSize %u\n", rule->spawnSize);
+            continue;
+        }
+
+        const AsteroidPreset *preset = &wave->presetArr->presets[rule->spawnSize];
+        for (int j = 0; j < rule->spawnCount; ++j) {
+            Asteroid asteroid = ASTEROID_Create(preset);
+            PlaceAsteroidRandomPosition(&asteroid, exclusionCircle);
+            setAsteroidRandomSpeed(&asteroid, preset);
+            ASTEROIDS_Add(asteroidArr, asteroid);
+        }
+    }
+}
+
+void WAVE_ExplodeAsteroids(AsteroidArray *asteroidArray, const WaveContext *wave, const AsteroidBulletHitEventQueue *bulletHitEvent) {
+    for (int i = 0; i < bulletHitEvent->eventCount; ++i) {
+        const AsteroidBulletHitEvent event = bulletHitEvent->events[i];
+
+
+        Asteroid *asteroid = &asteroidArray->asteroid[event.asteroidId];
+        explodeAsteroid(asteroid, &event);
+        spawnAsteroidFromRule(asteroidArray, asteroid, wave);
+    }
+    ASTEROIDS_Compact(asteroidArray);
+}
+
+
+WaveContext WAVE_CONTEXT_Create() {
+    WaveContext wave;
+    wave.presetArr = ASTEROID_PRESETS_CreateArray();
+    wave.spawnRuleArr = ASTEROID_WAVE_SPAWN_RULE_CreateArray();
+    wave.explosionRuleArr = ASTEROID_EXPLOSION_RULE_CreateArray();
+
+    const AsteroidWaveSpawnRule bigSpawnRule = {SIZE_BIG, 5};
+    ASTEROID_WAVE_SPAWN_RULE_Add(wave.spawnRuleArr, &bigSpawnRule);
+
+    const AsteroidWaveSpawnRule midSpawnRule = {SIZE_MEDIUM, 2};
+    ASTEROID_WAVE_SPAWN_RULE_Add(wave.spawnRuleArr, &midSpawnRule);
+
+    const AsteroidWaveSpawnRule smlSpawnRule = {SIZE_SMALL, 1};
+    ASTEROID_WAVE_SPAWN_RULE_Add(wave.spawnRuleArr, &smlSpawnRule);
+
+
+
+    return wave;
+}
+
+
+
+void PlaceAsteroidRandomPosition(Asteroid *asteroid, const SpawnExclusionCircle exclusionCircle) {
+    const float circleDiameter = exclusionCircle.radius * 2;
+    const int xRange = GetScreenWidth() - (int) circleDiameter;
+    const int yRange = GetScreenHeight() - (int) circleDiameter;
+    Vector2 pos;
+    pos.x = rand() % xRange;
+    pos.y = rand() % yRange;
+    if (pos.x > exclusionCircle.center.x - exclusionCircle.radius) pos.x += circleDiameter;
+    if (pos.y > exclusionCircle.center.y - exclusionCircle.radius) pos.y += circleDiameter;
+    asteroid->position = pos;
+}
+
+void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset) {
+    Vector2 speed;
+    speed.x = (rand() % (int) (preset->maxSpeed + 1) - preset->maxSpeed);
+    speed.y = (rand() % (int) (preset->maxSpeed + 1) - preset->maxSpeed);
+    asteroid->velocity = speed;
+}
+
+void explodeAsteroid(Asteroid *asteroid, const AsteroidBulletHitEvent *event) {
+    const float particleDirection = flipRadAngle(event->hitAngle);
+    asteroid->info.state = STATE_DEAD;
+    createParticles(particleDirection, event->hitPosition, &asteroid->particlePreset);
+}
+
+void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, const WaveContext *wave) {
+    if (wave->explosionRuleArr->count <= old->type) {
+        printf("Type '%d' is not present in Explosion Rules (count: %llu)\n", old->type, wave->explosionRuleArr->count);
+        return;
+    }
+
+    const AsteroidExplosionRule *explosionRules = &wave->explosionRuleArr->explosionRules[old->type];
+    const AsteroidPreset *preset = &wave->presetArr->presets[explosionRules->spawnedSize];
+
+    for (int i = 0; i < explosionRules->spawnCount; ++i) {
+        Asteroid asteroid = ASTEROID_Create(preset);
+        setAsteroidRandomSpeed(&asteroid, preset);
+        asteroid.position = old->position;
+        ASTEROIDS_Add(asteroidArray, asteroid);
+    }
+}
