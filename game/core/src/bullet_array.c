@@ -96,10 +96,6 @@ BulletArray* BULLETS_CreateArray() {
     return bulletArray;
 }
 
-void BULLETS_Shoot(BulletArray *array, const Vector2 position, const Vector2 size, const Vector2 speed , const float distance) {
-    BULLETS_Add(array, BULLET_Create(position, size, speed, distance));
-}
-
 void BULLETS_Add(BulletArray *array, const Bullet bullet) {
     if (array->capacity < array->count + 1) {
         array->capacity *= 2;
@@ -138,7 +134,6 @@ void BULLETS_Update(BulletArray *array) {
 
 void BULLETS_Destroy(BulletArray *array, const size_t index) {
     BULLET_MarkDead(&array->bulletArr[index]);
-    array->count--;
 }
 
 void BULLETS_Spawn(BulletArray *array, const Vector2 position, const Vector2 size, const Vector2 speed, const float distance) {
@@ -158,7 +153,6 @@ void BULLETS_FreeArray(BulletArray *array) {
 
 bool InvalidateDeadBullet(const BulletArray *array, Bullet *bullet, size_t *count) {
     if (bullet->distance <= 0) {
-        printf("dead bullet invalidated, count: %lu\n", *count);
         (*count)--;
         *bullet = array->bulletArr[*count];
         return true;

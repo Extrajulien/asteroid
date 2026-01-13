@@ -109,15 +109,15 @@ void createPresetFile() {
 }
 
 void logPreset(const AsteroidPreset *preset) {
-    printf("Config:\t\t %s-%c\n", preset->presetName, AsteroidSizeToChar(preset->size));
-    printf("radius:\t\t %.2f\n", preset->radius);
-    printf("Spread:\t\t %.2f\n", preset->spread);
-    printf("Min Spin Speed:\t %.2f\n", preset->minRotationSpeed);
-    printf("Max Spin Speed:\t %.2f\n", preset->maxRotationSpeed);
-    printf("Score:\t\t %d\n\n", preset->score);
-    printf("Vertices:\t\t %d\n", preset->nbVertices);
-    printf("Random both sides:\t\t %d\n", preset->isRandomBothSides);
-    printf("Max Speed:\t %.2f\n", preset->maxSpeed);
+    printf("Config:            %s-%c\n", preset->presetName, AsteroidSizeToChar(preset->size));
+    printf("radius:            %.2f\n", preset->radius);
+    printf("Spread:            %.2f\n", preset->spread);
+    printf("Min Spin Speed:    %.2f\n", preset->minRotationSpeed);
+    printf("Max Spin Speed:    %.2f\n", preset->maxRotationSpeed);
+    printf("Score:             %d\n", preset->score);
+    printf("Vertices:          %d\n", preset->nbVertices);
+    printf("Random both sides: %d\n", preset->isRandomBothSides);
+    printf("Max Speed:         %.2f\n", preset->maxSpeed);
 }
 AsteroidSize letterToAsteroidSize(const char letter) {
     switch (letter) {
