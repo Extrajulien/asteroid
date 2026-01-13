@@ -12,9 +12,9 @@ typedef enum COMP {
 
 typedef unsigned int ComponentsMask;
 
-typedef Vector2 Position;
+typedef struct Vector2 Position;
 
-typedef Vector2 Velocity;
+typedef struct Vector2 Velocity;
 
 typedef struct {
     float rad;

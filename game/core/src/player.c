@@ -33,8 +33,8 @@ typedef struct Player {
 
 void drawPlayerOutline(const Player *player);
 void thrust(Player *player, float thrustTime);
-void updatePlayerMovement(Player *player, Bullet *bulletArr);
-void shoot(const Player *player, Bullet *bullet, float speed);
+void updatePlayerMovement(Player *player, BulletArray *bulletArr);
+void shoot(const Player *player, BulletArray *bullet, float speed);
 void drawTopPlayer(const Player *player);
 void drawThrust(const Player *player);
 void stretchPlayer(Player *player, float thrustTime);
@@ -86,7 +86,7 @@ void PLAYER_Draw(const Player *player) {
     drawTopPlayer(player);
 }
 
-void PLAYER_Update(Player *player, Bullet *bulletArr) {
+void PLAYER_Update(Player *player, BulletArray *bulletArr) {
     updatePlayerMovement(player, bulletArr);
     glide(player);
     wrapAroundPlayer(player);
@@ -134,20 +134,11 @@ SpawnExclusionCircle PLAYER_GetExclusionCircle(const Player *player) {
 }
 
 
-void PLAYER_UpdateBulletHits(const AsteroidBulletHitEventQueue *queue, Player *player, Bullet *bulletArr) {
-    for (int i = 0; i < queue->eventCount; ++i) {
-        const AsteroidBulletHitEvent *event = &queue->events[i];
-        bulletArr[event->BulletId].distance = 0;
-        PLAYER_AddScore(player, event->score);
-    }
-}
 
 
 
 
-
-
-void updatePlayerMovement(Player *player, Bullet *bulletArr) {
+void updatePlayerMovement(Player *player, BulletArray *bulletArr) {
     const float rotationSpeed = 230.0f;
     static float howLongPressed = 0; //in seconds
 
@@ -167,7 +158,7 @@ void updatePlayerMovement(Player *player, Bullet *bulletArr) {
     }
 
     if (IsKeyPressed(KEY_SPACE)) {
-        shoot(player, bulletArr, 10);
+        shoot(player, bulletArr, 1200);
     }
     if (IsKeyDown(KEY_R)) PLAYER_Reset(player);
 }
@@ -230,24 +221,16 @@ void updateCollisionBorders(Player *player) {
 }
 
 
-void shoot(const Player *player, Bullet *bullet, const float speed) {
+void shoot(const Player *player, BulletArray *bulletArr, const float speed) {
     const float angleRad = player->angle * DEG2RAD;
     const float playerSpeedNudgeX = fabsf(player->speed.x * GetFrameTime()) / 4;
     const float playerSpeedNudgeY = fabsf(player->speed.y * GetFrameTime()) / 4;
-
-    int index = 0;
-    for (int i = 0; i < PLAYER_MAX_BULLETS; i++) {
-        if (bullet[i].distance <= 0) {
-            index = i;
-            break;
-        }
-    }
-    bullet[index].distance = PLAYER_BULLET_LIFE_DISTANCE;
-    bullet[index].position = (Vector2) {player->position.x, player->position.y};
-    bullet[index].speed = (Vector2) {
-            (speed *  cosf(angleRad) * (1 + playerSpeedNudgeX)),
-            (speed * -sinf(angleRad) * (1 + playerSpeedNudgeY))
+    const Vector2 bulletSpeed = {
+        (speed *  cosf(angleRad) * (1 + playerSpeedNudgeX)),
+        (speed * -sinf(angleRad) * (1 + playerSpeedNudgeY))
     };
+    BULLETS_Spawn(bulletArr, player->position, (Vector2){5,5}, bulletSpeed, PLAYER_BULLET_LIFE_DISTANCE);
+
 }
 
 void stretchPlayer(Player *player, const float thrustTime) {

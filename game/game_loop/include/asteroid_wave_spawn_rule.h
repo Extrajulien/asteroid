@@ -1,7 +1,7 @@
 #pragma once
 #include <stddef.h>
-
 #include "asteroid_size.h"
+
 typedef struct AsteroidWaveSpawnRule {
     AsteroidSize spawnSize;
     unsigned int spawnCount;

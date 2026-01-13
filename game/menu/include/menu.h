@@ -1,25 +1,32 @@
 #ifndef MENU_H
 #define MENU_H
 #include "raylib.h"
-#include "asteroid.h"
-#include "asteroid_array.h"
-#include "screen.h"
 
-Rectangle getStartGameBox();
-Rectangle getEditAsteroidsModeBox();
-Rectangle getManagePresetsBox();
+#define DARKERGRAY (Color){20,20,20,255}
+#define SPREAD_COLOR (Color){0,255,0,50}
+#define RADIUS_COLOR (Color){0,255,0,150}
+#define TEXT_INDICATOR_COLOR (Color){140,255,241,255}
+#define RADIUS_SET_BOX              (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8-70, 200, 50}
+#define SPREAD_SET_BOX              (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8, 200, 50}
+#define MIN_ROTATION_SET_BOX        (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8+70, 200, 50}
+#define MAX_ROTATION_SET_BOX        (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8+140, 200, 50}
+#define MAX_SPEED_SET_BOX           (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8+210, 200, 50}
+#define NB_VERTICES_SET_BOX         (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8+280, 200, 50}
+#define GENERATION_STYLE_SET_BOX    (Rectangle){GetScreenWidth()/8*7, GetScreenHeight()/8+350, 200, 50}
+#define BIG_ASTEROID_POS        (Vector2){(float) GetScreenWidth()/4, (float) GetScreenHeight()/4}
+#define MID_ASTEROID_POS        (Vector2){(float) GetScreenWidth()/4, (float) GetScreenHeight()/8*5}
+#define SML_ASTEROID_POS        (Vector2){(float) GetScreenWidth()/4, (float) GetScreenHeight()/8*7}
 
-void titleMenu();
-void editAsteroidMenu(const AsteroidArray *asteroidArray, AsteroidPresetArray *presetArray, Screen *currentScreen);
+typedef struct Asteroid Asteroid;
+typedef struct AsteroidArray AsteroidArray;
+typedef struct AsteroidPresetArray AsteroidPresetArray;
+
+Rectangle MENU_GetAsteroidSquareHitBox(const Asteroid* asteroid);
+
 void resetAsteroidAttributes();
-void checkForUpdate(float oldValue, float newValue);
-void updateEditAsteroidMenu(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr);
 void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* presetArr);
-void createBigAsteroidEditMode(AsteroidArray *asteroids);
-void createMidAsteroidEditMode(AsteroidArray *asteroids);
-void createSmlAsteroidEditMode(AsteroidArray *asteroids);
 
-void titleMenuInput(Screen *currentScreen);
+
 void loadThemes();
 void initMenuBoxes();
 

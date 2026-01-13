@@ -1,6 +1,12 @@
 add_library(menu STATIC
         src/menu.c
-        include/screen.h
+        src/screen.c
+        src/screen_title.c
+        src/screen_preset_create.c
+        src/screen_game.c
+        include/screen_virtual_table.h
+        include/screen_context.h
+        include/menu_style.h
 )
 
 
@@ -9,4 +15,10 @@ target_include_directories(menu PUBLIC
 )
 
 
-target_link_libraries(menu PUBLIC raylib raygui style_jungle core)
+target_link_libraries(menu
+        PRIVATE raylib
+        PRIVATE raygui_implementation
+        PRIVATE presetManager
+        PRIVATE core
+        PRIVATE game
+)

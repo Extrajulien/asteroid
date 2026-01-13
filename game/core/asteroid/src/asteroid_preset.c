@@ -48,3 +48,7 @@ void ASTEROID_PRESETS_Add(AsteroidPresetArray *presetArray, const AsteroidPreset
     ++presetArray->presetCount;
 }
 
+void ASTEROID_PRESET_Purge(AsteroidPresetArray *presetArray) {
+    presetArray->presetCount = 0;
+}
+

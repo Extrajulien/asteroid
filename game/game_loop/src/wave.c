@@ -4,6 +4,8 @@
 #include "asteroid_array.h"
 #include <stdlib.h>
 #include "game_math.h"
+#include "asteroid_preset.h"
+#include "event_api.h"
 
 void PlaceAsteroidRandomPosition(Asteroid *asteroid, SpawnExclusionCircle exclusionCircle);
 void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset);
@@ -24,13 +26,13 @@ void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, co
             Asteroid asteroid = ASTEROID_Create(preset);
             PlaceAsteroidRandomPosition(&asteroid, exclusionCircle);
             setAsteroidRandomSpeed(&asteroid, preset);
-            ASTEROIDS_Add(asteroidArr, asteroid);
+            ASTEROIDS_Add(asteroidArr, &asteroid);
         }
     }
 }
 
 void WAVE_ExplodeAsteroids(AsteroidArray *asteroidArray, const WaveContext *wave, const AsteroidBulletHitEventQueue *bulletHitEvent) {
-    for (int i = 0; i < bulletHitEvent->eventCount; ++i) {
+    for (int i = 0; i < bulletHitEvent->count; ++i) {
         const AsteroidBulletHitEvent event = bulletHitEvent->events[i];
 
 
@@ -42,24 +44,40 @@ void WAVE_ExplodeAsteroids(AsteroidArray *asteroidArray, const WaveContext *wave
 }
 
 
-WaveContext WAVE_CONTEXT_Create() {
-    WaveContext wave;
-    wave.presetArr = ASTEROID_PRESETS_CreateArray();
-    wave.spawnRuleArr = ASTEROID_WAVE_SPAWN_RULE_CreateArray();
-    wave.explosionRuleArr = ASTEROID_EXPLOSION_RULE_CreateArray();
+WaveContext* WAVE_CONTEXT_Create() {
+    WaveContext *wave = malloc(sizeof(WaveContext));
+    wave->presetArr = ASTEROID_PRESETS_CreateArray();
+    wave->spawnRuleArr = ASTEROID_WAVE_SPAWN_RULE_CreateArray();
+    wave->explosionRuleArr = ASTEROID_EXPLOSION_RULE_CreateArray();
 
     const AsteroidWaveSpawnRule bigSpawnRule = {SIZE_BIG, 5};
-    ASTEROID_WAVE_SPAWN_RULE_Add(wave.spawnRuleArr, &bigSpawnRule);
+    ASTEROID_WAVE_SPAWN_RULE_Add(wave->spawnRuleArr, &bigSpawnRule);
+
+    const AsteroidExplosionRule bigExplosion = {SIZE_MEDIUM, 2};
+    ASTEROID_EXPLOSION_RULE_Add(wave->explosionRuleArr, &bigExplosion);
+
 
     const AsteroidWaveSpawnRule midSpawnRule = {SIZE_MEDIUM, 2};
-    ASTEROID_WAVE_SPAWN_RULE_Add(wave.spawnRuleArr, &midSpawnRule);
+    ASTEROID_WAVE_SPAWN_RULE_Add(wave->spawnRuleArr, &midSpawnRule);
+
+    const AsteroidExplosionRule midExplosion = {SIZE_SMALL, 2};
+    ASTEROID_EXPLOSION_RULE_Add(wave->explosionRuleArr, &midExplosion);
 
     const AsteroidWaveSpawnRule smlSpawnRule = {SIZE_SMALL, 1};
-    ASTEROID_WAVE_SPAWN_RULE_Add(wave.spawnRuleArr, &smlSpawnRule);
+    ASTEROID_WAVE_SPAWN_RULE_Add(wave->spawnRuleArr, &smlSpawnRule);
 
+    const AsteroidExplosionRule smlExplosion = {SIZE_SMALL, 0};
+    ASTEROID_EXPLOSION_RULE_Add(wave->explosionRuleArr, &smlExplosion);
 
 
     return wave;
+}
+
+void WAVE_CONTEXT_Free(WaveContext *wave) {
+    ASTEROID_PRESETS_Free(wave->presetArr);
+    ASTEROID_WAVE_SPAWN_RULE_Free(wave->spawnRuleArr);
+    ASTEROID_EXPLOSION_RULE_Free(wave->explosionRuleArr);
+    free(wave);
 }
 
 
@@ -91,7 +109,7 @@ void explodeAsteroid(Asteroid *asteroid, const AsteroidBulletHitEvent *event) {
 
 void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, const WaveContext *wave) {
     if (wave->explosionRuleArr->count <= old->type) {
-        printf("Type '%d' is not present in Explosion Rules (count: %llu)\n", old->type, wave->explosionRuleArr->count);
+        printf("Type '%d' is not present in Explosion Rules (count: %lu)\n", old->type, wave->explosionRuleArr->count);
         return;
     }
 
@@ -102,6 +120,6 @@ void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, co
         Asteroid asteroid = ASTEROID_Create(preset);
         setAsteroidRandomSpeed(&asteroid, preset);
         asteroid.position = old->position;
-        ASTEROIDS_Add(asteroidArray, asteroid);
+        ASTEROIDS_Add(asteroidArray, &asteroid);
     }
 }

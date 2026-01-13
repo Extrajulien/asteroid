@@ -1,12 +1,11 @@
 #pragma once
 #include "asteroid_size.h"
-#include "asteroid_preset.h"
-#include "player.h"
 #include "components.h"
 #include "entity_info.h"
 #include "particle.h"
 
-#define ASTEROID_SIZE_COUNT 3
+typedef struct AsteroidPreset AsteroidPreset;
+typedef struct Bullet Bullet;
 
 typedef struct {
     float radius;
@@ -30,6 +29,7 @@ typedef struct Asteroid {
 Asteroid ASTEROID_Create(const AsteroidPreset *preset);
 void ASTEROID_Free(const Asteroid *asteroid);
 void ASTEROID_Rotate(const Asteroid *asteroid);
+void ASTEROID_MoveTo(Asteroid *asteroid, Vector2 position);
 void ASTEROID_UpdateVertices(const Asteroid *asteroid);
 void ASTEROID_Render(const Asteroid *asteroid);
 

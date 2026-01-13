@@ -1,5 +1,7 @@
 #include "files.h"
 
+#include "asteroid_preset.h"
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +38,7 @@ void readPresetFile(AsteroidPresetArray *presets) {
     char buffer[BUFFER_SIZE];
     fgets(buffer, BUFFER_SIZE, presetFile); //skip header
 
-    const int checkArraySize = ASTEROID_SIZE_COUNT;
+    const int checkArraySize = SIZE_COUNT;
     bool isSizeLoaded[checkArraySize];
     bool *isSizePresent = createSizeCheckArray(isSizeLoaded, checkArraySize);
 
@@ -47,9 +49,9 @@ void readPresetFile(AsteroidPresetArray *presets) {
 
         AsteroidPreset preset = readPreset(buffer);
 
-        preset.lineInfo.color = BLUE;
+        preset.lineInfo.color = PURPLE;
 
-        preset.lineInfo.thickness = 2;
+        preset.lineInfo.thickness = 3;
 
         preset.particlePreset = (ParticlePreset) {
             12,

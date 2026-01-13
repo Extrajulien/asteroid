@@ -1,18 +1,9 @@
 #ifndef PARTICLES_H
 #define PARTICLES_H
+#include <stdbool.h>
 #include "raylib.h"
-#define DEFAULT_PARTICLE_COLOR (Color) {230, 230, 230, 255}
-typedef struct Particle {
-    Rectangle bounds;
-    float speed;
-    float lifetime;
-    float currentLifetime;
-    float angle;
-    bool isShown;
-    Color color;
-    void (*move)(struct Particle *self);
-    void (*draw)(const struct Particle *self);
-} Particle;
+
+typedef struct Particle Particle;
 
 typedef struct ParticleArray{
     Particle *particles;

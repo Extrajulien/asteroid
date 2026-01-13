@@ -1,20 +1,15 @@
 #include "asteroid.h"
 #include "asteroid_array.h"
+#include "asteroid_preset.h"
+#include "bullet.h"
+#include "player.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "particle.h"
-
-// TODO
-// - separate individual asteroid code from array
-// - make asteroid generation more flexible in the wave files
+#include "raymath.h"
 
 void generateVertices(Asteroid *asteroid, const AsteroidPreset *preset);
 void ASTEROID_SHAPE_Init(Asteroid *asteroid, const AsteroidPreset *preset);
-
-
-//asteroid Array
-//-------------------------------------------------------------------------------------
 
 // create an asteroid from the preset given (does not set a position or speed)
 Asteroid ASTEROID_Create(const AsteroidPreset *preset) {
@@ -76,6 +71,13 @@ void ASTEROID_SHAPE_Init(Asteroid *asteroid, const AsteroidPreset *preset) {
     asteroid->shape.nbVertices = preset->nbVertices;
 }
 
+void ASTEROID_MoveTo(Asteroid *asteroid, const Vector2 position) {
+    asteroid->position = position;
+    for (int i = 0; i < asteroid->shape.nbVertices; ++i) {
+        asteroid->shape.vertices[i] = Vector2Add(asteroid->shape.originalVertices[i], position);
+    }
+}
+
 void generateVertices(Asteroid *asteroid, const AsteroidPreset *preset) {
     ASTEROID_SHAPE_Init(asteroid, preset);
     const float radius = asteroid->shape.radius;
@@ -102,7 +104,8 @@ bool ASTEROID_IsBulletColliding(const Asteroid *asteroid, const Bullet *bullet) 
         const int threshold = 10;
         const Vector2 startPos = asteroid->shape.vertices[k];
         const Vector2 endPos = asteroid->shape.vertices[(k + 1) % asteroid->shape.nbVertices];
-        if (CheckCollisionPointLine(bullet->position, startPos, endPos, threshold)) {
+        Rectangle bulletHitBox = BULLET_GetCollisionRectangle(bullet);
+        if (CheckCollisionPointLine((Vector2){bulletHitBox.x, bulletHitBox.y}, startPos, endPos, threshold)) {
             return true;
         }
     }
@@ -182,7 +185,11 @@ void* checkCollisionAstPlayer(void *arg) {
 
 void ASTEROID_Free(const Asteroid *asteroid) {
     if (asteroid) {
-        free(asteroid->shape.originalVertices);
-        free(asteroid->shape.vertices);
+        if (asteroid->shape.originalVertices) {
+            free(asteroid->shape.originalVertices);
+        }
+        if (asteroid->shape.vertices) {
+            free(asteroid->shape.vertices);
+        }
     }
 }

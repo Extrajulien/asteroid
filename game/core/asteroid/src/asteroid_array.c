@@ -1,10 +1,15 @@
 #include "asteroid_array.h"
+#include "event_sink_api.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "asteroid_event.h"
+
+#include "asteroid.h"
+#include "bullet.h"
+#include "bullet_array.h"
 #include "game_math.h"
+#include "player.h"
 
 void rotateAsteroids(const AsteroidArray *asteroidArr);
 
@@ -39,22 +44,24 @@ AsteroidArray* ASTEROIDS_CreateArray() {
 
     asteroidArr->capacity = 1;
     asteroidArr->nbAsteroid = 0;
+    asteroidArr->maxReachedCount = 0;
     return asteroidArr;
 }
 
 void ASTEROIDS_FreeArray(AsteroidArray *asteroidArr) {
     if (asteroidArr == NULL) return;
-    for (int i = 0; i < asteroidArr->capacity; i++) {
+    for (int i = 0; i < asteroidArr->maxReachedCount; i++) {
         ASTEROID_Free(&asteroidArr->asteroid[i]);
     }
     free(asteroidArr->asteroid);
     asteroidArr->asteroid = NULL;
     asteroidArr->capacity = 0;
     asteroidArr->nbAsteroid = 0;
+    asteroidArr->maxReachedCount = 0;
     free(asteroidArr);
 }
 
-void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid asteroid) {
+void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid *asteroid) {
     if (asteroidArr->capacity < asteroidArr->nbAsteroid + 1) {
         asteroidArr->capacity *= 2;
         Asteroid *temp = realloc(asteroidArr->asteroid, sizeof(Asteroid) * (asteroidArr->capacity));
@@ -64,8 +71,13 @@ void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid asteroid) {
         }
         asteroidArr->asteroid = temp;
     }
-    asteroidArr->asteroid[asteroidArr->nbAsteroid] = asteroid;
+
+    asteroidArr->asteroid[asteroidArr->nbAsteroid] = *asteroid;
     asteroidArr->nbAsteroid++;
+
+    if (asteroidArr->maxReachedCount < asteroidArr->nbAsteroid) {
+        asteroidArr->maxReachedCount = asteroidArr->nbAsteroid;
+    }
 }
 
 void ASTEROIDS_Purge(AsteroidArray *asteroidArr) {
@@ -89,19 +101,18 @@ void ASTEROIDS_Render(const AsteroidArray *asteroidArr) {
     }
 }
 
-void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const Bullet *bullets, AsteroidBulletHitEventQueue *eventQueue) {
-    for (int i = 0; i < PLAYER_MAX_BULLETS; ++i) {
-        if (bullets[i].distance == 0) continue;
-        const Bullet *bullet = &bullets[i];
+void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletArray *bullets, const AsteroidBulletHitEventSink *sink) {
+    for (int i = 0; i < bullets->count; ++i) {
+        const Bullet *bullet = BULLETS_GetBullet(bullets, i);
         for (int j = 0; j < asteroidArray->nbAsteroid; ++j) {
 
             if (asteroidArray->asteroid[j].info.state == STATE_DEAD) continue;
             const Asteroid *asteroid = &asteroidArray->asteroid[j];
-
             if (ASTEROID_IsBulletColliding(asteroid, bullet)) {
-                const float hitAngle = AngleFromComponent(&bullet->speed);
-                const AsteroidBulletHitEvent event = { j, i, hitAngle, asteroid->score, bullet->position};
-                ASTEROID_BULLET_HIT_QUEUE_Add(eventQueue, event);
+                Vector2 bulletSpeed = BULLET_GetSpeed(bullet);
+                const float hitAngle = AngleFromComponent(&bulletSpeed);
+                const AsteroidBulletHitEvent event = { j, i, hitAngle, asteroid->score, BULLET_GetPosition(bullet)};
+                sink->emit(sink->ctx, &event);
             }
         }
     }

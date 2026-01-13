@@ -2,6 +2,19 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "raylib.h"
+
+typedef struct Particle {
+    Rectangle bounds;
+    float speed;
+    float lifetime;
+    float currentLifetime;
+    float angle;
+    bool isShown;
+    Color color;
+    void (*move)(Particle *self);
+    void (*draw)(const Particle *self);
+} Particle;
 
 static ParticleArray particleArr = {
     .particles = NULL,
@@ -103,7 +116,7 @@ void particleMove(Particle *particle) {
     if (speed > 0) {
         particle->bounds.x += cosf(angleRad) * GetFrameTime() * speed;
         particle->bounds.y -= sinf(angleRad) * GetFrameTime() * speed;
-        particle->color.a = 255 - 255 * (particle->currentLifetime / particle->lifetime);
+        particle->color.a =  255 - 255 * (particle->currentLifetime / particle->lifetime);
     }
     particle->currentLifetime += GetFrameTime();
 }

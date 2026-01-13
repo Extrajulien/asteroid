@@ -8,4 +8,4 @@ target_include_directories(presetManager PUBLIC
 )
 
 
-target_link_libraries(presetManager PUBLIC game)
+target_link_libraries(presetManager PUBLIC game core)
