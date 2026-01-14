@@ -1,4 +1,8 @@
 #include "menu.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "raylib.h"
 #include "asteroid.h"
 #include "asteroid_array.h"
@@ -7,6 +11,7 @@
 #include "raygui_styles.h"
 #define EPSILON 0.1f
 const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize *selection);
+Vector2 getAsteroidSizePosition(AsteroidSize asteroidSize);
 void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid);
 
 
@@ -39,20 +44,28 @@ void updateEditAsteroidMenu(AsteroidArray *bigArr, AsteroidArray *midArr, Astero
 }
 */
 
+Vector2 getAsteroidSizePosition(const AsteroidSize asteroidSize) {
+    switch (asteroidSize) {
+        case SIZE_BIG: return BIG_ASTEROID_POS;
+        case SIZE_MEDIUM: return MID_ASTEROID_POS;
+        case SIZE_SMALL: return SML_ASTEROID_POS;
+        default: printf("Unrecognized asteroidSize");
+        exit(1);
+    }
+}
+
+
+
+
 void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* presetArr) {
+    ASTEROID_PRESETS_OrderArray(presetArr);
     ASTEROIDS_Purge(asteroidArray);
-    if (presetArr->presetCount == SIZE_COUNT) {
-        Asteroid big = ASTEROID_Create(&presetArr->presets[SIZE_BIG]);
-        ASTEROID_MoveTo(&big, BIG_ASTEROID_POS);
-        ASTEROIDS_Add(asteroidArray, &big);
 
-        Asteroid mid = ASTEROID_Create(&presetArr->presets[SIZE_MEDIUM]);
-        ASTEROID_MoveTo(&mid, MID_ASTEROID_POS);
-        ASTEROIDS_Add(asteroidArray, &mid);
-
-        Asteroid small = ASTEROID_Create(&presetArr->presets[SIZE_SMALL]);
-        ASTEROID_MoveTo(&small, SML_ASTEROID_POS);
-        ASTEROIDS_Add(asteroidArray, &small);
+    for (int s = 0; s < SIZE_COUNT; s++) {
+        const AsteroidPreset* preset = &presetArr->presets[s];
+        Asteroid asteroid = ASTEROID_Create(preset);
+        ASTEROID_MoveTo(&asteroid, getAsteroidSizePosition(preset->size));
+        ASTEROIDS_Add(asteroidArray, &asteroid);
     }
 }
 
@@ -65,11 +78,12 @@ void resetAsteroidAttributes() {
     // reset preset
 }
 
-Rectangle MENU_GetAsteroidSquareHitBox(const Asteroid* asteroid) {
+Rectangle MENU_GetAsteroidSquareHitBox(const Asteroid* asteroid, const AsteroidPresetArray* presetArr) {
+    const float radius = asteroid->shape.radius + presetArr->presets[asteroid->type].spread;
     return (Rectangle) {
-        asteroid->position.x - asteroid->shape.radius,
-        asteroid->position.y - asteroid->shape.radius,
-        asteroid->shape.radius * 2,
-        asteroid->shape.radius * 2
+        asteroid->position.x - radius,
+        asteroid->position.y - radius,
+        radius * 2,
+        radius * 2
     };
 }

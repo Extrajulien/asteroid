@@ -14,8 +14,8 @@ void ASTEROID_SHAPE_Init(Asteroid *asteroid, const AsteroidPreset *preset);
 // create an asteroid from the preset given (does not set a position or speed)
 Asteroid ASTEROID_Create(const AsteroidPreset *preset) {
     Asteroid asteroid = {};
-
-    asteroid.rotation.increment = (rand() % (int)(preset->maxRotationSpeed - preset->minRotationSpeed) + preset->minRotationSpeed) / PRESET_ROTATION_PRECISION;
+    int randomRotation = (int)(preset->maxRotationSpeed - preset->minRotationSpeed) == 0 ? 0 : rand() % (int)(preset->maxRotationSpeed - preset->minRotationSpeed);
+    asteroid.rotation.increment = (randomRotation + preset->minRotationSpeed) / PRESET_ROTATION_PRECISION;
     asteroid.rotation.rad = 0;
     asteroid.info.state = STATE_ALIVE;
     asteroid.shape.radius = preset->radius;
@@ -26,6 +26,33 @@ Asteroid ASTEROID_Create(const AsteroidPreset *preset) {
     asteroid.lineInfo = preset->lineInfo;
     generateVertices(&asteroid, preset);
     return asteroid;
+}
+
+Asteroid ASTEROID_GetZeroInitializedAsteroid() {
+    return (Asteroid) {
+        .type = SIZE_BIG,
+        .info = STATE_DEAD,
+        .lineInfo = (ComponentLineInfo) {
+            .color = RED,
+            .thickness = 5
+        },
+        .particlePreset = (ParticlePreset) {
+            .color = RED,
+            .angleSpread = 30,
+            .lifetime = 1000,
+            .quantity = 10,
+            .speed = 100
+        },
+        .position = (Position) {0,0},
+        .rotation = 0,
+        .score = 0,
+        .shape = (AsteroidShape) {
+            .nbVertices = 0,
+            .originalVertices = NULL,
+            .vertices = NULL
+        },
+        .velocity = (Velocity) {0,0},
+    };
 }
 
 void ASTEROID_Render(const Asteroid *asteroid) {

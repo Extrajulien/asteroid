@@ -21,7 +21,7 @@ typedef struct Asteroid Asteroid;
 typedef struct AsteroidArray AsteroidArray;
 typedef struct AsteroidPresetArray AsteroidPresetArray;
 
-Rectangle MENU_GetAsteroidSquareHitBox(const Asteroid* asteroid);
+Rectangle MENU_GetAsteroidSquareHitBox(const Asteroid* asteroid, const AsteroidPresetArray* presetArr);
 
 void resetAsteroidAttributes();
 void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* presetArr);

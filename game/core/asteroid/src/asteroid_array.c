@@ -101,6 +101,21 @@ void ASTEROIDS_Render(const AsteroidArray *asteroidArr) {
     }
 }
 
+bool ASTEROIDS_AreAllSizesPresent(const AsteroidArray *asteroidArr) {
+    int uniqueSize = 0;
+    for (int size = 0; size < SIZE_COUNT; size++) {
+        for (size_t i = 0; i < asteroidArr->nbAsteroid; i++) {
+            if (asteroidArr->asteroid[i].type == size) {
+                uniqueSize++;
+                break;
+            }
+        }
+    }
+
+
+    return uniqueSize == SIZE_COUNT;
+}
+
 void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletArray *bullets, const AsteroidBulletHitEventSink *sink) {
     for (int i = 0; i < bullets->count; ++i) {
         const Bullet *bullet = BULLETS_GetBullet(bullets, i);

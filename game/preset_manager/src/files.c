@@ -22,8 +22,10 @@ typedef enum {
     PRESET_SEMICOLON_AMOUNT = 10
 } PresetFileToken;
 
+AsteroidPreset getPresetFromSize(const AsteroidPresetArray *presetArr, AsteroidSize size) ;
+AsteroidPreset zeroInitPreset(AsteroidSize size);
 bool validatePresetName(char *presetName);
-bool* createSizeCheckArray(bool *isSizeLoaded, int size);
+bool* falseInitSizeCheckArray(bool *isSizeLoaded, int size);
 AsteroidSize letterToAsteroidSize(char letter);
 char AsteroidSizeToChar(AsteroidSize size);
 AsteroidPreset readPreset(char *line);
@@ -32,6 +34,7 @@ void logPreset(const AsteroidPreset *preset);
 
 void createPresetFile();
 
+//preset are padded to always be of SIZE_COUNT count
 void readPresetFile(AsteroidPresetArray *presets) {
     FILE *presetFile = openPresetFile(PRESET_FILE_NAME);
 
@@ -40,7 +43,7 @@ void readPresetFile(AsteroidPresetArray *presets) {
 
     const int checkArraySize = SIZE_COUNT;
     bool isSizeLoaded[checkArraySize];
-    bool *isSizePresent = createSizeCheckArray(isSizeLoaded, checkArraySize);
+    bool *isSizePresent = falseInitSizeCheckArray(isSizeLoaded, checkArraySize);
 
 
     while (fgets(buffer, BUFFER_SIZE, presetFile)) {
@@ -49,7 +52,7 @@ void readPresetFile(AsteroidPresetArray *presets) {
 
         AsteroidPreset preset = readPreset(buffer);
 
-        preset.lineInfo.color = PURPLE;
+        preset.lineInfo.color = ORANGE;
 
         preset.lineInfo.thickness = 3;
 
@@ -64,13 +67,21 @@ void readPresetFile(AsteroidPresetArray *presets) {
         if (isSizePresent[preset.size] == false) {
             ASTEROID_PRESETS_Add(presets, &preset);
             isSizePresent[preset.size] = true;
+            logPreset(&preset);
+        } else {
+            printf("[IGNORED] preset \"%s\" size: %c, (already defined by \"%s\")\n", preset.presetName, AsteroidSizeToChar(preset.size), getPresetFromSize(presets, preset.size).presetName);
         }
-
-
-
-        logPreset(&preset);
     }
     fclose(presetFile);
+
+    for (int i = 0; i < checkArraySize; i++) {
+        if (isSizeLoaded[i] == false) {
+            AsteroidPreset preset = zeroInitPreset(i);
+            ASTEROID_PRESETS_Add(presets, &preset);
+        }
+    }
+
+    ASTEROID_PRESETS_OrderArray(presets);
 }
 
 void savePreset(const AsteroidPreset *preset, char *presetName) {
@@ -93,8 +104,9 @@ bool validatePresetName(char *presetName) {
             pos++;
         }
     }
-    printf("TEXT--'%s' -> '%s'\n", presetName, spacelessName);
     spacelessName[pos] = '\0';
+    printf("TEXT--'%s' -> '%s'\n", presetName, spacelessName);
+
     strcpy(presetName, spacelessName);
     return true;
 }
@@ -149,7 +161,6 @@ AsteroidPreset readPreset(char *line) {
         entry[indexEntry++] = token;
         token = strtok(NULL, ";");
     }
-
     AsteroidPreset preset = {};
     preset.presetName = entry[PRESET_NAME];
     preset.size = letterToAsteroidSize(entry[PRESET_SIZE][0]);
@@ -164,6 +175,15 @@ AsteroidPreset readPreset(char *line) {
     return preset;
 }
 
+AsteroidPreset getPresetFromSize(const AsteroidPresetArray *presetArr, const AsteroidSize size) {
+    for (int i = 0; i < presetArr->presetCount; i++) {
+        if (presetArr->presets[i].size == size) {
+            return presetArr->presets[i];
+        }
+    }
+    return zeroInitPreset(size);
+}
+
 FILE* openPresetFile(const char *filename) {
     FILE *presetFile = fopen(filename, "r");
     if (presetFile == NULL) {
@@ -174,9 +194,34 @@ FILE* openPresetFile(const char *filename) {
     return presetFile;
 }
 
-bool* createSizeCheckArray(bool *isSizeLoaded, const int size) {
+bool* falseInitSizeCheckArray(bool *isSizeLoaded, const int size) {
     for (int i = 0; i < size; i++) {
         isSizeLoaded[i] = false;
     }
     return isSizeLoaded;
+}
+
+AsteroidPreset zeroInitPreset(const AsteroidSize size) {
+    return (AsteroidPreset) {
+    .presetName = "EMPTY",
+    .size = size,
+    .radius = 0,
+    .spread = 0,
+    .minRotationSpeed = 0,
+    .maxRotationSpeed = 0,
+    .isRandomBothSides = false,
+    .maxSpeed = 0,
+    .score = 0,
+    .nbVertices = 0,
+    .lineInfo = (ComponentLineInfo) {
+        .color = RED,
+        .thickness = 5
+    },
+    .particlePreset = (ParticlePreset){
+        .color = RED,
+        .angleSpread = 30,
+        .lifetime = 1000,
+        .quantity = 13,
+        .speed = 1000
+    }};
 }

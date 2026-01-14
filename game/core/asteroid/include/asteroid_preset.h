@@ -9,7 +9,7 @@
 static const float PRESET_ROTATION_PRECISION = 100.0f;
 
 typedef struct AsteroidPreset {
-    const char *presetName;
+    const char* presetName;
     AsteroidSize size;
     float radius;
     float spread;
@@ -32,4 +32,5 @@ typedef struct AsteroidPresetArray {
 AsteroidPresetArray *ASTEROID_PRESETS_CreateArray();
 void ASTEROID_PRESETS_Free(AsteroidPresetArray *presets);
 void ASTEROID_PRESETS_Add(AsteroidPresetArray *presetArray, const AsteroidPreset *preset);
+void ASTEROID_PRESETS_OrderArray(const AsteroidPresetArray *presets);
 void ASTEROID_PRESET_Purge(AsteroidPresetArray *presetArray);

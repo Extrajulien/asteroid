@@ -48,23 +48,10 @@ int StartAsteroidGame() {
             screenFunction = SCREEN_GetVTable(currentScreen);
             screenFunction.open(&currentScreen, &context);
         }
+        BeginDrawing();
+        screenFunction.draw(&currentScreen, &context);
 
-        if (currentScreen == SCREEN_GAME_OVER) {
-            ClearBackground(BLACK);
-            //updateGame(player, bullets, asteroidArray);
-        }
-
-        {
-            BeginDrawing();
-            if (currentScreen == SCREEN_GAME_OVER) {
-                drawParticles();
-                //ASTEROIDS_Render(asteroidArray);
-                showGameoverScreen(&currentScreen);
-            }
-            screenFunction.draw(&currentScreen, &context);
-
-            EndDrawing();
-        }
+        EndDrawing();
     }
     CloseWindow();
     return 0;

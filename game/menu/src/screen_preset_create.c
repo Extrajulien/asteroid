@@ -1,6 +1,7 @@
 #include <math.h>
 #include "raygui.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "files.h"
 #include "screen.h"
@@ -12,6 +13,7 @@ void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext);
 void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext);
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext);
 void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameContext);
+void drawAsteroids(const AsteroidArray *asteroidArray);
 
 static bool isModified = true;
 enum ChosenTextBox {
@@ -21,10 +23,11 @@ enum ChosenTextBox {
 };
 enum ChosenTextBox chosenTextBox = -1;
 
-void clickSelectAsteroid(const AsteroidArray* asteroidArray, AsteroidSize *selection);
-void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid);
+void clickSelectAsteroid(const AsteroidArray* asteroidArray, AsteroidSize *selection, const AsteroidPresetArray *presetArr);
+void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroidPtr);
 const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize *selection);
 void checkForUpdate(float oldValue, float newValue);
+void contextInit(PresetCreateContext *context);
 void drawBackground();
 
 ScreenVTable SCREENS_GetPresetCreateVTable() {
@@ -38,20 +41,32 @@ ScreenVTable SCREENS_GetPresetCreateVTable() {
 }
 
 void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
+    WaveContext *wave = WAVE_CONTEXT_Create();
+    readPresetFile(wave->presetArr);
+    particleArrInit(10);
+    gameContext->asteroidArray = ASTEROIDS_CreateArray();
+    gameContext->bulletArray = BULLETS_CreateArray();
+    gameContext->wave = wave;
     refreshAsteroids(gameContext->asteroidArray, gameContext->wave->presetArr);
+
+    contextInit(&gameContext->screenContext.presetCreateCtx);
+
 }
 
 void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
-    refreshAsteroids(gameContext->asteroidArray, gameContext->wave->presetArr);
+    ASTEROIDS_FreeArray(gameContext->asteroidArray);
+    BULLETS_FreeArray(gameContext->bulletArray);
+    WAVE_CONTEXT_Free(gameContext->wave);
+    particleArrDestroy();
 }
 
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
+    PresetCreateContext *presetCreateCtx = &gameContext->screenContext.presetCreateCtx;
+
     ASTEROIDS_Update(gameContext->asteroidArray);
 
 
     AsteroidPresetArray* presetArray = gameContext->wave->presetArr;
-    char currentPresetName[BUFFER_SIZE];
-    static AsteroidSize currentlyModifiedType = SIZE_BIG;
     static bool dropdownToggle = false;
     Vector2 mousePos = GetMousePosition();
 
@@ -59,13 +74,13 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
 
 
     if (GuiDropdownBox((Rectangle){GetScreenWidth()/2 + 10, GetScreenHeight()/8-70, 250, 75},
-    "Big;Medium;Small", (int*) &currentlyModifiedType, dropdownToggle)) {
+    "Big;Medium;Small", (int*) &presetCreateCtx->selectedAsteroidSize, dropdownToggle)) {
         dropdownToggle = !dropdownToggle;
     }
 
-    clickSelectAsteroid(gameContext->asteroidArray, &currentlyModifiedType);
+    clickSelectAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize, gameContext->wave->presetArr);
 
-    drawAstOptions(&presetArray->presets[currentlyModifiedType], getAsteroid(gameContext->asteroidArray, &currentlyModifiedType));
+    drawAstOptions(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], getAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize));
     //-----------------------------------------------------------------------------------------------------------------------
     //gui toggles
     //-----------------------------------------------------------------------------------------------------------------------
@@ -100,31 +115,40 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     GuiButton((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100}, "Save");
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
         && CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100})) {
-        savePreset(&presetArray->presets[currentlyModifiedType], currentPresetName);
+        savePreset(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], presetCreateCtx->presetName);
         resetAsteroidAttributes();
         isModified = true;
-        currentPresetName[0] = '\0';
+        presetCreateCtx->presetName[0] = '\0';
         }
     GuiToggle((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7-240, 250, 100}, "Generate", &isModified);
     int MAX_LINE_BUFFER_SIZE = 256;
-    GuiTextBox((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7, 500, 100}, currentPresetName, MAX_LINE_BUFFER_SIZE, chosenTextBox == presetName);
+    GuiTextBox((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7, 500, 100}, presetCreateCtx->presetName, MAX_LINE_BUFFER_SIZE, chosenTextBox == presetName);
 }
 
-void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid) {
+void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroidPtr) {
     Vector2 mousepos = GetMousePosition();
     const int fontsize = 32;
     const int spacing = 1;
     float temp;
     Vector2 textSize;
+    Asteroid asteroid;
+
+    if (asteroidPtr == NULL) {
+        asteroid = ASTEROID_GetZeroInitializedAsteroid();
+    } else {
+        asteroid = *asteroidPtr;
+    }
+
+
     if (preset->isRandomBothSides == true) {
-        DrawRing(asteroid->position,(preset->radius-preset->spread),
+        DrawRing(asteroid.position,(preset->radius-preset->spread),
         (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
     } else {
-        DrawRing(asteroid->position,preset->radius,
+        DrawRing(asteroid.position,preset->radius,
         (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
     }
 
-    DrawRing(asteroid->position, preset->radius-1, preset->radius+1,
+    DrawRing(asteroid.position, preset->radius-1, preset->radius+1,
         0, 360, 0, RADIUS_COLOR);
     char radiusBig[15] = "";
     sprintf(radiusBig, "[%.2f]", preset->radius);
@@ -200,19 +224,19 @@ void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid) {
 
 void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameContext) {
     ClearBackground(BLACK);
-    ASTEROIDS_Render(gameContext->asteroidArray);
+    drawAsteroids(gameContext->asteroidArray);
 }
 
 
 
 
 
-void clickSelectAsteroid(const AsteroidArray *asteroidArray, AsteroidSize *selection) {
+void clickSelectAsteroid(const AsteroidArray *asteroidArray, AsteroidSize *selection, const AsteroidPresetArray *presetArr) {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         const Vector2 mousePos = GetMousePosition();
         for (int i = 0; i < asteroidArray->nbAsteroid; ++i) {
             const Asteroid *asteroid = &asteroidArray->asteroid[i];
-            if (CheckCollisionPointRec(mousePos,MENU_GetAsteroidSquareHitBox(asteroid))) {
+            if (CheckCollisionPointRec(mousePos,MENU_GetAsteroidSquareHitBox(asteroid, presetArr))) {
                 *selection = asteroid->type;
             }
         }
@@ -252,4 +276,15 @@ void drawBackground() {
     DrawRectangleV((Vector2){screenWidth/2,0},
         (Vector2){screenWidth/2,screenHeight},
         backgroundColor);
+}
+
+
+
+void contextInit(PresetCreateContext *context) {
+    context->selectedAsteroidSize = SIZE_BIG;
+    memcpy(context->presetName, "[PresetName]\0", 13);
+}
+
+void drawAsteroids(const AsteroidArray *asteroidArray) {
+    ASTEROIDS_Render(asteroidArray);
 }

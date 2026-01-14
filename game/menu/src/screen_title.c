@@ -1,4 +1,5 @@
 #include "screens.h"
+#include "screen_context.h"
 
 void openTitleScreen(const Screen *currentScreen, GameContext *gameContext);
 void closeTitleScreen(const Screen *currentScreen, GameContext *gameContext);
