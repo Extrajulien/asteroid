@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "char_array.h"
+#include "logger.h"
+
 typedef enum {
     PRESET_IS_ACTIVE = 0,
     PRESET_NAME = 1,
@@ -69,7 +72,8 @@ void readPresetFile(AsteroidPresetArray *presets) {
             isSizePresent[preset.size] = true;
             logPreset(&preset);
         } else {
-            printf("[IGNORED] preset \"%s\" size: %c, (already defined by \"%s\")\n", preset.presetName, AsteroidSizeToChar(preset.size), getPresetFromSize(presets, preset.size).presetName);
+            LOGF("$D[IGNORED] $dpreset \"%s\" size: %c, (already defined by \"%s\")\n",
+                preset.presetName, AsteroidSizeToChar(preset.size), getPresetFromSize(presets, preset.size).presetName);
         }
     }
     fclose(presetFile);
@@ -105,7 +109,8 @@ bool validatePresetName(char *presetName) {
         }
     }
     spacelessName[pos] = '\0';
-    printf("TEXT--'%s' -> '%s'\n", presetName, spacelessName);
+
+    LOGF("$B[SAVED PRESET]$b '%s' as '%s'\n", presetName, spacelessName);
 
     strcpy(presetName, spacelessName);
     return true;

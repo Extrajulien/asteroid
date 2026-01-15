@@ -8,12 +8,14 @@
 #include <time.h>
 #include "asteroid_bullet_hit_event_queue.h"
 #include "bullet_array.h"
+#include "char_array.h"
 #include "game_api.h"
 #include "menu.h"
 #include "particle.h"
 #include "screen.h"
 #include "screen_virtual_table.h"
 #include "wave.h"
+#include "logger/include/api/logger.h"
 
 void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray);
 
@@ -25,7 +27,6 @@ int StartAsteroidGame() {
 
     SetTargetFPS(MAX_FPS);
     loadThemes();
-
     GameContext context = {
         NULL,
         NULL,

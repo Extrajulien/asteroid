@@ -1,6 +1,8 @@
 add_library(game STATIC
         game.c
         include/game_api.h
+        utils/src/char_array.c
+        utils/include/char_array.h
 )
 
 # === Dependencies ===
@@ -28,6 +30,8 @@ target_include_directories(game PUBLIC
 
 add_subdirectory(raygui_implementation)
 add_subdirectory(preset_manager)
+add_subdirectory(utils)
+add_subdirectory(logger)
 add_subdirectory(menu)
 add_subdirectory(core)
 add_subdirectory(event)
@@ -42,9 +46,11 @@ target_link_libraries(game
         PRIVATE presetManager
         PUBLIC menu
         PUBLIC asteroid
+        PUBLIC logger
         PRIVATE core
         PRIVATE event
         PUBLIC game_loop
+        PUBLIC utils
         INTERFACE event_api
         PRIVATE event_sink_api
 )
