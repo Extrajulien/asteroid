@@ -14,4 +14,5 @@ target_link_libraries(event
         INTERFACE event_api
         PRIVATE event_sink_api
         PUBLIC raylib
+        PRIVATE logger
 )

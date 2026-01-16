@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "game_math.h"
+#include "logger.h"
 
 Bullet BULLET_Create(Vector2 position, Vector2 size, Vector2 speed, float distance);
 void BULLETS_Add(BulletArray *array, Bullet bullet);
@@ -79,17 +80,10 @@ Vector2 BULLET_GetSpeed(const Bullet *bullet) {
 BulletArray* BULLETS_CreateArray() {
     const size_t arraySize = 1;
     BulletArray *bulletArray = malloc(sizeof(BulletArray));
-
-    if (!bulletArray) {
-        printf("ERROR allocating bulletArray pointer\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(bulletArray);
 
     bulletArray->bulletArr = malloc(sizeof(Bullet) * arraySize);
-    if (!bulletArray->bulletArr) {
-        printf("ERROR allocating bullet array\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(bulletArray->bulletArr);
 
     bulletArray->capacity = arraySize;
     bulletArray->count = 0;
@@ -100,10 +94,7 @@ void BULLETS_Add(BulletArray *array, const Bullet bullet) {
     if (array->capacity < array->count + 1) {
         array->capacity *= 2;
         Bullet *temp = realloc(array->bulletArr, sizeof(Bullet) * array->capacity);
-        if (temp == NULL) {
-            printf("bullet array Realloc Failed");
-            exit(1);
-        }
+        ASSERT_ALLOCATION(temp);
         array->bulletArr = temp;
     }
     array->bulletArr[array->count] = bullet;

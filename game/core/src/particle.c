@@ -2,6 +2,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "logger.h"
 #include "raylib.h"
 
 typedef struct Particle {
@@ -33,10 +35,7 @@ void particleArrDestroy() {
 void particleArrInit(const int size) {
     particleArr.reservedSize = size;
     particleArr.particles = malloc(size * sizeof(Particle));
-    if (particleArr.particles == NULL) {
-        printf("Particle Allocation Failed");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(particleArr.particles);
 }
 
 void particleArrExpand(const int increment) {
@@ -44,10 +43,7 @@ void particleArrExpand(const int increment) {
     if (size + increment > particleArr.reservedSize) {
         particleArr.reservedSize *= 2;
         Particle *temp = realloc(particleArr.particles, sizeof(Particle) * (particleArr.reservedSize));
-        if (temp == NULL) {
-            printf("Particle Realloc Failed");
-            exit(1);
-        }
+        ASSERT_ALLOCATION(temp);
         particleArr.particles = temp;
     }
 }

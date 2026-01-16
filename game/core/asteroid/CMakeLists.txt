@@ -10,4 +10,4 @@ target_include_directories(asteroid PUBLIC
 )
 
 
-target_link_libraries(asteroid PUBLIC core PRIVATE raylib INTERFACE event_sink_api)
+target_link_libraries(asteroid PUBLIC core PRIVATE raylib INTERFACE event_sink_api PRIVATE logger)

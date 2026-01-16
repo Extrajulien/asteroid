@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logger.h"
+
 
 typedef struct CharArray {
     char* data;
@@ -13,6 +15,7 @@ typedef struct CharArray {
 
 CharArray* CHAR_ARRAY_Create(const char* data, const size_t count) {
     CharArray* array = malloc(sizeof(CharArray));
+    ASSERT_ALLOCATION(array);
     size_t charCount;
     if (count == 0) {
         charCount = strlen(data);
@@ -22,10 +25,7 @@ CharArray* CHAR_ARRAY_Create(const char* data, const size_t count) {
 
 
     char* temp = malloc(sizeof(char) * charCount);
-    if (temp == NULL) {
-        free(array);
-        exit(1);
-    }
+    ASSERT_ALLOCATION(temp);
 
     memcpy(temp, data, charCount);
 
@@ -47,4 +47,12 @@ void CHAR_ARRAY_Free(CharArray *array) {
         free(array->data);
     }
     free(array);
+}
+
+const char* CHAR_ARRAY_GetCString(const CharArray *array) {
+    char* s = malloc(array->count + 1);
+    ASSERT_ALLOCATION(s);
+    memcpy(s, array->data, array->count);
+    s[array->count] = '\0';
+    return s;
 }

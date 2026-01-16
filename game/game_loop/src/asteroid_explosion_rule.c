@@ -3,19 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "logger.h"
+
 AsteroidExplosionRuleArray* ASTEROID_EXPLOSION_RULE_CreateArray() {
     AsteroidExplosionRuleArray *rule = malloc(sizeof(AsteroidExplosionRuleArray));
-
-    if (!rule) {
-        printf("ERROR allocating asteroid explosion rule array pointer\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(rule);
 
     rule->explosionRules = malloc(sizeof(AsteroidExplosionRule));
-    if (!rule->explosionRules) {
-        printf("ERROR allocating asteroid explosion rule array\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(rule->explosionRules);
 
     rule->capacity = 1;
     rule->count = 0;
@@ -38,10 +33,7 @@ void ASTEROID_EXPLOSION_RULE_Add(AsteroidExplosionRuleArray *ruleArray, const As
     if (ruleArray->capacity < ruleArray->count + 1) {
         ruleArray->capacity *= 2;
         AsteroidExplosionRule *temp = realloc(ruleArray->explosionRules, sizeof(AsteroidExplosionRule) * (ruleArray->capacity));
-        if (!temp) {
-            printf("ASTEROID_WAVE_SPAWN_RULE_Add Realloc Failed");
-            exit(1);
-        }
+        ASSERT_ALLOCATION(temp);
         ruleArray->explosionRules = temp;
     }
     ruleArray->explosionRules[ruleArray->count] = *rule;

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "game_api.h"
+#include "logger.h"
 #include "raymath.h"
 
 static const float PLAYER_MAX_STRETCH = 0.15f;
@@ -46,10 +47,7 @@ void resile(Player *player);
 
 Player* PLAYER_Create() {
     Player *player = malloc(sizeof(Player));
-    if (!player) {
-        printf("PLAYER_Create - malloc failed\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(player);
     PLAYER_Reset(player);
     return player;
 }

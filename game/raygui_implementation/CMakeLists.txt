@@ -22,4 +22,5 @@ target_link_libraries(raygui_implementation
         PRIVATE raylib
         PUBLIC raygui
         PRIVATE style_amber
+        PRIVATE logger
 )

@@ -5,7 +5,7 @@ add_library(logger STATIC
 
 target_include_directories(logger
         PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include
-        PUBLIC include/api
+        PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/api
 )
 
 target_link_libraries(logger PRIVATE utils)

@@ -3,19 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "logger.h"
+
 AsteroidPresetArray *ASTEROID_PRESETS_CreateArray() {
     AsteroidPresetArray *presets = malloc(sizeof(AsteroidPresetArray));
-
-    if (!presets) {
-        printf("ERROR allocating asteroid preset array pointer\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(presets);
 
     presets->presets = malloc(sizeof(AsteroidPreset));
-    if (!presets->presets) {
-        printf("ERROR allocating asteroid preset array\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(presets->presets);
 
     presets->capacity = 1;
     presets->presetCount = 0;
@@ -53,10 +48,7 @@ void ASTEROID_PRESETS_Add(AsteroidPresetArray *presetArray, const AsteroidPreset
     if (presetArray->capacity < presetArray->presetCount + 1) {
         presetArray->capacity *= 2;
         AsteroidPreset *temp = realloc(presetArray->presets, sizeof(AsteroidPreset) * (presetArray->capacity));
-        if (!temp) {
-            printf("ASTEROID_BULLET_HIT_QUEUE Realloc Failed");
-            exit(1);
-        }
+        ASSERT_ALLOCATION(temp);
         presetArray->presets = temp;
     }
     presetArray->presets[presetArray->presetCount] = *preset;

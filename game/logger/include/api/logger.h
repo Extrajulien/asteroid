@@ -30,6 +30,20 @@ const CharArray*: LOGGER_LogFormatCharArray, \
 CharArray*:       LOGGER_LogFormatCharArray \
 )(str, __VA_ARGS__)
 
+#define ASSERT_ALLOCATION(ptr) \
+    do { \
+    if (!ptr) { \
+        LOG_ALLOCATION_FAILURE(); \
+        abort();\
+    } \
+} while (0)
+
+
+#define LOG_ALLOCATION_FAILURE() \
+LOGF("$R[ALLOCATION FAILURE]$r %s:%d %s()\n", __FILE__, __LINE__, __func__)
+
+
+
 
 
 

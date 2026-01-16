@@ -28,3 +28,12 @@ void CHAR_ARRAY_Free(CharArray *array);
 const char* CHAR_ARRAY_GetData(const CharArray *array);
 
 size_t CHAR_ARRAY_GetCount(const CharArray *array);
+
+
+
+/**
+ * Make a heap allocated null terminated character array from a CharArray
+ * @param array array to make the string from
+ * @return ALLOCATED null terminated character array
+ */
+const char* CHAR_ARRAY_GetCString(const CharArray *array);

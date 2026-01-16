@@ -9,6 +9,7 @@
 #include "bullet.h"
 #include "bullet_array.h"
 #include "game_math.h"
+#include "logger.h"
 #include "player.h"
 
 void rotateAsteroids(const AsteroidArray *asteroidArr);
@@ -30,17 +31,10 @@ void ASTEROIDS_Update(AsteroidArray *asteroidArr) {
 
 AsteroidArray* ASTEROIDS_CreateArray() {
     AsteroidArray *asteroidArr = malloc(sizeof(AsteroidArray));
-
-    if (!asteroidArr) {
-        printf("ERROR allocating asteroidArray\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(asteroidArr);
 
     asteroidArr->asteroid = malloc(sizeof(Asteroid));
-    if (!asteroidArr->asteroid) {
-        printf("ERROR allocating asteroid array\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(asteroidArr->asteroid);
 
     asteroidArr->capacity = 1;
     asteroidArr->nbAsteroid = 0;
@@ -65,10 +59,7 @@ void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid *asteroid) {
     if (asteroidArr->capacity < asteroidArr->nbAsteroid + 1) {
         asteroidArr->capacity *= 2;
         Asteroid *temp = realloc(asteroidArr->asteroid, sizeof(Asteroid) * (asteroidArr->capacity));
-        if (temp == NULL) {
-            printf("Asteroid Realloc Failed");
-            exit(1);
-        }
+        ASSERT_ALLOCATION(temp);
         asteroidArr->asteroid = temp;
     }
 

@@ -3,19 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "logger.h"
+
 AsteroidWaveSpawnRuleArray* ASTEROID_WAVE_SPAWN_RULE_CreateArray() {
     AsteroidWaveSpawnRuleArray *rule = malloc(sizeof(AsteroidWaveSpawnRuleArray));
-
-    if (!rule) {
-        printf("ERROR allocating asteroid Wave spawn rule array pointer\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(rule);
 
     rule->spawnRules = malloc(sizeof(AsteroidWaveSpawnRule));
-    if (!rule->spawnRules) {
-        printf("ERROR allocating asteroid Wave spawn rule array\n");
-        exit(1);
-    }
+    ASSERT_ALLOCATION(rule->spawnRules);
 
     rule->capacity = 1;
     rule->count = 0;
@@ -38,10 +33,7 @@ void ASTEROID_WAVE_SPAWN_RULE_Add(AsteroidWaveSpawnRuleArray *ruleArray, const A
     if (ruleArray->capacity < ruleArray->count + 1) {
         ruleArray->capacity *= 2;
         AsteroidWaveSpawnRule *temp = realloc(ruleArray->spawnRules, sizeof(AsteroidWaveSpawnRule) * (ruleArray->capacity));
-        if (!temp) {
-            printf("ASTEROID_WAVE_SPAWN_RULE_Add Realloc Failed");
-            exit(1);
-        }
+        ASSERT_ALLOCATION(temp);
         ruleArray->spawnRules = temp;
     }
     ruleArray->spawnRules[ruleArray->count] = *rule;

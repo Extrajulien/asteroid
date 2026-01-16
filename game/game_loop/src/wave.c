@@ -6,6 +6,7 @@
 #include "game_math.h"
 #include "asteroid_preset.h"
 #include "event_api.h"
+#include "logger.h"
 
 void PlaceAsteroidRandomPosition(Asteroid *asteroid, SpawnExclusionCircle exclusionCircle);
 void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset);
@@ -46,6 +47,7 @@ void WAVE_ExplodeAsteroids(AsteroidArray *asteroidArray, const WaveContext *wave
 
 WaveContext* WAVE_CONTEXT_Create() {
     WaveContext *wave = malloc(sizeof(WaveContext));
+    ASSERT_ALLOCATION(wave);
     wave->presetArr = ASTEROID_PRESETS_CreateArray();
     wave->spawnRuleArr = ASTEROID_WAVE_SPAWN_RULE_CreateArray();
     wave->explosionRuleArr = ASTEROID_EXPLOSION_RULE_CreateArray();
