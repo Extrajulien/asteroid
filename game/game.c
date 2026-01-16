@@ -15,15 +15,20 @@
 #include "screen.h"
 #include "screen_virtual_table.h"
 #include "wave.h"
-#include "logger/include/api/logger.h"
+#include "logger.h"
 
 void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray);
 
 void showGameoverScreen(Screen *currentScreen);
 
+#define SUPPORT_FILEFORMAT_MP3
+
 int StartAsteroidGame() {
     srand((unsigned int)time(NULL));
     InitWindow(1920, 1080, "Asteroids");
+    //InitAudioDevice();
+    //Music music = LoadMusicStream("../music");
+    //PlayMusicStream(music);
 
     SetTargetFPS(MAX_FPS);
     loadThemes();
@@ -42,6 +47,7 @@ int StartAsteroidGame() {
 
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
+        //UpdateMusicStream(music);
 
         screenFunction.update(&currentScreen, &context);
         if (currentScreen != screenFunction.screen) {
@@ -54,6 +60,7 @@ int StartAsteroidGame() {
 
         EndDrawing();
     }
+    //CloseAudioDevice();
     CloseWindow();
     return 0;
 }
