@@ -44,7 +44,11 @@ AsteroidArray* ASTEROIDS_CreateArray() {
 
 void ASTEROIDS_FreeArray(AsteroidArray *asteroidArr) {
     if (asteroidArr == NULL) return;
+    ASTEROIDS_Compact(asteroidArr);
+
+    LOGF("$B[LOG]$b ASTEROIDS_Free (wave clear), reachedCount: %d, current number: %d\n", asteroidArr->maxReachedCount, asteroidArr->nbAsteroid);
     for (int i = 0; i < asteroidArr->maxReachedCount; i++) {
+        LOGF("i = %d ", i);
         ASTEROID_Free(&asteroidArr->asteroid[i]);
     }
     free(asteroidArr->asteroid);
@@ -67,7 +71,9 @@ void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid *asteroid) {
     asteroidArr->nbAsteroid++;
 
     if (asteroidArr->maxReachedCount < asteroidArr->nbAsteroid) {
+        LOGF("$G[Max Count update, cnt {%d}] MaxCount then: %d",asteroidArr->nbAsteroid , asteroidArr->maxReachedCount);
         asteroidArr->maxReachedCount = asteroidArr->nbAsteroid;
+        LOGF("$g, MaxCount now: %d\n", asteroidArr->maxReachedCount);
     }
 }
 
@@ -105,6 +111,11 @@ bool ASTEROIDS_AreAllSizesPresent(const AsteroidArray *asteroidArr) {
 
 
     return uniqueSize == SIZE_COUNT;
+}
+
+void ASTEROIDS_Remove(AsteroidArray *asteroidArray, const size_t index) {
+    ASTEROID_MarkDead(&asteroidArray->asteroid[index]);
+    ASTEROIDS_Compact(asteroidArray);
 }
 
 void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletArray *bullets, const AsteroidBulletHitEventSink *sink) {

@@ -6,6 +6,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "logger.h"
 #include "raymath.h"
 
 void generateVertices(Asteroid *asteroid, const AsteroidPreset *preset);
@@ -103,6 +105,10 @@ void ASTEROID_MoveTo(Asteroid *asteroid, const Vector2 position) {
     for (int i = 0; i < asteroid->shape.nbVertices; ++i) {
         asteroid->shape.vertices[i] = Vector2Add(asteroid->shape.originalVertices[i], position);
     }
+}
+
+void ASTEROID_MarkDead(Asteroid *asteroid) {
+    asteroid->info.state = STATE_DEAD;
 }
 
 void generateVertices(Asteroid *asteroid, const AsteroidPreset *preset) {
@@ -210,13 +216,18 @@ void* checkCollisionAstPlayer(void *arg) {
     return NULL;
 }
 
-void ASTEROID_Free(const Asteroid *asteroid) {
+void ASTEROID_Free(Asteroid *asteroid) {
     if (asteroid) {
         if (asteroid->shape.originalVertices) {
+            LOGF("$B[LOG]$b ASTEROID_Free, nbvertices: %d\n", asteroid->shape.nbVertices);
+
+
             free(asteroid->shape.originalVertices);
         }
         if (asteroid->shape.vertices) {
             free(asteroid->shape.vertices);
         }
+
+        asteroid->type = -1;
     }
 }

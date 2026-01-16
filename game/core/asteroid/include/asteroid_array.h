@@ -25,6 +25,7 @@ void ASTEROIDS_Compact(AsteroidArray *asteroidArr);
 void ASTEROIDS_Purge(AsteroidArray *asteroidArr);
 
 bool ASTEROIDS_AreAllSizesPresent(const AsteroidArray *asteroidArr);
+void ASTEROIDS_Remove(AsteroidArray *asteroidArray, size_t index);
 
 
 typedef struct Player Player;

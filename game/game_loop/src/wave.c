@@ -105,8 +105,8 @@ void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset) {
 
 void explodeAsteroid(Asteroid *asteroid, const AsteroidBulletHitEvent *event) {
     const float particleDirection = flipRadAngle(event->hitAngle);
-    asteroid->info.state = STATE_DEAD;
     createParticles(particleDirection, event->hitPosition, &asteroid->particlePreset);
+    ASTEROID_MarkDead(asteroid);
 }
 
 void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, const WaveContext *wave) {
