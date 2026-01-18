@@ -65,7 +65,7 @@ void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* p
         const AsteroidPreset* preset = &presetArr->presets[s];
         Asteroid asteroid = ASTEROID_Create(preset);
         ASTEROID_MoveTo(&asteroid, getAsteroidSizePosition(preset->size));
-        ASTEROIDS_Add(asteroidArray, &asteroid);
+        ASTEROIDS_Add(asteroidArray, asteroid);
     }
 }
 

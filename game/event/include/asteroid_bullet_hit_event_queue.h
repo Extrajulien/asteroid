@@ -10,5 +10,5 @@ typedef struct AsteroidBulletHitEventQueue {
 
 AsteroidBulletHitEventQueue* ASTEROID_BULLET_HIT_EVENT_QUEUE_Create();
 void ASTEROID_BULLET_HIT_EVENT_QUEUE_Free(AsteroidBulletHitEventQueue *queue);
-void ASTEROID_BULLET_HIT_EVENT_QUEUE_Add(AsteroidBulletHitEventQueue *queue, const AsteroidBulletHitEvent *event);
+void ASTEROID_BULLET_HIT_EVENT_QUEUE_Add(AsteroidBulletHitEventQueue *queue, AsteroidBulletHitEvent event);
 void ASTEROID_BULLET_HIT_EVENT_QUEUE_Purge(AsteroidBulletHitEventQueue *queue);

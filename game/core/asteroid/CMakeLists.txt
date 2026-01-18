@@ -9,5 +9,4 @@ target_include_directories(asteroid PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
-
 target_link_libraries(asteroid PUBLIC core PRIVATE raylib INTERFACE event_sink_api PRIVATE logger)

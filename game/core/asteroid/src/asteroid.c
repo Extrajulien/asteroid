@@ -58,6 +58,8 @@ Asteroid ASTEROID_GetZeroInitializedAsteroid() {
 }
 
 void ASTEROID_Render(const Asteroid *asteroid) {
+    if (!asteroid) return;
+    if (!asteroid->shape.nbVertices || !asteroid->shape.vertices) return;
     for (int j = 0; j < asteroid->shape.nbVertices; ++j) {
         const Vector2 startPos = asteroid->shape.vertices[j];
         const Vector2 endPos = asteroid->shape.vertices[(j + 1) % asteroid->shape.nbVertices];
@@ -129,6 +131,7 @@ void generateVertices(Asteroid *asteroid, const AsteroidPreset *preset) {
         asteroid->shape.originalVertices[i].x = cosf(radSpacing * (float) i) * distanceFromCenter;
         asteroid->shape.originalVertices[i].y = sinf(radSpacing * (float) i) * distanceFromCenter;
     }
+    ASTEROID_UpdateVertices(asteroid);
 }
 
 // TODO MAKE COLLISION SAT
@@ -218,10 +221,8 @@ void* checkCollisionAstPlayer(void *arg) {
 
 void ASTEROID_Free(Asteroid *asteroid) {
     if (asteroid) {
+        LOGF_MEMORY("Freed asteroid [SIZE]:%d\n", asteroid->type);
         if (asteroid->shape.originalVertices) {
-            LOGF("$B[LOG]$b ASTEROID_Free, nbvertices: %d\n", asteroid->shape.nbVertices);
-
-
             free(asteroid->shape.originalVertices);
         }
         if (asteroid->shape.vertices) {

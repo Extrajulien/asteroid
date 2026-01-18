@@ -12,6 +12,16 @@
  *   "$ythis text is yellow!$x"
  */
 
+/* List of all Logging preprocessor macros and what depends on them.
+ * - LOG_MEMORY
+ *      ASSERT_ALLOCATION(ptr)
+ *      LOG_ALLOCATION_FAILURE()
+ *      LOG_MEMORY(str)
+ *      LOGF_MEMORY(fmt, ...)
+ */
+
+
+
 typedef struct CharArray CharArray;
 
 #define LOG(x) \
@@ -30,6 +40,10 @@ const CharArray*: LOGGER_LogFormatCharArray, \
 CharArray*:       LOGGER_LogFormatCharArray \
 )(str, __VA_ARGS__)
 
+#define LOGGING_MEMORY
+
+
+#ifdef LOGGING_MEMORY
 #define ASSERT_ALLOCATION(ptr) \
     do { \
     if (!ptr) { \
@@ -38,9 +52,22 @@ CharArray*:       LOGGER_LogFormatCharArray \
     } \
 } while (0)
 
-
 #define LOG_ALLOCATION_FAILURE() \
 LOGF("$R[ALLOCATION FAILURE]$r %s:%d %s()\n", __FILE__, __LINE__, __func__)
+
+#define LOG_MEMORY(str) LOGF("$O[MEMORY]$o %s",str)
+#define LOGF_MEMORY(fmt, ...) LOGF("$O[MEMORY]$o " fmt, __VA_ARGS__)
+
+#else
+#define ASSERT_ALLOCATION(ptr) ((void)0)
+#define LOG_ALLOCATION_FAILURE() ((void)0)
+
+#define LOG_MEMORY(str) ((void)0)
+#define LOGF_MEMORY(fmt, ...) ((void)0)
+#endif
+
+
+
 
 
 

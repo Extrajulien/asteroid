@@ -49,6 +49,7 @@ void openGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     gameContext->bulletHitEventQueue = ASTEROID_BULLET_HIT_EVENT_QUEUE_Create();
     gameContext->player = PLAYER_Create();
     gameContext->wave = wave;
+    WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
 }
 
 void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {

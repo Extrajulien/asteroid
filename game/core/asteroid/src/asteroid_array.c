@@ -44,11 +44,8 @@ AsteroidArray* ASTEROIDS_CreateArray() {
 
 void ASTEROIDS_FreeArray(AsteroidArray *asteroidArr) {
     if (asteroidArr == NULL) return;
-    ASTEROIDS_Compact(asteroidArr);
-
-    LOGF("$B[LOG]$b ASTEROIDS_Free (wave clear), reachedCount: %d, current number: %d\n", asteroidArr->maxReachedCount, asteroidArr->nbAsteroid);
+    LOGF_MEMORY("ASTEROIDS_FreeArray(), freeing $O%d$o asteroids\n", asteroidArr->maxReachedCount);
     for (int i = 0; i < asteroidArr->maxReachedCount; i++) {
-        LOGF("i = %d ", i);
         ASTEROID_Free(&asteroidArr->asteroid[i]);
     }
     free(asteroidArr->asteroid);
@@ -59,15 +56,15 @@ void ASTEROIDS_FreeArray(AsteroidArray *asteroidArr) {
     free(asteroidArr);
 }
 
-void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid *asteroid) {
+void ASTEROIDS_Add(AsteroidArray *asteroidArr, const Asteroid asteroid) {
     if (asteroidArr->capacity < asteroidArr->nbAsteroid + 1) {
         asteroidArr->capacity *= 2;
-        Asteroid *temp = realloc(asteroidArr->asteroid, sizeof(Asteroid) * (asteroidArr->capacity));
+        Asteroid *temp = realloc(asteroidArr->asteroid, sizeof(Asteroid) * asteroidArr->capacity);
         ASSERT_ALLOCATION(temp);
         asteroidArr->asteroid = temp;
     }
 
-    asteroidArr->asteroid[asteroidArr->nbAsteroid] = *asteroid;
+    asteroidArr->asteroid[asteroidArr->nbAsteroid] = asteroid;
     asteroidArr->nbAsteroid++;
 
     if (asteroidArr->maxReachedCount < asteroidArr->nbAsteroid) {
@@ -129,7 +126,7 @@ void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletAr
                 Vector2 bulletSpeed = BULLET_GetSpeed(bullet);
                 const float hitAngle = AngleFromComponent(&bulletSpeed);
                 const AsteroidBulletHitEvent event = { j, i, hitAngle, asteroid->score, BULLET_GetPosition(bullet)};
-                sink->emit(sink->ctx, &event);
+                sink->emit(sink->ctx, event);
             }
         }
     }
@@ -137,16 +134,30 @@ void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletAr
 
 // Moves dead asteroids past `count` using swap-remove.
 // Order is not preserved.
-void ASTEROIDS_Compact(AsteroidArray *asteroidArr) {
+void ASTEROIDS_Compact(AsteroidArray *asteroidArray) {
+    const int originalAsteroidCount = asteroidArray->nbAsteroid;
+    int deadAsteroids = 0;
+    for (int i = 0; i < asteroidArray->nbAsteroid; ++i) {
+        if (asteroidArray->asteroid[i].info.state == STATE_DEAD) {
+            ++deadAsteroids;
+        }
+    }
+
+    if (deadAsteroids == 0) {
+        LOG("$R[WARN]$r ASTEROIDS_Compact() has been called even if no asteroid where DEAD.\n");
+    }
+
+
     int i = 0;
-    while (i < asteroidArr->nbAsteroid) {
-        if (asteroidArr->asteroid[i].info.state == STATE_DEAD) {
-            asteroidArr->nbAsteroid--;
-            asteroidArr->asteroid[i] = asteroidArr->asteroid[asteroidArr->nbAsteroid];
+    while (i < asteroidArray->nbAsteroid) {
+        if (asteroidArray->asteroid[i].info.state == STATE_DEAD) {
+            asteroidArray->nbAsteroid--;
+            asteroidArray->asteroid[i] = asteroidArray->asteroid[asteroidArray->nbAsteroid];
         } else {
             i++;
         }
     }
+    LOGF_MEMORY("ASTEROIDS_Compact() [size] %d $O->$o %d, DEAD %d\n", originalAsteroidCount, asteroidArray->nbAsteroid, deadAsteroids);
 }
 
 void rotateAsteroids(const AsteroidArray *asteroidArr) {

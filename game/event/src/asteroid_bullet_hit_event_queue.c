@@ -28,14 +28,14 @@ void ASTEROID_BULLET_HIT_EVENT_QUEUE_Free(AsteroidBulletHitEventQueue *queue) {
 }
 
 
-void ASTEROID_BULLET_HIT_EVENT_QUEUE_Add(AsteroidBulletHitEventQueue *queue, const AsteroidBulletHitEvent *event) {
+void ASTEROID_BULLET_HIT_EVENT_QUEUE_Add(AsteroidBulletHitEventQueue *queue, const AsteroidBulletHitEvent event) {
     if (queue->capacity < queue->count + 1) {
         queue->capacity *= 2;
         AsteroidBulletHitEvent *temp = realloc(queue->events, sizeof(AsteroidBulletHitEvent) * (queue->capacity));
         ASSERT_ALLOCATION(temp);
         queue->events = temp;
     }
-    queue->events[queue->count] = *event;
+    queue->events[queue->count] = event;
     queue->count++;
 }
 

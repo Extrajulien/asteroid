@@ -10,15 +10,15 @@
 
 void PlaceAsteroidRandomPosition(Asteroid *asteroid, SpawnExclusionCircle exclusionCircle);
 void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset);
-void explodeAsteroid(Asteroid *asteroid, const AsteroidBulletHitEvent *event);
-void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, const WaveContext *wave);
+void explodeAsteroid(const AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event);
+void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event, const WaveContext *wave);
 
 
 void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, const SpawnExclusionCircle exclusionCircle) {
     for (int i = 0; i < wave->spawnRuleArr->count; ++i) {
         const AsteroidWaveSpawnRule *rule = &wave->spawnRuleArr->spawnRules[i];
         if (rule->spawnSize >= wave->presetArr->presetCount) {
-            printf("Invalid spawnSize %u\n", rule->spawnSize);
+            LOGF("$Y[WARN]$y WAVE_SpawnAsteroids() invalid spawnSize %u\n", rule->spawnSize);
             continue;
         }
 
@@ -27,7 +27,7 @@ void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, co
             Asteroid asteroid = ASTEROID_Create(preset);
             PlaceAsteroidRandomPosition(&asteroid, exclusionCircle);
             setAsteroidRandomSpeed(&asteroid, preset);
-            ASTEROIDS_Add(asteroidArr, &asteroid);
+            ASTEROIDS_Add(asteroidArr, asteroid);
         }
     }
 }
@@ -36,12 +36,12 @@ void WAVE_ExplodeAsteroids(AsteroidArray *asteroidArray, const WaveContext *wave
     for (int i = 0; i < bulletHitEvent->count; ++i) {
         const AsteroidBulletHitEvent event = bulletHitEvent->events[i];
 
-
-        Asteroid *asteroid = &asteroidArray->asteroid[event.asteroidId];
-        explodeAsteroid(asteroid, &event);
-        spawnAsteroidFromRule(asteroidArray, asteroid, wave);
+        spawnAsteroidFromRule(asteroidArray, &event, wave);
+        explodeAsteroid(asteroidArray, &event);
     }
-    ASTEROIDS_Compact(asteroidArray);
+    if (bulletHitEvent->count > 0) {
+        ASTEROIDS_Compact(asteroidArray);
+    }
 }
 
 
@@ -103,25 +103,27 @@ void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset) {
     asteroid->velocity = speed;
 }
 
-void explodeAsteroid(Asteroid *asteroid, const AsteroidBulletHitEvent *event) {
+void explodeAsteroid(const AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event) {
+    Asteroid *asteroid = &asteroidArray->asteroid[event->asteroidId];
     const float particleDirection = flipRadAngle(event->hitAngle);
     createParticles(particleDirection, event->hitPosition, &asteroid->particlePreset);
     ASTEROID_MarkDead(asteroid);
 }
 
-void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const Asteroid *old, const WaveContext *wave) {
-    if (wave->explosionRuleArr->count <= old->type) {
-        printf("Type '%d' is not present in Explosion Rules (count: %lu)\n", old->type, wave->explosionRuleArr->count);
+void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event, const WaveContext *wave) {
+    const AsteroidSize hitAsteroidSize = asteroidArray->asteroid[event->asteroidId].type;
+    if (wave->explosionRuleArr->count <= hitAsteroidSize) {
+        printf("Type '%d' is not present in Explosion Rules (count: %lu)\n", hitAsteroidSize, wave->explosionRuleArr->count);
         return;
     }
 
-    const AsteroidExplosionRule *explosionRules = &wave->explosionRuleArr->explosionRules[old->type];
+    const AsteroidExplosionRule *explosionRules = &wave->explosionRuleArr->explosionRules[hitAsteroidSize];
     const AsteroidPreset *preset = &wave->presetArr->presets[explosionRules->spawnedSize];
 
     for (int i = 0; i < explosionRules->spawnCount; ++i) {
         Asteroid asteroid = ASTEROID_Create(preset);
         setAsteroidRandomSpeed(&asteroid, preset);
-        asteroid.position = old->position;
-        ASTEROIDS_Add(asteroidArray, &asteroid);
+        asteroid.position = asteroidArray->asteroid[event->asteroidId].position;
+        ASTEROIDS_Add(asteroidArray, asteroid);
     }
 }

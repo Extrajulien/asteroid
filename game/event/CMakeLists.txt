@@ -11,6 +11,8 @@ include_directories(event_api)
 
 target_link_libraries(event
         PUBLIC core
+        PRIVATE game
+        PUBLIC asteroid
         INTERFACE event_api
         PRIVATE event_sink_api
         PUBLIC raylib
