@@ -26,6 +26,7 @@ void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, co
         for (int j = 0; j < rule->spawnCount; ++j) {
             Asteroid asteroid = ASTEROID_Create(preset);
             PlaceAsteroidRandomPosition(&asteroid, exclusionCircle);
+            ASTEROID_MoveTo(&asteroid, asteroid.position);
             setAsteroidRandomSpeed(&asteroid, preset);
             ASTEROIDS_Add(asteroidArr, asteroid);
         }
@@ -124,6 +125,7 @@ void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHit
         Asteroid asteroid = ASTEROID_Create(preset);
         setAsteroidRandomSpeed(&asteroid, preset);
         asteroid.position = asteroidArray->asteroid[event->asteroidId].position;
+        ASTEROID_MoveTo(&asteroid, asteroid.position);
         ASTEROIDS_Add(asteroidArray, asteroid);
     }
 }
