@@ -41,6 +41,7 @@ CharArray*:       LOGGER_LogFormatCharArray \
 )(str, __VA_ARGS__)
 
 #define LOGGING_MEMORY
+#define LOGGING_ARRAY_ACCESS
 
 
 #ifdef LOGGING_MEMORY
@@ -48,7 +49,7 @@ CharArray*:       LOGGER_LogFormatCharArray \
     do { \
     if (!ptr) { \
         LOG_ALLOCATION_FAILURE(); \
-        abort();\
+        exit(1);\
     } \
 } while (0)
 
@@ -65,6 +66,19 @@ LOGF("$R[ALLOCATION FAILURE]$r %s:%d %s()\n", __FILE__, __LINE__, __func__)
 #define LOG_MEMORY(str) ((void)0)
 #define LOGF_MEMORY(fmt, ...) ((void)0)
 #endif
+
+#ifdef LOGGING_ARRAY_ACCESS
+    #define ASSERT_ARRAY_ACCESS(arraySize, index) \
+        do { \
+        if (arraySize <= index) { \
+           LOGF("$P[ARRAY ACCESS]$p arraySize '%u', index '%u'. %s:%d %s", arraySize, index, __FILE__, __LINE__, __func__); \
+           exit(1); \
+        } \
+        } while (0)
+#else
+#define ASSERT_ARRAY_ACCESS(arraySize, index) ((void)0)
+#endif
+
 
 
 
