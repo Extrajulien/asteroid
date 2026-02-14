@@ -63,8 +63,8 @@ void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* p
 
     for (int s = 0; s < SIZE_COUNT; s++) {
         const AsteroidPreset* preset = &presetArr->presets[s];
-        Asteroid asteroid = ASTEROID_Create(preset);
-        ASTEROID_MoveTo(&asteroid, getAsteroidSizePosition(preset->size));
+        Asteroid asteroid = ASTEROID_Create(preset, asteroidArray->verticePool);
+        ASTEROID_MoveTo(&asteroid, getAsteroidSizePosition(preset->size), asteroidArray->verticePool);
         ASTEROIDS_Add(asteroidArray, asteroid);
     }
 }
@@ -79,7 +79,7 @@ void resetAsteroidAttributes() {
 }
 
 Rectangle MENU_GetAsteroidSquareHitBox(const Asteroid* asteroid, const AsteroidPresetArray* presetArr) {
-    const float radius = asteroid->shape.radius + presetArr->presets[asteroid->type].spread;
+    const float radius = asteroid->radius + presetArr->presets[asteroid->type].spread;
     return (Rectangle) {
         asteroid->position.x - radius,
         asteroid->position.y - radius,

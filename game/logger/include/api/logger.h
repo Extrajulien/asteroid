@@ -71,7 +71,7 @@ LOGF("$R[ALLOCATION FAILURE]$r %s:%d %s()\n", __FILE__, __LINE__, __func__)
     #define ASSERT_ARRAY_ACCESS(arraySize, index) \
         do { \
         if (arraySize <= index) { \
-           LOGF("$P[ARRAY ACCESS]$p arraySize '%u', index '%u'. %s:%d %s", arraySize, index, __FILE__, __LINE__, __func__); \
+           LOGF("$P[ARRAY ACCESS]$p arraySize '%u', index '%u'. %s:%d %s\n", arraySize, index, __FILE__, __LINE__, __func__); \
            exit(1); \
         } \
         } while (0)

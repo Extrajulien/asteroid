@@ -39,6 +39,7 @@ AsteroidArray* ASTEROIDS_CreateArray() {
     asteroidArr->capacity = 1;
     asteroidArr->nbAsteroid = 0;
     asteroidArr->maxReachedCount = 0;
+    asteroidArr->verticePool = VERTICE_POOL_Create();
     return asteroidArr;
 }
 
@@ -46,13 +47,14 @@ void ASTEROIDS_FreeArray(AsteroidArray *asteroidArr) {
     if (asteroidArr == NULL) return;
     LOGF_MEMORY("ASTEROIDS_FreeArray(), freeing $O%d$o asteroids\n", asteroidArr->maxReachedCount);
     for (int i = 0; i < asteroidArr->maxReachedCount; i++) {
-        ASTEROID_Free(&asteroidArr->asteroid[i]);
+        ASTEROID_Free(&asteroidArr->asteroid[i], asteroidArr->verticePool);
     }
     free(asteroidArr->asteroid);
     asteroidArr->asteroid = NULL;
     asteroidArr->capacity = 0;
     asteroidArr->nbAsteroid = 0;
     asteroidArr->maxReachedCount = 0;
+    VERTICE_POOL_Free(asteroidArr->verticePool);
     free(asteroidArr);
 }
 
@@ -91,7 +93,7 @@ void ASTEROIDS_Render(const AsteroidArray *asteroidArr) {
         if (asteroid->info.state == STATE_DEAD) {
             continue;
         }
-        ASTEROID_Render(asteroid);
+        ASTEROID_Render(asteroid, asteroidArr->verticePool);
     }
 }
 
@@ -111,7 +113,7 @@ bool ASTEROIDS_AreAllSizesPresent(const AsteroidArray *asteroidArr) {
 }
 
 void ASTEROIDS_Remove(AsteroidArray *asteroidArray, const size_t index) {
-    ASTEROID_MarkDead(&asteroidArray->asteroid[index]);
+    ASTEROID_Remove(&asteroidArray->asteroid[index], asteroidArray->verticePool);
     ASTEROIDS_Compact(asteroidArray);
 }
 
@@ -122,7 +124,7 @@ void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletAr
 
             if (asteroidArray->asteroid[j].info.state == STATE_DEAD) continue;
             const Asteroid *asteroid = &asteroidArray->asteroid[j];
-            if (ASTEROID_IsBulletColliding(asteroid, bullet)) {
+            if (ASTEROID_IsBulletColliding(asteroid, bullet, asteroidArray->verticePool)) {
                 Vector2 bulletSpeed = BULLET_GetSpeed(bullet);
                 const float hitAngle = AngleFromComponent(&bulletSpeed);
                 const AsteroidBulletHitEvent event = { j, i, hitAngle, asteroid->score, BULLET_GetPosition(bullet)};
@@ -167,7 +169,7 @@ void rotateAsteroids(const AsteroidArray *asteroidArr) {
         Asteroid *asteroid = &asteroidArr->asteroid[i];
         asteroid->rotation.rad += asteroid->rotation.increment * GetFrameTime();
         WrapAroundRadAngle(&asteroid->rotation);
-        ASTEROID_Rotate(&asteroidArr->asteroid[i]);
+        ASTEROID_Rotate(&asteroidArr->asteroid[i], asteroidArr->verticePool);
     }
 }
 
@@ -178,7 +180,7 @@ void wrapAroundAsteroids(const AsteroidArray *asteroidArr) {
 
     for (int i = 0; i < asteroidArr->nbAsteroid; ++i) {
         Asteroid *asteroid = &asteroidArr->asteroid[i];
-        WrapAroundScreen(&asteroid->position, asteroid->shape.radius);
+        WrapAroundScreen(&asteroid->position, asteroid->radius);
     }
 }
 
@@ -191,7 +193,7 @@ void moveAsteroids(const AsteroidArray *asteroidArr) {
         Asteroid *asteroid = &asteroidArr->asteroid[i];
         asteroid->position.x += asteroidArr->asteroid[i].velocity.x * GetFrameTime();
         asteroid->position.y += asteroidArr->asteroid[i].velocity.y * GetFrameTime();
-        ASTEROID_UpdateVertices(asteroid);
+        ASTEROID_UpdateVertices(asteroid, asteroidArr->verticePool);
     }
 
 }

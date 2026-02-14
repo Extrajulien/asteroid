@@ -1,6 +1,7 @@
 #pragma once
 #include <stddef.h>
 
+#include "asteroid_vertice_pool.h"
 #include "bullet_array.h"
 #include "event_sink_api.h"
 
@@ -10,6 +11,7 @@ typedef struct Asteroid Asteroid;
 
 typedef struct AsteroidArray {
     Asteroid *asteroid;
+    VerticePool *verticePool;
     size_t capacity;
     size_t nbAsteroid;
     size_t maxReachedCount;

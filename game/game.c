@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "asteroid_bullet_hit_event_queue.h"
+#include "asteroid_vertice_pool.h"
 #include "bullet_array.h"
 #include "char_array.h"
 #include "game_api.h"

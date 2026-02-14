@@ -24,9 +24,9 @@ void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, co
 
         const AsteroidPreset *preset = &wave->presetArr->presets[rule->spawnSize];
         for (int j = 0; j < rule->spawnCount; ++j) {
-            Asteroid asteroid = ASTEROID_Create(preset);
+            Asteroid asteroid = ASTEROID_Create(preset, asteroidArr->verticePool);
             PlaceAsteroidRandomPosition(&asteroid, exclusionCircle);
-            ASTEROID_MoveTo(&asteroid, asteroid.position);
+            ASTEROID_MoveTo(&asteroid, asteroid.position, asteroidArr->verticePool);
             setAsteroidRandomSpeed(&asteroid, preset);
             ASTEROIDS_Add(asteroidArr, asteroid);
         }
@@ -108,7 +108,7 @@ void explodeAsteroid(const AsteroidArray *asteroidArray, const AsteroidBulletHit
     Asteroid *asteroid = &asteroidArray->asteroid[event->asteroidId];
     const float particleDirection = flipRadAngle(event->hitAngle);
     createParticles(particleDirection, event->hitPosition, &asteroid->particlePreset);
-    ASTEROID_MarkDead(asteroid);
+    ASTEROID_Remove(asteroid, asteroidArray->verticePool);
 }
 
 void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event, const WaveContext *wave) {
@@ -122,10 +122,10 @@ void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHit
     const AsteroidPreset *preset = &wave->presetArr->presets[explosionRules->spawnedSize];
 
     for (int i = 0; i < explosionRules->spawnCount; ++i) {
-        Asteroid asteroid = ASTEROID_Create(preset);
+        Asteroid asteroid = ASTEROID_Create(preset, asteroidArray->verticePool);
         setAsteroidRandomSpeed(&asteroid, preset);
         asteroid.position = asteroidArray->asteroid[event->asteroidId].position;
-        ASTEROID_MoveTo(&asteroid, asteroid.position);
+        ASTEROID_MoveTo(&asteroid, asteroid.position, asteroidArray->verticePool);
         ASTEROIDS_Add(asteroidArray, asteroid);
     }
 }

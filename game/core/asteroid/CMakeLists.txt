@@ -3,6 +3,8 @@ add_library(asteroid STATIC
         src/asteroid_array.c
         src/asteroid_preset.c
         include/asteroid_size.h
+        src/asteroid_vertice_array.c
+        src/asteroid_vertice_pool.c
 )
 
 target_include_directories(asteroid PUBLIC
