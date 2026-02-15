@@ -28,12 +28,12 @@ void ASTEROID_PRESETS_Free(AsteroidPresetArray *presets) {
 }
 
 void ASTEROID_PRESETS_OrderArray(const AsteroidPresetArray *presets) {
-    for (size_t i = 0; i < presets->presetCount; i++) {
-        if (presets->presets[i].size != i) {
-            if (i + 1 < presets->presetCount) {
-                const AsteroidPreset temp = presets->presets[i + 1];
-                presets->presets[i + 1] = presets->presets[i];
-                presets->presets[i] = temp;
+    for (size_t i = 0; i < SIZE_COUNT; i++) {
+        for (size_t j = i; j < presets->presetCount; j++) {
+            if (presets->presets[j].size == i) {
+                const AsteroidPreset temp = presets->presets[i];
+                presets->presets[i] = presets->presets[j];
+                presets->presets[j] = temp;
             }
         }
     }
