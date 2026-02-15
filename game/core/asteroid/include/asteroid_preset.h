@@ -4,12 +4,12 @@
 #include "asteroid_size.h"
 #include "components.h"
 #include "particle.h"
-
+#define ASTEROID_PRESET_NAME_SIZE 100
 
 static const float PRESET_ROTATION_PRECISION = 100.0f;
 
 typedef struct AsteroidPreset {
-    const char* presetName;
+    char presetName[ASTEROID_PRESET_NAME_SIZE];
     AsteroidSize size;
     float radius;
     float spread;

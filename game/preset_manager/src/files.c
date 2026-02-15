@@ -167,7 +167,7 @@ AsteroidPreset readPreset(char *line) {
         token = strtok(NULL, ";");
     }
     AsteroidPreset preset = {};
-    preset.presetName = entry[PRESET_NAME];
+    strcpy(preset.presetName, entry[PRESET_NAME]);
     preset.size = letterToAsteroidSize(entry[PRESET_SIZE][0]);
     preset.radius = atof(entry[PRESET_RADIUS]);
     preset.spread = atof(entry[PRESET_SPREAD]);
