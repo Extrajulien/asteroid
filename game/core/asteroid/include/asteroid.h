@@ -9,13 +9,6 @@
 typedef struct AsteroidPreset AsteroidPreset;
 typedef struct Bullet Bullet;
 
-typedef struct {
-    float radius;
-    unsigned int nbVertices;
-    Vector2 *originalVertices;
-    Vector2 *vertices;
-} AsteroidShape;
-
 typedef struct Asteroid {
     AsteroidSize type;
     size_t verticeArrayIndex;
