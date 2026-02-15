@@ -9,17 +9,20 @@
 #include "game_api.h"
 #include "screen_virtual_table.h"
 #include "menu.h"
+#include "preset_create_elements.h"
 void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext);
 void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext);
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext);
 void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameContext);
 void drawAsteroids(const AsteroidArray *asteroidArray);
+Vector2 convertValueToText(float value, char* buffer, float fontSize, float spacing);
+Vector2 getTextRecCenter(Rectangle rec, Vector2 textSize);
+bool GUI_Slider(float *value, const char* sliderName, Rectangle box);
 
 static bool isModified = true;
 enum ChosenTextBox {
     verticesSpinner,
-    presetName,
-    dropdownType
+    presetName
 };
 enum ChosenTextBox chosenTextBox = -1;
 
@@ -63,8 +66,6 @@ void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     PresetCreateContext *presetCreateCtx = &gameContext->screenContext.presetCreateCtx;
 
-    ASTEROIDS_Update(gameContext->asteroidArray);
-
 
     AsteroidPresetArray* presetArray = gameContext->wave->presetArr;
     static bool dropdownToggle = false;
@@ -73,7 +74,7 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     drawBackground();
 
 
-    if (GuiDropdownBox((Rectangle){GetScreenWidth()/2 + 10, GetScreenHeight()/8-70, 250, 75},
+    if (GuiDropdownBox(SIZE_SELECTION_BOX(),
     "Big;Medium;Small", (int*) &presetCreateCtx->selectedAsteroidSize, dropdownToggle)) {
         dropdownToggle = !dropdownToggle;
     }
@@ -81,56 +82,54 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     clickSelectAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize, gameContext->wave->presetArr);
 
     drawAstOptions(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], getAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize));
+    ASTEROIDS_Update(gameContext->asteroidArray);
     //-----------------------------------------------------------------------------------------------------------------------
     //gui toggles
     //-----------------------------------------------------------------------------------------------------------------------
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {//chose text box and let go of it
-        if (CheckCollisionPointRec(mousePos, NB_VERTICES_SET_BOX)) chosenTextBox = verticesSpinner;
-        else if (CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()/2, GetScreenHeight()/8*7, 500, 100})) {
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) { //chose text box and let go of it
+        if (CheckCollisionPointRec(mousePos, VERTICES_NB_BOX())) chosenTextBox = verticesSpinner;
+        else if (CheckCollisionPointRec(mousePos, PRESET_NAME_BOX())) {
             chosenTextBox = presetName;
         }else {
             chosenTextBox = -1;
         }
     }
-
-
     if (IsKeyPressed(KEY_ENTER)) chosenTextBox = -1;
 
-    GuiButton((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7, 250, 100}, "Exit");
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-        && CheckCollisionPointRec(mousePos,(Rectangle){GetScreenWidth()-250, GetScreenHeight()/8*7, 200, 100})) {
+    if (GuiButton(EXIT_BOX(), "Exit")) {
         *currentScreen = SCREEN_TITLE;
         isModified = true;
-        ASTEROID_PRESET_Purge(presetArray);
-        readPresetFile(presetArray);
-        }
-    GuiButton((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7-120, 250, 100}, "Reset");
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-        && CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()-250, GetScreenHeight()/8*7-120, 200, 100})) {
+    }
+    if (GuiButton(RESET_BOX(), "Reset")) {
         resetAsteroidAttributes();
         isModified = true;
     }
-
-    GuiButton((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100}, "Save");
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-        && CheckCollisionPointRec(mousePos, (Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7-120, 250, 100})) {
+    if (GuiButton(SAVE_BOX(), "Save")) {
         savePreset(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], presetCreateCtx->presetName);
         resetAsteroidAttributes();
         isModified = true;
         presetCreateCtx->presetName[0] = '\0';
-        }
-    GuiToggle((Rectangle){GetScreenWidth()-270, GetScreenHeight()/8*7-240, 250, 100}, "Generate", &isModified);
-    int MAX_LINE_BUFFER_SIZE = 256;
-    GuiTextBox((Rectangle){GetScreenWidth()/2+10, GetScreenHeight()/8*7, 500, 100}, presetCreateCtx->presetName, MAX_LINE_BUFFER_SIZE, chosenTextBox == presetName);
+    }
+
+    if (GuiButton(SAVE_ALL_BOX(), "Save All")) {
+        savePreset(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], presetCreateCtx->presetName);
+        resetAsteroidAttributes();
+        isModified = true;
+        presetCreateCtx->presetName[0] = '\0';
+    }
+
+    GuiToggle(GENERATE_BOX(), "Generate", &isModified);
+    const int MAX_LINE_BUFFER_SIZE = 256;
+    GuiTextBox(PRESET_NAME_BOX(), presetCreateCtx->presetName, MAX_LINE_BUFFER_SIZE, chosenTextBox == presetName);
+
+    if (isModified) {
+        refreshAsteroids(gameContext->asteroidArray, gameContext->wave->presetArr);
+        isModified = false;
+    }
 }
 
 void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroidPtr) {
-    Vector2 mousepos = GetMousePosition();
-    const int fontsize = 32;
-    const int spacing = 1;
-    float temp;
-    Vector2 textSize;
     Asteroid asteroid;
 
     if (asteroidPtr == NULL) {
@@ -147,76 +146,35 @@ void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroidPtr) {
         DrawRing(asteroid.position,preset->radius,
         (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
     }
-
     DrawRing(asteroid.position, preset->radius-1, preset->radius+1,
         0, 360, 0, RADIUS_COLOR);
-    char radiusBig[15] = "";
-    sprintf(radiusBig, "[%.2f]", preset->radius);
-    textSize = MeasureTextEx(GetFontDefault(),radiusBig, fontsize, spacing);
-    temp = preset->radius;
-    GuiSliderBar(RADIUS_SET_BOX,
-        "Radius", "",&preset->radius, 0, 250);
-    if (CheckCollisionPointRec(mousepos, RADIUS_SET_BOX)) {
-        DrawTextEx(GetFontDefault(), radiusBig,
-        (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8-70+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
+
+    if (GUI_Slider(&preset->radius, "Radius", RADIUS_BOX())) {
+        isModified = true;
     }
 
-    checkForUpdate(temp, preset->radius);
-
-    char spreadBig[15] = "";
-    sprintf(spreadBig, "[%.2f]", preset->spread);
-    textSize = MeasureTextEx(GetFontDefault(),spreadBig, fontsize, spacing);
-    temp = preset->spread;
-    GuiSliderBar(SPREAD_SET_BOX,
-        "Spread", "",&preset->spread, 0, 250);
-    if (CheckCollisionPointRec(mousepos, SPREAD_SET_BOX)) {
-        DrawTextEx(GetFontDefault(), spreadBig,
-        (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
+    if (GUI_Slider(&preset->spread, "Spread", SPREAD_BOX())) {
+        isModified = true;
     }
-    checkForUpdate(temp, preset->spread);
 
-    char minRotationSpeedBig[15] = "";
-    sprintf(minRotationSpeedBig, "[%.2f]", preset->minRotationSpeed);
-    textSize = MeasureTextEx(GetFontDefault(),minRotationSpeedBig, fontsize, spacing);
-    temp = preset->minRotationSpeed;
-    GuiSliderBar(MIN_ROTATION_SET_BOX,
-        "Min turn speed", "",&preset->minRotationSpeed, -1000, -1);
-    if (CheckCollisionPointRec(mousepos, MIN_ROTATION_SET_BOX)) {
-        DrawTextEx(GetFontDefault(), minRotationSpeedBig,
-        (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+70+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
+    if (GUI_Slider(&preset->minRotationSpeed, "Min Turn Speed", MIN_ROTATION_BOX())) {
+        isModified = true;
     }
-    checkForUpdate(temp, preset->minRotationSpeed);
 
-    char maxRotationSpeedBig[15] = "";
-    sprintf(maxRotationSpeedBig, "[%.2f]", preset->maxRotationSpeed);
-    textSize = MeasureTextEx(GetFontDefault(),maxRotationSpeedBig, fontsize, spacing);
-    temp = preset->maxRotationSpeed;
-    GuiSliderBar(MAX_ROTATION_SET_BOX,
-        "Max turn speed", "",&preset->maxRotationSpeed, 1, 1000);
-    if (CheckCollisionPointRec(mousepos, MAX_ROTATION_SET_BOX)) {
-        DrawTextEx(GetFontDefault(), maxRotationSpeedBig,
-        (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+140+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
+    if (GUI_Slider(&preset->maxRotationSpeed, "Max Turn Speed", MAX_ROTATION_BOX())) {
+        isModified = true;
     }
-    checkForUpdate(temp, preset->maxRotationSpeed);
 
-    char maxSpeedBig[15] = "";
-    sprintf(maxSpeedBig, "[%.2f]", preset->maxSpeed);
-    textSize = MeasureTextEx(GetFontDefault(),maxSpeedBig, fontsize, spacing);
-    temp = preset->maxSpeed;
-    GuiSliderBar(MAX_SPEED_SET_BOX,
-        "Max speed", "",&preset->maxSpeed, 0, 300);
-    if (CheckCollisionPointRec(mousepos, MAX_SPEED_SET_BOX)) {
-        DrawTextEx(GetFontDefault(), maxSpeedBig,
-        (Vector2){GetScreenWidth()/8*7+200/2-textSize.x/2, GetScreenHeight()/8+210+50/2-textSize.y/2},fontsize, spacing, TEXT_INDICATOR_COLOR);
+    if (GUI_Slider(&preset->maxSpeed, "Max Speed", MAX_SPEED_BOX())) {
+        isModified = true;
     }
-    checkForUpdate(temp, preset->maxSpeed);
 
-    temp = preset->isRandomBothSides;
-    GuiToggle(GENERATION_STYLE_SET_BOX,"2 Side", &preset->isRandomBothSides);
+    float temp = preset->isRandomBothSides;
+    GuiToggle(GENERATION_STYLE_BOX(),"2 Side Rnd", &preset->isRandomBothSides);
     checkForUpdate(temp, preset->isRandomBothSides);
 
     temp = preset->nbVertices;
-    GuiSpinner(NB_VERTICES_SET_BOX,
+    GuiSpinner(NB_VERTICES_BOX(),
         "Vertices",&preset->nbVertices, 2, 10000, chosenTextBox == verticesSpinner);
     if (preset->nbVertices < 0) preset->nbVertices = 0;//prevent crash
     checkForUpdate(temp ,preset->nbVertices);
@@ -226,9 +184,6 @@ void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameConte
     ClearBackground(BLACK);
     drawAsteroids(gameContext->asteroidArray);
 }
-
-
-
 
 
 void clickSelectAsteroid(const AsteroidArray *asteroidArray, AsteroidSize *selection, const AsteroidPresetArray *presetArr) {
@@ -287,4 +242,28 @@ void contextInit(PresetCreateContext *context) {
 
 void drawAsteroids(const AsteroidArray *asteroidArray) {
     ASTEROIDS_Render(asteroidArray);
+}
+
+
+Vector2 convertValueToText(const float value, char* buffer, const float fontSize, const float spacing) {
+    sprintf(buffer, "[%.2f]", value);
+    return MeasureTextEx(GetFontDefault(), buffer, fontSize, spacing);
+}
+
+Vector2 getTextRecCenter(const Rectangle rec, const Vector2 textSize) {
+    return (Vector2){rec.x+rec.width/2-textSize.x/2, rec.y+rec.height/2-textSize.y/2};
+}
+
+bool GUI_Slider(float *value, const char* sliderName, const Rectangle box) {
+    char buffer[50] = "";
+    const float spacing = 1;
+    const float fontSize = 32;
+    const Vector2 textSize = convertValueToText(*value, buffer, fontSize, spacing);
+    const float old = *value;
+    GuiSliderBar(box, sliderName, "",value, 0, 250);
+    if (CheckCollisionPointRec(GetMousePosition(), box)) {
+        DrawTextEx(GetFontDefault(), buffer,
+        getTextRecCenter(box, textSize),fontSize, spacing, TEXT_INDICATOR_COLOR);
+    }
+    return (fabsf(old - *value) > 0.1f);
 }
