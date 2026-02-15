@@ -113,7 +113,10 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     }
 
     if (GuiButton(SAVE_ALL_BOX(), "Save All")) {
-        savePreset(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], presetCreateCtx->presetName);
+        for (int i = 0; i < presetArray->presetCount; ++i) {
+            savePreset(&presetArray->presets[i], presetCreateCtx->presetName);
+        }
+
         resetAsteroidAttributes();
         isModified = true;
         presetCreateCtx->presetName[0] = '\0';
