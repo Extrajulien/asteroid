@@ -1,0 +1,10 @@
+#pragma once
+
+typedef struct PlayerAsteroidHitEvent PlayerAsteroidHitEvent;
+
+typedef struct PlayerAsteroidHitEventQueue PlayerAsteroidHitEventQueue;
+
+PlayerAsteroidHitEventQueue* PLAYER_ASTEROID_HIT_EVENT_QUEUE_Create();
+void PLAYER_ASTEROID_HIT_EVENT_QUEUE_Free(PlayerAsteroidHitEventQueue *queue);
+void PLAYER_ASTEROID_HIT_EVENT_QUEUE_Add(PlayerAsteroidHitEventQueue *queue, PlayerAsteroidHitEvent event);
+void PLAYER_ASTEROID_HIT_EVENT_QUEUE_Purge(PlayerAsteroidHitEventQueue *queue);

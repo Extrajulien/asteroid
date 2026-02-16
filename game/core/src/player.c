@@ -20,6 +20,7 @@ typedef struct {
 } Triangle;
 
 typedef struct Player {
+    ParticlePreset particlePreset;
     Triangle bounds;
     Vector2 position;
     Score score;
@@ -49,6 +50,13 @@ Player* PLAYER_Create() {
     Player *player = malloc(sizeof(Player));
     ASSERT_ALLOCATION(player);
     PLAYER_Reset(player);
+    player->particlePreset = (ParticlePreset) {
+        80,
+        360,
+        1,
+        ORANGE,
+        1300
+    };
     return player;
 }
 
@@ -129,6 +137,10 @@ int PLAYER_GetScore(const Player *player) {
 
 SpawnExclusionCircle PLAYER_GetExclusionCircle(const Player *player) {
     return (SpawnExclusionCircle) {player->position, PLAYER_SPAWN_SAFE_ZONE};
+}
+
+ParticlePreset PLAYER_GetParticlePreset(const Player *player) {
+    return player->particlePreset;
 }
 
 

@@ -1,7 +1,10 @@
 #include "asteroid_bullet_hit_event_queue.h"
+#include "player_asteroid_hit_event.h"
+#include "asteroid_bullet_hit_event.h"
 #include "event_sink_api.h"
 
 void ASTEROID_BULLET_HIT_SINK_Emit(void* ctx, AsteroidBulletHitEvent event);
+void PLAYER_ASTEROID_HIT_EVENT_SINK_Emit(void* ctx, PlayerAsteroidHitEvent event);
 
 AsteroidBulletHitEventSink ASTEROID_BULLET_HIT_EVENT_QUEUE_GetSink(AsteroidBulletHitEventQueue* queue) {
     return (AsteroidBulletHitEventSink) {
@@ -13,4 +16,17 @@ AsteroidBulletHitEventSink ASTEROID_BULLET_HIT_EVENT_QUEUE_GetSink(AsteroidBulle
 void ASTEROID_BULLET_HIT_SINK_Emit(void* ctx, const AsteroidBulletHitEvent event) {
     AsteroidBulletHitEventQueue *queue = ctx;
     ASTEROID_BULLET_HIT_EVENT_QUEUE_Add(queue, event);
+}
+
+
+PlayerAsteroidHitEventSink PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetSink(PlayerAsteroidHitEventQueue *queue) {
+    return (PlayerAsteroidHitEventSink) {
+        .ctx = queue,
+        .emit = PLAYER_ASTEROID_HIT_EVENT_SINK_Emit
+    };
+}
+
+void PLAYER_ASTEROID_HIT_EVENT_SINK_Emit(void* ctx, const PlayerAsteroidHitEvent event) {
+    PlayerAsteroidHitEventQueue *queue = ctx;
+    PLAYER_ASTEROID_HIT_EVENT_QUEUE_Add(queue, event);
 }

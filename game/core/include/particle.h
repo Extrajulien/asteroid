@@ -22,7 +22,7 @@ typedef struct ParticlePreset {
 Particle newParticle(Vector2 position, Vector2 size, float speed, float lifetime, float angle, Color color);
 void particleMove(Particle *particle);
 void particleDraw(const Particle *particle);
-void createParticles(float angle, Vector2 position, const ParticlePreset* preset);
+void createParticles(float angle, Vector2 position, ParticlePreset preset);
 bool particleIsNotValid(Particle const *particle);
 
 void particleArrDestroy();

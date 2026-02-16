@@ -1,6 +1,7 @@
 #pragma once
 #include "bullet_array.h"
 #include "components.h"
+#include "particle.h"
 #include "raylib.h"
 
 static const float PLAYER_BULLET_LIFE_DISTANCE = 2500;
@@ -22,6 +23,7 @@ bool PLAYER_IsDead(const Player *player);
 Vector2 PLAYER_GetSpeed(const Player *player);
 Vector2 PLAYER_GetPosition(const Player *player);
 void PLAYER_AddScore(Player *player, int score);
+ParticlePreset PLAYER_GetParticlePreset(const Player *player);
 int PLAYER_GetScore(const Player *player);
 int PLAYER_GetLifeCount(const Player *player);
 float PLAYER_GetAngle(const Player *player);

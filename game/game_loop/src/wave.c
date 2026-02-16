@@ -107,7 +107,7 @@ void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset) {
 void explodeAsteroid(const AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event) {
     Asteroid *asteroid = &asteroidArray->asteroid[event->asteroidId];
     const float particleDirection = flipRadAngle(event->hitAngle);
-    createParticles(particleDirection, event->hitPosition, &asteroid->particlePreset);
+    createParticles(particleDirection, event->hitPosition, asteroid->particlePreset);
     ASTEROID_Remove(asteroid, asteroidArray->verticePool);
 }
 

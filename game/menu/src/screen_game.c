@@ -47,6 +47,7 @@ void openGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     gameContext->asteroidArray = ASTEROIDS_CreateArray();
     gameContext->bulletArray = BULLETS_CreateArray();
     gameContext->bulletHitEventQueue = ASTEROID_BULLET_HIT_EVENT_QUEUE_Create();
+    gameContext->playerHitEventQueue = PLAYER_ASTEROID_HIT_EVENT_QUEUE_Create();
     gameContext->player = PLAYER_Create();
     gameContext->wave = wave;
     WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
@@ -56,6 +57,7 @@ void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     ASTEROIDS_FreeArray(gameContext->asteroidArray);
     BULLETS_FreeArray(gameContext->bulletArray);
     ASTEROID_BULLET_HIT_EVENT_QUEUE_Free(gameContext->bulletHitEventQueue);
+    PLAYER_ASTEROID_HIT_EVENT_QUEUE_Free(gameContext->playerHitEventQueue);
     PLAYER_Free(gameContext->player);
     WAVE_CONTEXT_Free(gameContext->wave);
     particleArrDestroy();

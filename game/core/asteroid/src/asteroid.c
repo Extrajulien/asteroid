@@ -133,33 +133,25 @@ bool ASTEROID_IsBulletColliding(const Asteroid *asteroid, const Bullet *bullet, 
 }
 
 
-void* checkCollisionAstPlayer(void *arg) {
-    PackageCollisionPlayer package = *(PackageCollisionPlayer*) arg;
-    Player *player = package.player;
-    Vector2 startPos;
-    Vector2 endPos;
-    Vector2 astPos;
+bool ASTEROID_IsPlayerColliding(const Asteroid *asteroid, const Player *player, VerticePool *pool) {
     /*
-    for (int i = 0; i < package.bigArr->capacity; ++i) {
-        for (int j = 0; j < ((BigAsteroid*)package.bigArr->asteroid[i])->nbVertices-1; ++j) {
-            if (!((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled) continue;
-            astPos = ((BigAsteroid *) package.bigArr->asteroid[i])->base.position;
-            startPos = ((BigAsteroid *) package.bigArr->asteroid[i])->points[j];
-            endPos = ((BigAsteroid *) package.bigArr->asteroid[i])->points[j + 1];
-            startPos.x += astPos.x;
-            startPos.y += astPos.y;
-            endPos.x += astPos.x;
-            endPos.y += astPos.y;
-            if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
-                createParticles(0, PLAYER_GetPosition(player), 80, 360.0, ORANGE, 1.0, 1300);
-                PLAYER_Die(player);
-                package.bigArr->nbAsteroid--;
-                createMidAsteroid(package.midArr, 2, ((BigAsteroid*)package.bigArr->asteroid[i])->base.position);
-                ((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled = false;
-                return NULL;
-            }
+    if (asteroid->info.state == STATE_DEAD) return false;
+    const VerticeArray* vert = VERTICE_POOL_GetVerticeArray(pool, asteroid->verticeArrayIndex);
+    for (int j = 0; j < vert->count; ++j) {
+        const int threshold = 10;
+        const Vector2 startPos = vert->vertices[j];
+        const Vector2 endPos = vert->vertices[(j + 1) % vert->count];
+        if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
+            createParticles(0, PLAYER_GetPosition(player), PLAYER_GetParticlePreset(player));
+            PLAYER_Die(player);
+            package.bigArr->nbAsteroid--;
+            createMidAsteroid(package.midArr, 2, ((BigAsteroid*)package.bigArr->asteroid[i])->base.position);
+            ((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled = false;
+            return NULL;
         }
     }
+}
+    /*
     for (int i = 0; i < package.midArr->capacity; ++i) {
         for (int j = 0; j < ((MidAsteroid*)package.midArr->asteroid[i])->nbVertices-1; ++j) {
             if (!((MidAsteroid *) package.midArr->asteroid[i])->base.isCollisionEnabled) continue;
@@ -202,6 +194,7 @@ void* checkCollisionAstPlayer(void *arg) {
     */
     return NULL;
 }
+
 
 void ASTEROID_Free(Asteroid *asteroid, VerticePool *pool) {
     if (asteroid && asteroid->info.state != STATE_DEAD) {

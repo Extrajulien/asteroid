@@ -86,10 +86,10 @@ void moveParticles() {
 // particle functions
 // -------------------------------------------------------------------------------------------------------
 
-void createParticles(const float angle, const Vector2 position, const ParticlePreset *preset) {
-    for (int i = 0; i < preset->quantity; ++i) {
-        float const newAngle = angle + ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f) * (preset->angleSpread * DEG2RAD);
-        particleArrAdd(newParticle(position, (Vector2) {10, 5}, preset->speed, preset->lifetime, newAngle, preset->color));
+void createParticles(const float angle, const Vector2 position, const ParticlePreset preset) {
+    for (int i = 0; i < preset.quantity; ++i) {
+        float const newAngle = angle + ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f) * (preset.angleSpread * DEG2RAD);
+        particleArrAdd(newParticle(position, (Vector2) {10, 5}, preset.speed, preset.lifetime, newAngle, preset.color));
     }
 }
 

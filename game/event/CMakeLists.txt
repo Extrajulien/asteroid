@@ -1,5 +1,6 @@
 add_library(event STATIC
         src/asteroid_bullet_hit_event_queue.c
+        src/player_asteroid_hit_event_queue.c
 )
 
 target_include_directories(event PRIVATE
