@@ -193,7 +193,7 @@ void moveAsteroids(const AsteroidArray *asteroidArr) {
         Asteroid *asteroid = &asteroidArr->asteroid[i];
         asteroid->position.x += asteroidArr->asteroid[i].velocity.x * GetFrameTime();
         asteroid->position.y += asteroidArr->asteroid[i].velocity.y * GetFrameTime();
-        ASTEROID_UpdateVertices(asteroid, asteroidArr->verticePool);
+        ASTEROID_MoveVertices(asteroid, asteroidArr->verticePool);
     }
 
 }

@@ -65,7 +65,7 @@ void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
 
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     PresetCreateContext *presetCreateCtx = &gameContext->screenContext.presetCreateCtx;
-
+    ASTEROIDS_Update(gameContext->asteroidArray);
 
     AsteroidPresetArray* presetArray = gameContext->wave->presetArr;
     static bool dropdownToggle = false;
@@ -82,7 +82,6 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     clickSelectAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize, gameContext->wave->presetArr);
 
     drawAstOptions(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], getAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize));
-    ASTEROIDS_Update(gameContext->asteroidArray);
     //-----------------------------------------------------------------------------------------------------------------------
     //gui toggles
     //-----------------------------------------------------------------------------------------------------------------------

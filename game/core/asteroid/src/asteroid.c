@@ -63,6 +63,7 @@ void ASTEROID_Render(const Asteroid *asteroid, VerticePool *pool) {
         LOG("$Rfaulty call of asteroid render\n");
         return;
     }
+
     for (int j = 0; j < vert->count; ++j) {
         const Vector2 startPos = vert->vertices[j];
         const Vector2 endPos = vert->vertices[(j + 1) % vert->count];
@@ -81,12 +82,12 @@ void ASTEROID_Rotate(const Asteroid *asteroid, VerticePool *pool) {
     }
 }
 
-void ASTEROID_UpdateVertices(const Asteroid *asteroid, VerticePool *pool) {
+void ASTEROID_MoveVertices(const Asteroid *asteroid, VerticePool *pool) {
     const VerticeArray *vert = VERTICE_POOL_GetVerticeArray(pool, asteroid->verticeArrayIndex);
 
     for (int i = 0; i < vert->count; ++i) {
-        vert->vertices[i].x = vert->originalVertices[i].x + asteroid->position.x;
-        vert->vertices[i].y = vert->originalVertices[i].y + asteroid->position.y;
+        vert->vertices[i].x = vert->vertices[i].x + asteroid->position.x;
+        vert->vertices[i].y = vert->vertices[i].y + asteroid->position.y;
     }
 }
 
@@ -112,7 +113,7 @@ void ASTEROID_Remove(Asteroid *asteroid, VerticePool *pool) {
 void generateVertices(const Asteroid *asteroid, const AsteroidPreset *preset, VerticePool *pool) {
     VerticeArray *vert = VERTICE_POOL_GetVerticeArray(pool, asteroid->verticeArrayIndex);
     VERTICE_ARRAY_LoadPreset(vert, preset);
-    ASTEROID_UpdateVertices(asteroid, pool);
+    ASTEROID_MoveVertices(asteroid, pool);
 }
 
 // TODO MAKE COLLISION SAT

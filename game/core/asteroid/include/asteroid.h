@@ -30,7 +30,7 @@ void ASTEROID_MoveTo(Asteroid *asteroid, Vector2 position, VerticePool *pool);
 
 // mark the asteroid as STATE_DEAD and free the vertices arrays
 void ASTEROID_Remove(Asteroid *asteroid, VerticePool *pool);
-void ASTEROID_UpdateVertices(const Asteroid *asteroid, VerticePool *pool);
+void ASTEROID_MoveVertices(const Asteroid *asteroid, VerticePool *pool);
 void ASTEROID_Render(const Asteroid *asteroid, VerticePool *pool);
 
 bool ASTEROID_IsBulletColliding(const Asteroid *asteroid, const Bullet *bullet, VerticePool *pool);
