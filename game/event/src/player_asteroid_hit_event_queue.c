@@ -1,9 +1,6 @@
 #include "player_asteroid_hit_event.h"
 #include "player_asteroid_hit_event_queue.h"
-
 #include <stdlib.h>
-
-#include "asteroid_bullet_hit_event.h"
 #include "logger.h"
 
 
@@ -47,4 +44,12 @@ void PLAYER_ASTEROID_HIT_EVENT_QUEUE_Add(PlayerAsteroidHitEventQueue *queue, con
 
 void PLAYER_ASTEROID_HIT_EVENT_QUEUE_Purge(PlayerAsteroidHitEventQueue *queue) {
     queue->count = 0;
+}
+
+size_t PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetCount(const PlayerAsteroidHitEventQueue *queue) {
+    return queue->count;
+}
+
+PlayerAsteroidHitEvent PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetEvent(const PlayerAsteroidHitEventQueue *queue, const size_t index) {
+    return queue->events[index];
 }

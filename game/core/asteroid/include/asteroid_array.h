@@ -1,5 +1,6 @@
 #pragma once
 #include <stddef.h>
+#include "player.h"
 
 #include "asteroid_vertice_pool.h"
 #include "bullet_array.h"
@@ -22,7 +23,8 @@ void ASTEROIDS_FreeArray(AsteroidArray *asteroidArr);
 void ASTEROIDS_Update(AsteroidArray *asteroidArr);
 void ASTEROIDS_Render(const AsteroidArray *asteroidArr);
 void ASTEROIDS_Add(AsteroidArray *asteroidArr, Asteroid asteroid);
-void ASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletArray *bullets, const AsteroidBulletHitEventSink *sink);
+void GAME_LOOP_ProcessASTEROIDS_CollideBullets(const AsteroidArray *asteroidArray, const BulletArray *bullets, const AsteroidBulletHitEventSink *sink);
+void ASTEROIDS_CollidePlayer(const AsteroidArray *asteroidArray, const Player *player, const PlayerAsteroidHitEventSink *sink);
 void ASTEROIDS_Compact(AsteroidArray *asteroidArray);
 void ASTEROIDS_Purge(AsteroidArray *asteroidArr);
 

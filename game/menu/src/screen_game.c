@@ -7,7 +7,7 @@
 #include "game_api.h"
 #include "screen_virtual_table.h"
 #include "player.h"
-#include "player_rules.h"
+#include "game_loop.h"
 
 #include "event_api.h"
 #include "files.h"
@@ -64,7 +64,7 @@ void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {
 }
 
 void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
-    AsteroidBulletHitEventSink bulletHitAsteroidEventSink = ASTEROID_BULLET_HIT_EVENT_QUEUE_GetSink(gameContext->bulletHitEventQueue);
+    PlayerAsteroidHitEventSink playerHitAsteroidEventSink = PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetSink(gameContext->playerHitEventQueue);
     if (gameContext->asteroidArray->nbAsteroid == 0) {
         WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
     }
@@ -73,18 +73,12 @@ void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
 
     updateGame(gameContext->player, gameContext->bulletArray, gameContext->asteroidArray);
 
-    ASTEROIDS_CollideBullets(gameContext->asteroidArray, gameContext->bulletArray, &bulletHitAsteroidEventSink);
-    WAVE_ExplodeAsteroids(gameContext->asteroidArray, gameContext->wave, gameContext->bulletHitEventQueue);
-    PLAYER_UpdateBulletHits(gameContext->bulletHitEventQueue, gameContext->player, gameContext->bulletArray);
+    GAME_LOOP_ProcessAsteroidBulletHitEvent(gameContext);
+    GAME_LOOP_ProcessPlayerAsteroidHitEvent(gameContext);
 
     if (PLAYER_IsDead(gameContext->player)) {
         *currentScreen = SCREEN_GAME_OVER;
     }
-
-    /*
-    PackageCollisionPlayer packagePlayer = (PackageCollisionPlayer){gameContext->player, &bigAstArr, &midAstArr, &smlAstArr};
-    checkCollisionAstPlayer(&packagePlayer);
-    */
 
     if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
         ASTEROIDS_Purge(gameContext->asteroidArray);
@@ -95,7 +89,6 @@ void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
             *currentScreen = SCREEN_TITLE;
         }
     }
-    ASTEROID_BULLET_HIT_EVENT_QUEUE_Purge(gameContext->bulletHitEventQueue);
 }
 
 void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext) {
@@ -112,7 +105,6 @@ void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext)
     char livesText[100] = "";
     sprintf(livesText,"pv:%d", PLAYER_GetLifeCount(gameContext->player));
     DrawText(livesText, 10, 10, 40, ORANGE);
-
 
     char asteroidCountText[100] = "";
     sprintf(asteroidCountText,"%lu", gameContext->asteroidArray->nbAsteroid);
@@ -134,7 +126,6 @@ void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext)
     }
 }
 
-
 void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray) {
     PLAYER_Update(player, bulletArr);
     BULLETS_Update(bulletArr);
@@ -148,7 +139,6 @@ void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay) {
     Vector2 topLeftCorner = {x - size / 2, y - size / 2};
     int nbHorizontalLine = 9;
     int nbVerticalLine = 9;
-
 
     float distanceVerticalLine = size / nbVerticalLine;
     float distanceHorizontalLine = size / nbHorizontalLine;
@@ -179,10 +169,7 @@ void drawEntitiesPos(Vector2 position, Player *player, BulletArray *bulletArray)
     DrawRectangle(position.x, position.y, GetScreenWidth() / scale, GetScreenHeight() / scale, WHITE);
     DrawRectangleLines(position.x, position.y, GetScreenWidth() / scale, GetScreenHeight() / scale, GRAY);
 
-
-
     DrawRectangle(playerPos.x / scale + topLeft.x, playerPos.y / scale + topLeft.y, 10, 10, GREEN);
-
 
     for (int i = 0; i < bulletArray->count; ++i) {
         Rectangle bullet = BULLET_GetCollisionRectangle(BULLETS_GetBullet(bulletArray, i));

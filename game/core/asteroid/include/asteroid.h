@@ -5,6 +5,7 @@
 #include "particle.h"
 #include "asteroid_vertice_array.h"
 #include "asteroid_vertice_pool.h"
+#include "player.h"
 
 typedef struct AsteroidPreset AsteroidPreset;
 typedef struct Bullet Bullet;
@@ -34,5 +35,4 @@ void ASTEROID_MoveVertices(const Asteroid *asteroid, VerticePool *pool);
 void ASTEROID_Render(const Asteroid *asteroid, VerticePool *pool);
 
 bool ASTEROID_IsBulletColliding(const Asteroid *asteroid, const Bullet *bullet, VerticePool *pool);
-
-void* checkCollisionAstPlayer(void* arg);
+bool ASTEROID_IsPlayerColliding(const Asteroid *asteroid, const Player *player, const VerticePool *pool);

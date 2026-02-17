@@ -7,11 +7,12 @@
 #include "asteroid_preset.h"
 #include "event_api.h"
 #include "logger.h"
+#include "player_asteroid_hit_event.h"
 
 void PlaceAsteroidRandomPosition(Asteroid *asteroid, SpawnExclusionCircle exclusionCircle);
 void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset);
-void explodeAsteroid(const AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event);
-void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event, const WaveContext *wave);
+void spawnAsteroidFromRule(AsteroidArray *asteroidArray, AsteroidSize size, Vector2 position, const WaveContext *wave);
+void explodeAsteroid(const AsteroidArray *asteroidArray, size_t asteroidId, Vector2 hitPosition, float hitAngle);
 
 
 void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, const SpawnExclusionCircle exclusionCircle) {
@@ -33,14 +34,27 @@ void WAVE_SpawnAsteroids(AsteroidArray *asteroidArr, const WaveContext *wave, co
     }
 }
 
-void WAVE_ExplodeAsteroids(AsteroidArray *asteroidArray, const WaveContext *wave, const AsteroidBulletHitEventQueue *bulletHitEvent) {
+void WAVE_ExplodeAsteroidsFromBullet(AsteroidArray *asteroidArray, const WaveContext *wave, const AsteroidBulletHitEventQueue *bulletHitEvent) {
     for (int i = 0; i < bulletHitEvent->count; ++i) {
         const AsteroidBulletHitEvent event = bulletHitEvent->events[i];
 
-        spawnAsteroidFromRule(asteroidArray, &event, wave);
-        explodeAsteroid(asteroidArray, &event);
+        spawnAsteroidFromRule(asteroidArray, asteroidArray->asteroid[event.asteroidId].type, event.hitPosition, wave);
+        explodeAsteroid(asteroidArray, event.asteroidId, event.hitPosition, event.hitAngle);
     }
     if (bulletHitEvent->count > 0) {
+        ASTEROIDS_Compact(asteroidArray);
+    }
+}
+
+void WAVE_ExplodeAsteroidsFromPlayer(AsteroidArray *asteroidArray, const WaveContext *wave, const PlayerAsteroidHitEventQueue *eQueue) {
+    const unsigned int eventCount = PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetCount(eQueue);
+    for (int i = 0; i < eventCount; ++i) {
+        const PlayerAsteroidHitEvent event = PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetEvent(eQueue, i);
+
+        spawnAsteroidFromRule(asteroidArray,asteroidArray->asteroid[event.asteroidId].type, event.hitPosition, wave);
+        explodeAsteroid(asteroidArray, event.asteroidId, event.hitPosition, event.hitAngle);
+    }
+    if (eventCount > 0) {
         ASTEROIDS_Compact(asteroidArray);
     }
 }
@@ -71,8 +85,6 @@ WaveContext* WAVE_CONTEXT_Create() {
 
     const AsteroidExplosionRule smlExplosion = {SIZE_SMALL, 0};
     ASTEROID_EXPLOSION_RULE_Add(wave->explosionRuleArr, &smlExplosion);
-
-
     return wave;
 }
 
@@ -104,15 +116,15 @@ void setAsteroidRandomSpeed(Asteroid *asteroid, const AsteroidPreset *preset) {
     asteroid->velocity = speed;
 }
 
-void explodeAsteroid(const AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event) {
-    Asteroid *asteroid = &asteroidArray->asteroid[event->asteroidId];
-    const float particleDirection = flipRadAngle(event->hitAngle);
-    createParticles(particleDirection, event->hitPosition, asteroid->particlePreset);
+void explodeAsteroid(const AsteroidArray *asteroidArray, const size_t asteroidId, const Vector2 hitPosition, const float hitAngle) {
+    Asteroid *asteroid = &asteroidArray->asteroid[asteroidId];
+    const float particleDirection = flipRadAngle(hitAngle);
+    createParticles(particleDirection, hitPosition, asteroid->particlePreset);
     ASTEROID_Remove(asteroid, asteroidArray->verticePool);
 }
 
-void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHitEvent *event, const WaveContext *wave) {
-    const AsteroidSize hitAsteroidSize = asteroidArray->asteroid[event->asteroidId].type;
+void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidSize size, const Vector2 position, const WaveContext *wave) {
+    const AsteroidSize hitAsteroidSize = size;
     if (wave->explosionRuleArr->count <= hitAsteroidSize) {
         printf("Type '%d' is not present in Explosion Rules (count: %lu)\n", hitAsteroidSize, wave->explosionRuleArr->count);
         return;
@@ -124,7 +136,7 @@ void spawnAsteroidFromRule(AsteroidArray *asteroidArray, const AsteroidBulletHit
     for (int i = 0; i < explosionRules->spawnCount; ++i) {
         Asteroid asteroid = ASTEROID_Create(preset, asteroidArray->verticePool);
         setAsteroidRandomSpeed(&asteroid, preset);
-        asteroid.position = asteroidArray->asteroid[event->asteroidId].position;
+        asteroid.position = position;
         ASTEROID_MoveTo(&asteroid, asteroid.position, asteroidArray->verticePool);
         ASTEROIDS_Add(asteroidArray, asteroid);
     }

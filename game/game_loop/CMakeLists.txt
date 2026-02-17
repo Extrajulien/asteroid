@@ -11,4 +11,4 @@ target_include_directories(game_loop PUBLIC
 )
 
 
-target_link_libraries(game_loop PRIVATE raylib core event asteroid logger)
+target_link_libraries(game_loop PRIVATE raylib core event asteroid logger PUBLIC game)

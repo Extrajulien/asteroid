@@ -30,8 +30,8 @@ static void WrapAroundRadAngle(Rotation *rotation) {
 }
 
 //reverse y
-static float AngleFromComponent(const Vector2 *component) {
-    return atan2f(-component->y, component->x);
+static float AngleFromComponent(const Vector2 component) {
+    return atan2f(-component.y, component.x);
 }
 
 static float flipRadAngle(const float rad) {

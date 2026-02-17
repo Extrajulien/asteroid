@@ -116,7 +116,6 @@ void generateVertices(const Asteroid *asteroid, const AsteroidPreset *preset, Ve
     ASTEROID_MoveVertices(asteroid, pool);
 }
 
-// TODO MAKE COLLISION SAT
 bool ASTEROID_IsBulletColliding(const Asteroid *asteroid, const Bullet *bullet, VerticePool *pool) {
     const VerticeArray *vert = VERTICE_POOL_GetVerticeArray(pool, asteroid->verticeArrayIndex);
 
@@ -132,69 +131,20 @@ bool ASTEROID_IsBulletColliding(const Asteroid *asteroid, const Bullet *bullet, 
     return false;
 }
 
-
-bool ASTEROID_IsPlayerColliding(const Asteroid *asteroid, const Player *player, VerticePool *pool) {
-    /*
+bool ASTEROID_IsPlayerColliding(const Asteroid *asteroid, const Player *player, const VerticePool *pool) {
     if (asteroid->info.state == STATE_DEAD) return false;
     const VerticeArray* vert = VERTICE_POOL_GetVerticeArray(pool, asteroid->verticeArrayIndex);
     for (int j = 0; j < vert->count; ++j) {
         const int threshold = 10;
         const Vector2 startPos = vert->vertices[j];
         const Vector2 endPos = vert->vertices[(j + 1) % vert->count];
-        if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
-            createParticles(0, PLAYER_GetPosition(player), PLAYER_GetParticlePreset(player));
-            PLAYER_Die(player);
-            package.bigArr->nbAsteroid--;
-            createMidAsteroid(package.midArr, 2, ((BigAsteroid*)package.bigArr->asteroid[i])->base.position);
-            ((BigAsteroid *) package.bigArr->asteroid[i])->base.isCollisionEnabled = false;
-            return NULL;
-        }
-    }
-}
-    /*
-    for (int i = 0; i < package.midArr->capacity; ++i) {
-        for (int j = 0; j < ((MidAsteroid*)package.midArr->asteroid[i])->nbVertices-1; ++j) {
-            if (!((MidAsteroid *) package.midArr->asteroid[i])->base.isCollisionEnabled) continue;
-            astPos = ((MidAsteroid *) package.midArr->asteroid[i])->base.position;
-            startPos = ((MidAsteroid *) package.midArr->asteroid[i])->points[j];
-            endPos = ((MidAsteroid *) package.midArr->asteroid[i])->points[j + 1];
-            startPos.x += astPos.x;
-            startPos.y += astPos.y;
-            endPos.x += astPos.x;
-            endPos.y += astPos.y;
-            if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
-                createParticles(0, PLAYER_GetPosition(package.player), 80, 360.0, ORANGE, 0.9, 1300);
-                PLAYER_Die(package.player);
-                package.midArr->nbAsteroid--;
-                createSmlAsteroid(package.smlArr, 2, ((MidAsteroid*)package.midArr->asteroid[i])->base.position);
-                ((MidAsteroid *) package.midArr->asteroid[i])->base.isCollisionEnabled = false;
-                return NULL;
-                }
-        }
-    }
-    for (int i = 0; i < package.smlArr->capacity; ++i) {
-        for (int j = 0; j < ((SmlAsteroid*)package.smlArr->asteroid[i])->nbVertices-1; ++j) {
-            if (!((SmlAsteroid *) package.smlArr->asteroid[i])->base.isCollisionEnabled) continue;
-            astPos = ((SmlAsteroid *) package.smlArr->asteroid[i])->base.position;
-            startPos = ((SmlAsteroid *) package.smlArr->asteroid[i])->points[j];
-            endPos = ((SmlAsteroid *) package.smlArr->asteroid[i])->points[j + 1];
-            startPos.x += astPos.x;
-            startPos.y += astPos.y;
-            endPos.x += astPos.x;
-            endPos.y += astPos.y;
-            if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
-                createParticles(0, PLAYER_GetPosition(package.player), 80, 360.0, ORANGE, 0.8, 1300);
-                PLAYER_Die(package.player);
-                package.smlArr->nbAsteroid--;
-                ((SmlAsteroid *) package.smlArr->asteroid[i])->base.isCollisionEnabled = false;
-                return NULL;
-                }
-        }
-    }
-    */
-    return NULL;
-}
 
+        if (PLAYER_IsLineInBounds(player, &startPos, &endPos)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 void ASTEROID_Free(Asteroid *asteroid, VerticePool *pool) {
     if (asteroid && asteroid->info.state != STATE_DEAD) {
