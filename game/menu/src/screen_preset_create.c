@@ -18,18 +18,10 @@ void drawAsteroids(const AsteroidArray *asteroidArray);
 Vector2 convertValueToText(float value, char* buffer, float fontSize, float spacing);
 Vector2 getTextRecCenter(Rectangle rec, Vector2 textSize);
 bool GUI_Slider(float *value, const char* sliderName, Rectangle box);
-
-static bool isModified = true;
-enum ChosenTextBox {
-    verticesSpinner,
-    presetName
-};
-enum ChosenTextBox chosenTextBox = -1;
-
 void clickSelectAsteroid(const AsteroidArray* asteroidArray, AsteroidSize *selection, const AsteroidPresetArray *presetArr);
-void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroidPtr);
-const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize *selection);
-void checkForUpdate(float oldValue, float newValue);
+void drawAstOptions(AsteroidPreset *preset, GameContext *context, AsteroidSize asteroidSize);
+const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, AsteroidSize selection);
+void checkForUpdate(float oldValue, float newValue, bool *isModified);
 void contextInit(PresetCreateContext *context);
 void drawBackground();
 
@@ -51,9 +43,8 @@ void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
     gameContext->bulletArray = BULLETS_CreateArray();
     gameContext->wave = wave;
     refreshAsteroids(gameContext->asteroidArray, gameContext->wave->presetArr);
-
     contextInit(&gameContext->screenContext.presetCreateCtx);
-
+    gameContext->screenContext.presetCreateCtx.isSizeDropdownOn = false;
 }
 
 void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
@@ -64,50 +55,49 @@ void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
 }
 
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
+    bool *isModified = &gameContext->screenContext.presetCreateCtx.isModified;
+    bool *dropdownToggle = &gameContext->screenContext.presetCreateCtx.isSizeDropdownOn;
+    PresetCreateTextArea *textArea = &gameContext->screenContext.presetCreateCtx.currentTextArea;
     PresetCreateContext *presetCreateCtx = &gameContext->screenContext.presetCreateCtx;
     ASTEROIDS_Update(gameContext->asteroidArray);
 
-    AsteroidPresetArray* presetArray = gameContext->wave->presetArr;
-    static bool dropdownToggle = false;
-    Vector2 mousePos = GetMousePosition();
-
+    const AsteroidPresetArray *presetArray = gameContext->wave->presetArr;
+    const Vector2 mousePos = GetMousePosition();
     drawBackground();
 
-
     if (GuiDropdownBox(SIZE_SELECTION_BOX(),
-    "Big;Medium;Small", (int*) &presetCreateCtx->selectedAsteroidSize, dropdownToggle)) {
-        dropdownToggle = !dropdownToggle;
+    "Big;Medium;Small", (int*) &presetCreateCtx->selectedAsteroidSize, *dropdownToggle)) {
+        *dropdownToggle = !*dropdownToggle;
     }
 
     clickSelectAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize, gameContext->wave->presetArr);
 
-    drawAstOptions(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], getAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize));
-    //-----------------------------------------------------------------------------------------------------------------------
-    //gui toggles
-    //-----------------------------------------------------------------------------------------------------------------------
+    drawAstOptions(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], gameContext, presetCreateCtx->selectedAsteroidSize);
 
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) { //chose text box and let go of it
-        if (CheckCollisionPointRec(mousePos, VERTICES_NB_BOX())) chosenTextBox = verticesSpinner;
+        if (CheckCollisionPointRec(mousePos, VERTICES_NB_BOX())) {
+            *textArea = PRESET_CREATE_VERTICES_SPINNER;
+        }
         else if (CheckCollisionPointRec(mousePos, PRESET_NAME_BOX())) {
-            chosenTextBox = presetName;
+            *textArea = PRESET_CREATE_PRESET_NAME;
         }else {
-            chosenTextBox = -1;
+            *textArea = -1;
         }
     }
-    if (IsKeyPressed(KEY_ENTER)) chosenTextBox = -1;
+    if (IsKeyPressed(KEY_ENTER)) *textArea = -1;
 
     if (GuiButton(EXIT_BOX(), "Exit")) {
         *currentScreen = SCREEN_TITLE;
-        isModified = true;
+        *isModified = true;
     }
     if (GuiButton(RESET_BOX(), "Reset")) {
         resetAsteroidAttributes();
-        isModified = true;
+        *isModified = true;
     }
     if (GuiButton(SAVE_BOX(), "Save")) {
         savePreset(&presetArray->presets[presetCreateCtx->selectedAsteroidSize], presetCreateCtx->presetName);
         resetAsteroidAttributes();
-        isModified = true;
+        *isModified = true;
         presetCreateCtx->presetName[0] = '\0';
     }
 
@@ -117,69 +107,71 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
         }
 
         resetAsteroidAttributes();
-        isModified = true;
+        *isModified = true;
         presetCreateCtx->presetName[0] = '\0';
     }
 
-    GuiToggle(GENERATE_BOX(), "Generate", &isModified);
+    GuiToggle(GENERATE_BOX(), "Generate", isModified);
     const int MAX_LINE_BUFFER_SIZE = 256;
-    GuiTextBox(PRESET_NAME_BOX(), presetCreateCtx->presetName, MAX_LINE_BUFFER_SIZE, chosenTextBox == presetName);
+    GuiTextBox(PRESET_NAME_BOX(), presetCreateCtx->presetName, MAX_LINE_BUFFER_SIZE,
+        *textArea == PRESET_CREATE_PRESET_NAME);
 
-    if (isModified) {
+    if (*isModified) {
         refreshAsteroids(gameContext->asteroidArray, gameContext->wave->presetArr);
-        isModified = false;
+        *isModified = false;
     }
 }
 
-void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroidPtr) {
+void drawAstOptions(AsteroidPreset *preset, GameContext *context, const AsteroidSize asteroidSize) {
+    bool *isModified = &context->screenContext.presetCreateCtx.isModified;
     Asteroid asteroid;
-
-    if (asteroidPtr == NULL) {
+    const Asteroid *astPtr = getAsteroid(context->asteroidArray, asteroidSize);
+    if (astPtr == NULL) {
         asteroid = ASTEROID_GetZeroInitializedAsteroid();
     } else {
-        asteroid = *asteroidPtr;
+        asteroid = *astPtr;
     }
 
 
     if (preset->isRandomBothSides == true) {
-        DrawRing(asteroid.position,(preset->radius-preset->spread),
-        (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
+        DrawRing(asteroid.position,preset->radius-preset->spread,
+        preset->radius + preset->spread, 0, 360, 0, SPREAD_COLOR);
     } else {
         DrawRing(asteroid.position,preset->radius,
-        (preset->radius+preset->spread), 0, 360, 0, SPREAD_COLOR);
+        preset->radius + preset->spread, 0, 360, 0, SPREAD_COLOR);
     }
     DrawRing(asteroid.position, preset->radius-1, preset->radius+1,
         0, 360, 0, RADIUS_COLOR);
 
     if (GUI_Slider(&preset->radius, "Radius", RADIUS_BOX())) {
-        isModified = true;
+        *isModified = true;
     }
 
     if (GUI_Slider(&preset->spread, "Spread", SPREAD_BOX())) {
-        isModified = true;
+        *isModified = true;
     }
 
     if (GUI_Slider(&preset->minRotationSpeed, "Min Turn Speed", MIN_ROTATION_BOX())) {
-        isModified = true;
+        *isModified = true;
     }
 
     if (GUI_Slider(&preset->maxRotationSpeed, "Max Turn Speed", MAX_ROTATION_BOX())) {
-        isModified = true;
+        *isModified = true;
     }
 
     if (GUI_Slider(&preset->maxSpeed, "Max Speed", MAX_SPEED_BOX())) {
-        isModified = true;
+        *isModified = true;
     }
 
     float temp = preset->isRandomBothSides;
     GuiToggle(GENERATION_STYLE_BOX(),"2 Side Rnd", &preset->isRandomBothSides);
-    checkForUpdate(temp, preset->isRandomBothSides);
+    checkForUpdate(temp, preset->isRandomBothSides, isModified);
 
     temp = preset->nbVertices;
     GuiSpinner(NB_VERTICES_BOX(),
-        "Vertices",&preset->nbVertices, 2, 10000, chosenTextBox == verticesSpinner);
+        "Vertices",&preset->nbVertices, 2, 10000, context->screenContext.presetCreateCtx.currentTextArea == PRESET_CREATE_VERTICES_SPINNER);
     if (preset->nbVertices < 0) preset->nbVertices = 0;//prevent crash
-    checkForUpdate(temp ,preset->nbVertices);
+    checkForUpdate(temp ,preset->nbVertices, isModified);
 }
 
 void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameContext) {
@@ -200,14 +192,14 @@ void clickSelectAsteroid(const AsteroidArray *asteroidArray, AsteroidSize *selec
     }
 }
 
-void checkForUpdate(const float oldValue, const float newValue) {
-    if (fabsf(oldValue - newValue) > 0.1f) isModified = true;
+void checkForUpdate(const float oldValue, const float newValue, bool *isModified) {
+    if (fabsf(oldValue - newValue) > 0.1f) *isModified = true;
 }
 
-const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize *selection) {
+const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSize selection) {
     for (int i = 0; i < asteroidArray->nbAsteroid; ++i) {
         const Asteroid *asteroid = &asteroidArray->asteroid[i];
-        if (asteroid->type == *selection) {
+        if (asteroid->type == selection) {
             return asteroid;
         }
     }
