@@ -14,36 +14,6 @@ const Asteroid* getAsteroid(const AsteroidArray* asteroidArray, const AsteroidSi
 Vector2 getAsteroidSizePosition(AsteroidSize asteroidSize);
 void drawAstOptions(AsteroidPreset *preset, const Asteroid* asteroid);
 
-
-
-// managePresets
-// ----------------------------------------------------------------------------------------------------------------
-
-// edit asteroids
-// ----------------------------------------------------------------------------------------------------------------
-
-
-/*
-void updateEditAsteroidMenu(AsteroidArray *bigArr, AsteroidArray *midArr, AsteroidArray *smlArr) {
-    if (IsKeyPressed(KEY_F)) isModified = true;
-
-    if (isModified) {
-        printf("%f", ((BigAsteroid*)bigArr->asteroid[0])->base.radius);
-        //printf("%d", ((MidAsteroid*)midArr->asteroid[0])->base.type);
-        //printf("%d", ((SmlAsteroid*)smlArr->asteroid[0])->base.type);
-        freeAsteroidArray(bigArr, SIZE_BIG);
-        freeAsteroidArray(midArr, SIZE_MEDIUM);
-        //freeAsteroidArray(smlArr, ((SmlAsteroid*)smlArr->asteroid)->base.type);
-
-        refreshAsteroids(bigArr, midArr, smlArr);
-        isModified = false;
-    }
-    rotateAsteroid(bigArr, SIZE_BIG);
-    rotateAsteroid(midArr, SIZE_MEDIUM);
-    rotateAsteroid(smlArr, SIZE_SMALL);
-}
-*/
-
 Vector2 getAsteroidSizePosition(const AsteroidSize asteroidSize) {
     switch (asteroidSize) {
         case SIZE_BIG: return BIG_ASTEROID_POS;
@@ -53,9 +23,6 @@ Vector2 getAsteroidSizePosition(const AsteroidSize asteroidSize) {
         exit(1);
     }
 }
-
-
-
 
 void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* presetArr) {
     ASTEROID_PRESETS_OrderArray(presetArr);

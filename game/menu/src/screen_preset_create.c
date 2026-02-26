@@ -45,6 +45,7 @@ void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
     refreshAsteroids(gameContext->asteroidArray, gameContext->wave->presetArr);
     contextInit(&gameContext->screenContext.presetCreateCtx);
     gameContext->screenContext.presetCreateCtx.isSizeDropdownOn = false;
+    OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
 void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
@@ -52,6 +53,7 @@ void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
     BULLETS_FreeArray(gameContext->bulletArray);
     WAVE_CONTEXT_Free(gameContext->wave);
     particleArrDestroy();
+    OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
 void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {

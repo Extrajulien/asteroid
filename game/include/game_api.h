@@ -16,6 +16,7 @@ typedef struct GameContext {
     PlayerAsteroidHitEventQueue *playerHitEventQueue;
     BulletArray *bulletArray;
     ScreenContext screenContext;
+    bool isGameOver;
 } GameContext;
 
 int StartAsteroidGame();

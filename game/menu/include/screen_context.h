@@ -1,4 +1,6 @@
 #pragma once
+#include <overlay_stack.h>
+
 #include "screen.h"
 
 typedef enum PresetCreateTextArea {
@@ -18,11 +20,17 @@ typedef struct PresetCreateContext {
     PresetCreateTextArea currentTextArea;
 } PresetCreateContext;
 
+typedef struct ScreenGameContext {
+    time_t GameOverTime;
+} ScreenGameContext;
+
 typedef struct ScreenContext {
     Screen screen;
+    OverlayStack overlayStack;
     union {
         TitleContext titleCtx;
         PresetCreateContext presetCreateCtx;
+        ScreenGameContext gameCtx;
     };
 } ScreenContext;
 

@@ -30,11 +30,11 @@ ScreenVTable SCREENS_GetTitleVTable() {
 }
 
 void openTitleScreen(const Screen *currentScreen, GameContext *gameContext) {
-
+    OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
 void closeTitleScreen(const Screen *currentScreen, GameContext *gameContext) {
-
+    OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
 void updateTitleScreen(Screen *currentScreen, GameContext *gameContext) {

@@ -7,3 +7,4 @@
 ScreenVTable SCREENS_GetTitleVTable();
 ScreenVTable SCREENS_GetPresetCreateVTable();
 ScreenVTable SCREENS_GetGameVTable();
+ScreenVTable SCREENS_GetGameOverVTable();

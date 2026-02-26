@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <time.h>
 
 #include "bullet.h"
 #include "screen.h"
@@ -14,12 +15,13 @@
 #include "menu_style.h"
 #include "raymath.h"
 
+#define GAME_OVER_DURATION_SEC 5
 
 void openGameScreen(const Screen *currentScreen, GameContext *gameContext);
 void closeGameScreen(const Screen *currentScreen, GameContext *gameContext);
 void updateGameScreen(Screen *currentScreen, GameContext *gameContext);
 void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext);
-void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray);
+void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray, bool isGameOver);
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
 
@@ -50,7 +52,12 @@ void openGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     gameContext->playerHitEventQueue = PLAYER_ASTEROID_HIT_EVENT_QUEUE_Create();
     gameContext->player = PLAYER_Create();
     gameContext->wave = wave;
+    gameContext->isGameOver = false;
     WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
+    OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
+    OVERLAY_STACK_Open(&gameContext->screenContext.overlayStack, gameContext);
+
+    OVERLAY_STACK_Push(&gameContext->screenContext.overlayStack, OVERLAY_Get(OVERLAY_PLAYER_HUD));
 }
 
 void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {
@@ -61,23 +68,36 @@ void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     PLAYER_Free(gameContext->player);
     WAVE_CONTEXT_Free(gameContext->wave);
     particleArrDestroy();
+    OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
+    OVERLAY_STACK_Close(&gameContext->screenContext.overlayStack, gameContext);
 }
 
 void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
-    PlayerAsteroidHitEventSink playerHitAsteroidEventSink = PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetSink(gameContext->playerHitEventQueue);
     if (gameContext->asteroidArray->nbAsteroid == 0) {
         WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
     }
 
     if (IsKeyPressed(KEY_E)) hasDebugMode = !hasDebugMode;
 
-    updateGame(gameContext->player, gameContext->bulletArray, gameContext->asteroidArray);
+    updateGame(gameContext->player, gameContext->bulletArray, gameContext->asteroidArray, gameContext->isGameOver);
 
     GAME_LOOP_ProcessAsteroidBulletHitEvent(gameContext);
-    GAME_LOOP_ProcessPlayerAsteroidHitEvent(gameContext);
+    if (!gameContext->isGameOver) {
+        GAME_LOOP_ProcessPlayerAsteroidHitEvent(gameContext);
+    }
 
-    if (PLAYER_IsDead(gameContext->player)) {
-        *currentScreen = SCREEN_GAME_OVER;
+    if (PLAYER_IsDead(gameContext->player) && !gameContext->isGameOver) {
+        gameContext->isGameOver = true;
+        const Overlay gameOver = OVERLAY_Get(OVERLAY_GAME_OVER);
+        OVERLAY_Open(&gameOver, gameContext);
+        OVERLAY_STACK_Push(&gameContext->screenContext.overlayStack, gameOver);
+
+        gameContext->screenContext.gameCtx.GameOverTime = time(NULL);
+    }
+
+    if (gameContext->isGameOver
+        && gameContext->screenContext.gameCtx.GameOverTime + GAME_OVER_DURATION_SEC < time(NULL)) {
+        *currentScreen = SCREEN_TITLE;
     }
 
     if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
@@ -89,26 +109,18 @@ void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
             *currentScreen = SCREEN_TITLE;
         }
     }
+    OVERLAY_STACK_Update(&gameContext->screenContext.overlayStack, gameContext);
 }
 
 void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext) {
     ClearBackground(BLACK);
     drawParticles();
     BULLETS_Render(gameContext->bulletArray);
+    if (!gameContext->isGameOver) {
+        PLAYER_Draw(gameContext->player);
+    }
 
-    PLAYER_Draw(gameContext->player);
     ASTEROIDS_Render(gameContext->asteroidArray);
-
-    char scoreText[100] = "";
-    sprintf(scoreText,"%d", PLAYER_GetScore(gameContext->player));
-    DrawText(scoreText, 10, 50, 32, WHITE);
-    char livesText[100] = "";
-    sprintf(livesText,"pv:%d", PLAYER_GetLifeCount(gameContext->player));
-    DrawText(livesText, 10, 10, 40, ORANGE);
-
-    char asteroidCountText[100] = "";
-    sprintf(asteroidCountText,"%lu", gameContext->asteroidArray->nbAsteroid);
-    DrawText(asteroidCountText, 10, 100, 32, RED);
 
     if (hasDebugMode) {
 
@@ -124,10 +136,13 @@ void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext)
         DrawFPS(30, 80);
         drawEntitiesPos((Vector2){GetScreenWidth() - 800, 100}, gameContext->player, gameContext->bulletArray);
     }
+    OVERLAY_STACK_Draw(&gameContext->screenContext.overlayStack, gameContext);
 }
 
-void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray) {
-    PLAYER_Update(player, bulletArr);
+void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray, const bool isGameOver) {
+    if (!isGameOver) {
+        PLAYER_Update(player, bulletArr);
+    }
     BULLETS_Update(bulletArr);
     ASTEROIDS_Update(asteroidArray);
     moveParticles();
