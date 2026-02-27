@@ -38,7 +38,7 @@ void WAVE_ExplodeAsteroidsFromBullet(AsteroidArray *asteroidArray, const WaveCon
     for (int i = 0; i < bulletHitEvent->count; ++i) {
         const AsteroidBulletHitEvent event = bulletHitEvent->events[i];
 
-        spawnAsteroidFromRule(asteroidArray, asteroidArray->asteroid[event.asteroidId].type, event.hitPosition, wave);
+        spawnAsteroidFromRule(asteroidArray, asteroidArray->asteroid[event.asteroidId].type, asteroidArray->asteroid[event.asteroidId].position, wave);
         explodeAsteroid(asteroidArray, event.asteroidId, event.hitPosition, event.hitAngle);
     }
     if (bulletHitEvent->count > 0) {
@@ -51,7 +51,7 @@ void WAVE_ExplodeAsteroidsFromPlayer(AsteroidArray *asteroidArray, const WaveCon
     for (int i = 0; i < eventCount; ++i) {
         const PlayerAsteroidHitEvent event = PLAYER_ASTEROID_HIT_EVENT_QUEUE_GetEvent(eQueue, i);
 
-        spawnAsteroidFromRule(asteroidArray,asteroidArray->asteroid[event.asteroidId].type, event.hitPosition, wave);
+        spawnAsteroidFromRule(asteroidArray,asteroidArray->asteroid[event.asteroidId].type, asteroidArray->asteroid[event.asteroidId].position, wave);
         explodeAsteroid(asteroidArray, event.asteroidId, event.hitPosition, event.hitAngle);
     }
     if (eventCount > 0) {
