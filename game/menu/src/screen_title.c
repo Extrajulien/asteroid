@@ -1,6 +1,6 @@
 #include "screens.h"
 #include "screen_context.h"
-
+#include "title_elements.h"
 void openTitleScreen(const Screen *currentScreen, GameContext *gameContext);
 void closeTitleScreen(const Screen *currentScreen, GameContext *gameContext);
 void updateTitleScreen(Screen *currentScreen, GameContext *gameContext);
@@ -68,46 +68,7 @@ void drawTitleScreen(const Screen *const currentScreen, const GameContext *const
     DrawText(title, (GetScreenWidth()-titleSizeX) / 2, (GetScreenHeight() / 4)-100, 256, WHITE);
     DrawText("By Julien Lamothe", (GetScreenWidth()-titleSizeX)/2 + titleSizeX-MeasureText("By Julien Lamothe", 20),
         (GetScreenHeight() / 4)+112, 20, ORANGE);
-
-    box = getStartGameBox();
-    if (CheckCollisionPointRec(mousePos, getStartGameBox())) {
-        DrawRectangle(box.x, box.y, box.width, box.height, ORANGE);
-        DrawRectangle(box.x + boxBorder / 2, box.y + boxBorder / 2, box.width - boxBorder,
-                      box.height - boxBorder, BLACK);
-        DrawText("Start", box.x + (box.width-50) / 2, box.y + box.height / 2 - 10, 20, ORANGE);
-    } else {
-        DrawRectangle(box.x, box.y, box.width, box.height, WHITE);
-        DrawRectangle(box.x + boxBorder / 2, box.y + boxBorder / 2, box.width - boxBorder,
-                      box.height - boxBorder, BLACK);
-        DrawText("Start", box.x + (box.width-50) / 2,
-                 box.y + box.height / 2 - 10, 20, WHITE);
-    }
-
-    box = getEditAsteroidsModeBox();
-    if (CheckCollisionPointRec(mousePos, getEditAsteroidsModeBox())) {
-        DrawRectangle(box.x, box.y, box.width, box.height, ORANGE);
-        DrawRectangle(box.x + boxBorder / 2, box.y + boxBorder / 2, box.width - boxBorder,
-                      box.height - boxBorder, BLACK);
-        DrawText("Edit Mode", box.x + (box.width - 96.0) / 2, box.y + box.height / 2 - 10, 20, ORANGE);
-    } else {
-        DrawRectangle(box.x, box.y, box.width, box.height, WHITE);
-        DrawRectangle(box.x + boxBorder / 2, box.y + boxBorder / 2, box.width - boxBorder,
-                      box.height - boxBorder, BLACK);
-        DrawText("Edit Mode", box.x + (box.width - 96.0) / 2,
-                 box.y + box.height / 2 - 10, 20, WHITE);
-    }
-
-    box = getManagePresetsBox();
-    if (CheckCollisionPointRec(mousePos, getManagePresetsBox())) {
-        DrawRectangle(box.x, box.y, box.width, box.height, ORANGE);
-        DrawRectangle(box.x + boxBorder / 2, box.y + boxBorder / 2, box.width - boxBorder,
-                      box.height - boxBorder, BLACK);
-        DrawText("Edit Presets", box.x + (box.width-120) / 2, box.y + box.height / 2 - 10, 20, ORANGE);
-    } else {
-        DrawRectangle(box.x, box.y, box.width, box.height, WHITE);
-        DrawRectangle(box.x + boxBorder / 2, box.y + boxBorder / 2, box.width - boxBorder,
-                      box.height - boxBorder, BLACK);
-        DrawText("Edit Presets", box.x + (box.width-120) / 2,
-                 box.y + box.height / 2 - 10, 20, WHITE);
-    }
+    DRAW_START_BOX();
+    DRAW_MAKE_PRESET_BOX();
+    DRAW_EDIT_PRESET_BOX();
 }
