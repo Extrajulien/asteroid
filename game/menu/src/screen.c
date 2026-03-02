@@ -5,6 +5,7 @@ ScreenVTable SCREEN_GetVTable(const Screen screen) {
     switch (screen) {
         case SCREEN_TITLE: return SCREENS_GetTitleVTable();
         case SCREEN_PRESET_CREATE: return SCREENS_GetPresetCreateVTable();
+        case SCREEN_PRESET_LIST: return SCREENS_GetPresetListVTable();
         case SCREEN_GAME: return SCREENS_GetGameVTable();
         default: return SCREENS_GetTitleVTable();
     }

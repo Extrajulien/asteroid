@@ -30,7 +30,6 @@ AsteroidPreset zeroInitPreset(AsteroidSize size);
 bool validatePresetName(char *presetName);
 bool* falseInitSizeCheckArray(bool *isSizeLoaded, int size);
 AsteroidSize letterToAsteroidSize(char letter);
-char AsteroidSizeToChar(AsteroidSize size);
 AsteroidPreset readPreset(char *line);
 FILE *openPresetFile(const char *filename);
 void logPreset(const AsteroidPreset *preset);
@@ -38,7 +37,7 @@ void logPreset(const AsteroidPreset *preset);
 void createPresetFile();
 
 //preset are padded to always be of SIZE_COUNT count
-void readPresetFile(AsteroidPresetArray *presets) {
+void FILE_LoadGamePresets(AsteroidPresetArray *presets) {
     FILE *presetFile = openPresetFile(PRESET_FILE_NAME);
 
     char buffer[BUFFER_SIZE];
@@ -86,6 +85,31 @@ void readPresetFile(AsteroidPresetArray *presets) {
     }
 
     ASTEROID_PRESETS_OrderArray(presets);
+}
+
+void FILE_LoadAllPresets(AsteroidPresetArray *presets) {
+    FILE *presetFile = openPresetFile(PRESET_FILE_NAME);
+
+    char buffer[BUFFER_SIZE];
+    fgets(buffer, BUFFER_SIZE, presetFile); //skip header
+
+    while (fgets(buffer, BUFFER_SIZE, presetFile)) {
+        AsteroidPreset preset = readPreset(buffer);
+
+        preset.lineInfo.color = ORANGE;
+
+        preset.lineInfo.thickness = 3;
+
+        preset.particlePreset = (ParticlePreset) {
+            12,
+            70.0f,
+            0.4f,
+            YELLOW,
+            1200.0f
+        };
+        ASTEROID_PRESETS_Add(presets, &preset);
+    }
+    fclose(presetFile);
 }
 
 void savePreset(const AsteroidPreset *preset, char *presetName) {

@@ -11,6 +11,7 @@ add_library(menu STATIC
         include/screen_virtual_table.h
         include/screen_context.h
         include/menu_style.h
+        src/screen_edit_preset.c
 )
 
 

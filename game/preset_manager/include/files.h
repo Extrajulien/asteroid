@@ -6,7 +6,9 @@
 
 typedef struct AsteroidPresetArray AsteroidPresetArray;
 
-void readPresetFile(AsteroidPresetArray *presets);
+void FILE_LoadGamePresets(AsteroidPresetArray *presets);
+void FILE_LoadAllPresets(AsteroidPresetArray *presets);
+char AsteroidSizeToChar(AsteroidSize size);
 void savePreset(const AsteroidPreset *preset, char *presetName);
 
 

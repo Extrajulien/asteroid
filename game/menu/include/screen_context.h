@@ -12,6 +12,12 @@ typedef struct TitleContext {
 
 } TitleContext;
 
+typedef struct PresetListContext {
+    AsteroidPresetArray* presetArray;
+    AsteroidArray* asteroidArray;
+    double scrollPosition;
+} PresetListContext;
+
 typedef struct PresetCreateContext {
     bool isModified;
     char presetName[512];
@@ -31,6 +37,7 @@ typedef struct ScreenContext {
         TitleContext titleCtx;
         PresetCreateContext presetCreateCtx;
         ScreenGameContext gameCtx;
+        PresetListContext presetListCtx;
     };
 } ScreenContext;
 

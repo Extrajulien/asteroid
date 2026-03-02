@@ -37,7 +37,7 @@ ScreenVTable SCREENS_GetPresetCreateVTable() {
 
 void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
     WaveContext *wave = WAVE_CONTEXT_Create();
-    readPresetFile(wave->presetArr);
+    FILE_LoadGamePresets(wave->presetArr);
     particleArrInit(10);
     gameContext->asteroidArray = ASTEROIDS_CreateArray();
     gameContext->bulletArray = BULLETS_CreateArray();
