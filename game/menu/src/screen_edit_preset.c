@@ -13,6 +13,8 @@ void drawPresetListScreen(const Screen *currentScreen, const GameContext *gameCo
 
 void DrawListItem(PresetListContext ctx, size_t index, Color BG_COLOR);
 
+void scroll(GameContext* gameContext);
+
 ScreenVTable SCREENS_GetPresetListVTable() {
     return (ScreenVTable) {
         .screen = SCREEN_PRESET_LIST,
@@ -34,17 +36,26 @@ void openPresetListScreen(const Screen *currentScreen, GameContext *gameContext)
         ASTEROIDS_Add(gameContext->screenContext.presetListCtx.asteroidArray, asteroid);
     }
     ASTEROIDS_Update(gameContext->screenContext.presetListCtx.asteroidArray);
+
+    gameContext->screenContext.presetListCtx.scrollSensitivity = 10;
+    gameContext->screenContext.presetListCtx.scrollPosition = 0;
+    gameContext->screenContext.presetListCtx.scrollSpeed = 0;
 }
 
 void closePresetListScreen(const Screen *currentScreen, GameContext *gameContext) {
     ASTEROIDS_FreeArray(gameContext->screenContext.presetListCtx.asteroidArray);
     ASTEROID_PRESETS_Free(gameContext->screenContext.presetListCtx.presetArray);
-    VERTICE_POOL_Free(gameContext->screenContext.presetListCtx.asteroidArray->verticePool);
 }
 
 void updatePresetListScreen(Screen *currentScreen, GameContext *gameContext) {
-    GetMouseWheelMove();
     ASTEROIDS_Update(gameContext->screenContext.presetListCtx.asteroidArray);
+
+    scroll(gameContext);
+
+
+    if (IsKeyPressed(KEY_TAB)) {
+        *currentScreen = SCREEN_TITLE;
+    }
 }
 
 void drawPresetListScreen(const Screen *currentScreen, const GameContext *gameContext) {
@@ -63,7 +74,7 @@ void DrawListItem(PresetListContext ctx, const size_t index, const Color BG_COLO
     const int VERTICAL_SPACING = 20;
     const int listWidth = 1500;
     const int listHeight = 250;
-    const int listY = TOP_GUTTER_SIZE + listHeight * index + VERTICAL_SPACING * index;
+    const int listY = TOP_GUTTER_SIZE + listHeight * index + VERTICAL_SPACING + ctx.scrollPosition;
     const int borderWidth = 5;
     const Color ACCENT_COLOR = CheckCollisionPointRec(GetMousePosition(), (Rectangle) {LEFT_GUTTER_SIZE, listY, listWidth, listHeight}) ? ORANGE : WHITE;
 
@@ -101,6 +112,21 @@ void DrawListItem(PresetListContext ctx, const size_t index, const Color BG_COLO
         const Vector2 endPos = Vector2Add(vert->vertices[(j + 1) % vert->count], astPos);
         DrawLineEx(startPos, endPos, asteroid.lineInfo.thickness, asteroid.lineInfo.color);
     }
+}
+
+void scroll(GameContext* gameContext) {
+    double *scroll = &gameContext->screenContext.presetListCtx.scrollSpeed;
+    double *scrollPos = &gameContext->screenContext.presetListCtx.scrollPosition;
+    const double *sensitivity = &gameContext->screenContext.presetListCtx.scrollSensitivity;
+    const double friction = 10;
+    *scroll += GetMouseWheelMove() * *sensitivity;
+
+    *scrollPos += *scroll;
+    if (*scroll < friction && *scroll > -friction) *scroll = 0;
+    if (*scroll < 0) (*scroll)++;
+    if (*scroll > 0) (*scroll)--;
+    if (*scrollPos > 0) *scrollPos = 0;
+    //if (*scroll < gameContext->screenContext) *scroll = scrollSensitivity;
 }
 
 
