@@ -1,5 +1,9 @@
 #ifndef PARTICLES_H
 #define PARTICLES_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include "raylib.h"
 
@@ -33,5 +37,10 @@ void particleArrAdd(Particle particle);
 void drawParticles();
 void moveParticles();
 void clearDeadParticles();
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //PARTICLES_H

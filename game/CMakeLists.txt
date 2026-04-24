@@ -1,8 +1,6 @@
 add_library(game STATIC
-        game.c
+        game.cpp
         include/game_api.h
-        utils/src/char_array.c
-        utils/include/char_array.h
 )
 
 # === Dependencies ===

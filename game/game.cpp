@@ -1,11 +1,11 @@
-#include <limits.h>
-
+#include <climits>
+extern "C" {
 #include "raylib.h"
-#include <stdio.h>
-#include <math.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <time.h>
+}
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
 #include "asteroid_bullet_hit_event_queue.h"
 #include "asteroid_vertice_pool.h"
 #include "bullet_array.h"
@@ -27,13 +27,14 @@ void showGameoverScreen(Screen *currentScreen);
 int StartAsteroidGame() {
     srand((unsigned int)time(NULL));
     InitWindow(1920, 1080, "Asteroids");
-    //InitAudioDevice();
-    //Music music = LoadMusicStream("../music");
-    //PlayMusicStream(music);
+    InitAudioDevice();
+    Music music = LoadMusicStream("../music.mp3");
+    PlayMusicStream(music);
 
     SetTargetFPS(MAX_FPS);
     loadThemes();
     GameContext context = {
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -45,10 +46,10 @@ int StartAsteroidGame() {
     Screen currentScreen = SCREEN_TITLE;
     ScreenVTable screenFunction = SCREEN_GetVTable(currentScreen);
     screenFunction.open(&currentScreen, &context);
-
+    UpdateMusicStream(music);
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        //UpdateMusicStream(music);
+
 
         screenFunction.update(&currentScreen, &context);
         if (currentScreen != screenFunction.screen) {
@@ -61,7 +62,7 @@ int StartAsteroidGame() {
 
         EndDrawing();
     }
-    //CloseAudioDevice();
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }

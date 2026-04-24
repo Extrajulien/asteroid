@@ -1,4 +1,7 @@
 #pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
 #define MAX_FPS INT_MAX
 #include "wave.h"
 #include "asteroid_array.h"
@@ -21,3 +24,6 @@ typedef struct GameContext {
 
 int StartAsteroidGame();
 
+#ifdef __cplusplus
+}
+#endif

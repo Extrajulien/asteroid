@@ -1,5 +1,8 @@
 #ifndef MENU_H
 #define MENU_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "raylib.h"
 
 #define DARKERGRAY (Color){20,20,20,255}
@@ -22,5 +25,9 @@ void refreshAsteroids(AsteroidArray *asteroidArray, const AsteroidPresetArray* p
 
 void loadThemes();
 void initMenuBoxes();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //MENU_H

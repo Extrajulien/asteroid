@@ -1,4 +1,8 @@
 #pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "game_api.h"
 #include "screen.h"
 
@@ -11,3 +15,7 @@ typedef struct ScreenVTable {
 } ScreenVTable;
 
 ScreenVTable SCREEN_GetVTable(Screen screen);
+
+#ifdef __cplusplus
+}
+#endif
