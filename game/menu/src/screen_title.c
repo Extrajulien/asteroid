@@ -6,8 +6,6 @@ void closeTitleScreen(GameContext *gameContext);
 void updateTitleScreen(GameContext *gameContext);
 void drawTitleScreen(const GameContext *gameContext);
 
-
-
 Rectangle getStartGameBox() {
     return (Rectangle){(GetScreenWidth()-350) / 2, GetScreenHeight() / 2, 350, 100};
 }
@@ -60,11 +58,8 @@ void updateTitleScreen(GameContext *gameContext) {
 
 void drawTitleScreen(const GameContext *const gameContext) {
     ClearBackground(BLACK);
-    Vector2 mousePos = GetMousePosition();
-    int boxBorder = 10;
-    Rectangle box;
-    char *title = "Asteroids";
-    int titleSizeX = MeasureText(title, 256);
+    const char *title = "Asteroids";
+    const int titleSizeX = MeasureText(title, 256);
     DrawText(title, (GetScreenWidth()-titleSizeX) / 2, (GetScreenHeight() / 4)-100, 256, WHITE);
     DrawText("By Julien Lamothe", (GetScreenWidth()-titleSizeX)/2 + titleSizeX-MeasureText("By Julien Lamothe", 20),
         (GetScreenHeight() / 4)+112, 20, ORANGE);

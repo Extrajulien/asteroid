@@ -73,7 +73,7 @@ void updateCreatorScreen(GameContext *gameContext) {
         *dropdownToggle = !*dropdownToggle;
     }
     if (IsKeyPressed(KEY_TAB)) {
-        *currentScreen = SCREEN_TITLE;
+        gameContext->screenContext.screen = SCREEN_TITLE;
     }
 
     clickSelectAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize, gameContext->wave->presetArr);
