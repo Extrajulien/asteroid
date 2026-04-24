@@ -6,10 +6,10 @@
 #include "raymath.h"
 #include "screen_virtual_table.h"
 
-void openPresetListScreen(const Screen *currentScreen, GameContext *gameContext);
-void closePresetListScreen(const Screen *currentScreen, GameContext *gameContext);
-void updatePresetListScreen(Screen *currentScreen, GameContext *gameContext);
-void drawPresetListScreen(const Screen *currentScreen, const GameContext *gameContext);
+void openPresetListScreen(GameContext *gameContext);
+void closePresetListScreen(GameContext *gameContext);
+void updatePresetListScreen(GameContext *gameContext);
+void drawPresetListScreen(const GameContext *gameContext);
 
 void DrawListItem(PresetListContext ctx, size_t index, Color BG_COLOR);
 
@@ -23,7 +23,7 @@ ScreenVTable SCREENS_GetPresetListVTable() {
     };
 }
 
-void openPresetListScreen(const Screen *currentScreen, GameContext *gameContext) {
+void openPresetListScreen(GameContext *gameContext) {
     gameContext->screenContext.presetListCtx.asteroidArray = ASTEROIDS_CreateArray();
     gameContext->screenContext.presetListCtx.presetArray = ASTEROID_PRESETS_CreateArray();
     gameContext->screenContext.presetListCtx.asteroidArray->verticePool = VERTICE_POOL_Create();
@@ -36,18 +36,18 @@ void openPresetListScreen(const Screen *currentScreen, GameContext *gameContext)
     ASTEROIDS_Update(gameContext->screenContext.presetListCtx.asteroidArray);
 }
 
-void closePresetListScreen(const Screen *currentScreen, GameContext *gameContext) {
+void closePresetListScreen(GameContext *gameContext) {
     ASTEROIDS_FreeArray(gameContext->screenContext.presetListCtx.asteroidArray);
     ASTEROID_PRESETS_Free(gameContext->screenContext.presetListCtx.presetArray);
     VERTICE_POOL_Free(gameContext->screenContext.presetListCtx.asteroidArray->verticePool);
 }
 
-void updatePresetListScreen(Screen *currentScreen, GameContext *gameContext) {
+void updatePresetListScreen(GameContext *gameContext) {
     GetMouseWheelMove();
     ASTEROIDS_Update(gameContext->screenContext.presetListCtx.asteroidArray);
 }
 
-void drawPresetListScreen(const Screen *currentScreen, const GameContext *gameContext) {
+void drawPresetListScreen(const GameContext *const gameContext) {
     const Color BG_COLOR = BLACK;
     ClearBackground(BG_COLOR);
 

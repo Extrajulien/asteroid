@@ -17,10 +17,10 @@
 
 #define GAME_OVER_DURATION_SEC 5
 
-void openGameScreen(const Screen *currentScreen, GameContext *gameContext);
-void closeGameScreen(const Screen *currentScreen, GameContext *gameContext);
-void updateGameScreen(Screen *currentScreen, GameContext *gameContext);
-void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext);
+void openGameScreen(GameContext *gameContext);
+void closeGameScreen(GameContext *gameContext);
+void updateGameScreen(GameContext *gameContext);
+void drawGameScreen(const GameContext *gameContext);
 void updateGame(Player *player, BulletArray *bulletArr, AsteroidArray *asteroidArray, bool isGameOver);
 
 void drawGrid(int x, int y, int size, Player *player, bool hasVectorDisplay);
@@ -42,7 +42,7 @@ ScreenVTable SCREENS_GetGameVTable() {
 
 static bool hasDebugMode = false;
 
-void openGameScreen(const Screen *currentScreen, GameContext *gameContext) {
+void openGameScreen(GameContext *gameContext) {
     WaveContext *wave = WAVE_CONTEXT_Create();
     FILE_LoadGamePresets(wave->presetArr);
     particleArrInit(10);
@@ -60,7 +60,7 @@ void openGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     OVERLAY_STACK_Push(&gameContext->screenContext.overlayStack, OVERLAY_Get(OVERLAY_PLAYER_HUD));
 }
 
-void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {
+void closeGameScreen(GameContext *gameContext) {
     ASTEROIDS_FreeArray(gameContext->asteroidArray);
     BULLETS_FreeArray(gameContext->bulletArray);
     ASTEROID_BULLET_HIT_EVENT_QUEUE_Free(gameContext->bulletHitEventQueue);
@@ -72,7 +72,7 @@ void closeGameScreen(const Screen *currentScreen, GameContext *gameContext) {
     OVERLAY_STACK_Close(&gameContext->screenContext.overlayStack, gameContext);
 }
 
-void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
+void updateGameScreen(GameContext *gameContext) {
     if (gameContext->asteroidArray->nbAsteroid == 0) {
         WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
     }
@@ -97,7 +97,7 @@ void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
 
     if (gameContext->isGameOver
         && gameContext->screenContext.gameCtx.GameOverTime + GAME_OVER_DURATION_SEC < time(NULL)) {
-        *currentScreen = SCREEN_TITLE;
+        gameContext->screenContext.screen = SCREEN_TITLE;
     }
 
     if (IsKeyPressed(KEY_Z) || IsKeyPressed(KEY_TAB)) {
@@ -106,13 +106,13 @@ void updateGameScreen(Screen *currentScreen, GameContext *gameContext) {
         WAVE_SpawnAsteroids(gameContext->asteroidArray, gameContext->wave, PLAYER_GetExclusionCircle(gameContext->player));
         PLAYER_Reset(gameContext->player);
         if (IsKeyPressed(KEY_TAB)) {
-            *currentScreen = SCREEN_TITLE;
+            gameContext->screenContext.screen = SCREEN_TITLE;
         }
     }
     OVERLAY_STACK_Update(&gameContext->screenContext.overlayStack, gameContext);
 }
 
-void drawGameScreen(const Screen *currentScreen, const GameContext *gameContext) {
+void drawGameScreen(const GameContext *const gameContext) {
     ClearBackground(BLACK);
     drawParticles();
     BULLETS_Render(gameContext->bulletArray);

@@ -1,10 +1,10 @@
 #include "screens.h"
 #include "screen_context.h"
 #include "title_elements.h"
-void openTitleScreen(const Screen *currentScreen, GameContext *gameContext);
-void closeTitleScreen(const Screen *currentScreen, GameContext *gameContext);
-void updateTitleScreen(Screen *currentScreen, GameContext *gameContext);
-void drawTitleScreen(const Screen *currentScreen, const GameContext *gameContext);
+void openTitleScreen(GameContext *gameContext);
+void closeTitleScreen(GameContext *gameContext);
+void updateTitleScreen(GameContext *gameContext);
+void drawTitleScreen(const GameContext *gameContext);
 
 
 
@@ -29,36 +29,36 @@ ScreenVTable SCREENS_GetTitleVTable() {
     };
 }
 
-void openTitleScreen(const Screen *currentScreen, GameContext *gameContext) {
+void openTitleScreen(GameContext *gameContext) {
     OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
-void closeTitleScreen(const Screen *currentScreen, GameContext *gameContext) {
+void closeTitleScreen(GameContext *gameContext) {
     OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
-void updateTitleScreen(Screen *currentScreen, GameContext *gameContext) {
+void updateTitleScreen(GameContext *gameContext) {
     const Vector2 mousePos = GetMousePosition();
     if (CheckCollisionPointRec(mousePos, getStartGameBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            *currentScreen = SCREEN_GAME;
+            gameContext->screenContext.screen = SCREEN_GAME;
             return;
         }
     }
     if (CheckCollisionPointRec(mousePos, getEditAsteroidsModeBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            *currentScreen = SCREEN_PRESET_CREATE;
+            gameContext->screenContext.screen = SCREEN_PRESET_CREATE;
             return;
         }
     }
     if (CheckCollisionPointRec(mousePos, getManagePresetsBox())) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            *currentScreen = SCREEN_PRESET_LIST;
+            gameContext->screenContext.screen = SCREEN_PRESET_LIST;
         }
     }
 }
 
-void drawTitleScreen(const Screen *const currentScreen, const GameContext *const gameContext) {
+void drawTitleScreen(const GameContext *const gameContext) {
     ClearBackground(BLACK);
     Vector2 mousePos = GetMousePosition();
     int boxBorder = 10;

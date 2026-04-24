@@ -10,10 +10,11 @@
 #include "screen_virtual_table.h"
 #include "menu.h"
 #include "preset_create_elements.h"
-void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext);
-void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext);
-void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext);
-void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameContext);
+void openCreatorScreen(GameContext *gameContext);
+void closeCreatorScreen(GameContext *gameContext);
+void updateCreatorScreen(GameContext *gameContext);
+void drawCreatorScreen(const GameContext *gameContext);
+
 void drawAsteroids(const AsteroidArray *asteroidArray);
 Vector2 convertValueToText(float value, char* buffer, float fontSize, float spacing);
 Vector2 getTextRecCenter(Rectangle rec, Vector2 textSize);
@@ -35,7 +36,7 @@ ScreenVTable SCREENS_GetPresetCreateVTable() {
     };
 }
 
-void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
+void openCreatorScreen(GameContext *gameContext) {
     WaveContext *wave = WAVE_CONTEXT_Create();
     FILE_LoadGamePresets(wave->presetArr);
     particleArrInit(10);
@@ -48,7 +49,7 @@ void openCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
     OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
-void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
+void closeCreatorScreen(GameContext *gameContext) {
     ASTEROIDS_FreeArray(gameContext->asteroidArray);
     BULLETS_FreeArray(gameContext->bulletArray);
     WAVE_CONTEXT_Free(gameContext->wave);
@@ -56,7 +57,7 @@ void closeCreatorScreen(const Screen *currentScreen, GameContext *gameContext) {
     OVERLAY_STACK_Reset(&gameContext->screenContext.overlayStack);
 }
 
-void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
+void updateCreatorScreen(GameContext *gameContext) {
     bool *isModified = &gameContext->screenContext.presetCreateCtx.isModified;
     bool *dropdownToggle = &gameContext->screenContext.presetCreateCtx.isSizeDropdownOn;
     PresetCreateTextArea *textArea = &gameContext->screenContext.presetCreateCtx.currentTextArea;
@@ -89,7 +90,7 @@ void updateCreatorScreen(Screen *currentScreen, GameContext *gameContext) {
     if (IsKeyPressed(KEY_ENTER)) *textArea = -1;
 
     if (GuiButton(EXIT_BOX(), "Exit")) {
-        *currentScreen = SCREEN_TITLE;
+        gameContext->screenContext.screen = SCREEN_TITLE;
         *isModified = true;
     }
     if (GuiButton(RESET_BOX(), "Reset")) {
@@ -176,7 +177,7 @@ void drawAstOptions(AsteroidPreset *preset, GameContext *context, const Asteroid
     checkForUpdate(temp ,preset->nbVertices, isModified);
 }
 
-void drawCreatorScreen(const Screen *currentScreen, const GameContext *gameContext) {
+void drawCreatorScreen(const GameContext *const gameContext) {
     ClearBackground(BLACK);
     drawAsteroids(gameContext->asteroidArray);
 }
