@@ -15,7 +15,9 @@ typedef struct TitleContext {
 typedef struct PresetListContext {
     AsteroidPresetArray* presetArray;
     AsteroidArray* asteroidArray;
-    double scrollPosition;
+    double scrollPosition; // current pos
+    double scrollSpeed; // scroll vector
+    double scrollSensitivity; // base speed increment
 } PresetListContext;
 
 typedef struct PresetCreateContext {

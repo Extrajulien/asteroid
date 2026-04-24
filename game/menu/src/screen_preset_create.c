@@ -72,6 +72,9 @@ void updateCreatorScreen(GameContext *gameContext) {
     "Big;Medium;Small", (int*) &presetCreateCtx->selectedAsteroidSize, *dropdownToggle)) {
         *dropdownToggle = !*dropdownToggle;
     }
+    if (IsKeyPressed(KEY_TAB)) {
+        *currentScreen = SCREEN_TITLE;
+    }
 
     clickSelectAsteroid(gameContext->asteroidArray, &presetCreateCtx->selectedAsteroidSize, gameContext->wave->presetArr);
 
