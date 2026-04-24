@@ -15,14 +15,13 @@ extern "C" {
 #include "wave.h"
 #define SUPPORT_FILEFORMAT_MP3
 
-void update();
-
+void gameLoop(GameContext& context);
 int StartAsteroidGame() {
     srand(static_cast<unsigned int>(time(nullptr)));
     InitWindow(1920, 1080, "Asteroids");
     InitAudioDevice();
-    Music music = LoadMusicStream("../music.mp3");
-    PlayMusicStream(music);
+    //Music music = LoadMusicStream("../music.mp3");
+    //PlayMusicStream(music);
 
     SetTargetFPS(MAX_FPS);
     loadThemes();
@@ -37,13 +36,19 @@ int StartAsteroidGame() {
         false
     };
 
+    gameLoop(context);
+
+    //CloseAudioDevice();
+    CloseWindow();
+    return 0;
+}
+
+void gameLoop(GameContext& context) {
     ScreenVTable screenFunction = SCREEN_GetVTable(context.screenContext.screen);
     screenFunction.open(&context);
-    UpdateMusicStream(music);
+    //UpdateMusicStream(music);
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-
-
         screenFunction.update(&context);
         if (context.screenContext.screen != screenFunction.screen) {
             screenFunction.close(&context);
@@ -55,10 +60,4 @@ int StartAsteroidGame() {
 
         EndDrawing();
     }
-    CloseAudioDevice();
-    CloseWindow();
-    return 0;
-}
-
-void update() {
 }
